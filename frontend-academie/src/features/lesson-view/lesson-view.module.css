@@ -1,0 +1,143 @@
+.page {
+  --lesson-bg: #f3f6fb;
+  --lesson-panel: #ffffff;
+  --lesson-stroke: #d9e2ef;
+  --lesson-text: #1d2430;
+  --lesson-muted: #556375;
+  --lesson-accent: #1a73e8;
+  min-height: 100vh;
+  padding: 1.2rem;
+  background:
+    linear-gradient(150deg, rgba(0, 112, 243, 0.12) 0%, transparent 35%),
+    linear-gradient(330deg, rgba(0, 182, 146, 0.12) 0%, transparent 28%),
+    var(--lesson-bg);
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  color: var(--lesson-text);
+}
+
+.layout {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.player,
+.sidebar {
+  background: var(--lesson-panel);
+  border: 1px solid var(--lesson-stroke);
+  border-radius: 20px;
+}
+
+.player {
+  overflow: hidden;
+}
+
+.video {
+  aspect-ratio: 16 / 9;
+  background:
+    linear-gradient(45deg, rgba(0, 112, 243, 0.35), rgba(10, 20, 35, 0.7)),
+    url("https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=1200&q=80")
+      center / cover;
+  display: grid;
+  place-items: center;
+}
+
+.play {
+  border: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f1a2b;
+  font-size: 1.7rem;
+}
+
+.lessonInfo {
+  padding: 1rem 1.1rem 1.3rem;
+}
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: #3b6ca8;
+  font-weight: 700;
+}
+
+.lessonInfo h1 {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+}
+
+.lessonInfo p {
+  margin: 0.6rem 0 0;
+  color: var(--lesson-muted);
+}
+
+.progress {
+  margin-top: 0.9rem;
+  height: 8px;
+  border-radius: 999px;
+  background: #e7edf7;
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  width: 58%;
+  background: linear-gradient(90deg, #1a73e8, #04aa95);
+}
+
+.sidebar {
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.playlist,
+.resources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.playlist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  border: 1px solid var(--lesson-stroke);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.88rem;
+}
+
+.playlist li strong {
+  color: #1b5fc1;
+}
+
+.resources li {
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  background: #f4f8ff;
+  color: #274870;
+  font-size: 0.87rem;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  }
+}

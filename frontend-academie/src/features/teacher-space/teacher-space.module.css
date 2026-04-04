@@ -1,0 +1,1582 @@
+.shell {
+  min-height: 100vh;
+  background: #f8f9ff;
+  color: #0d1c2e;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 22px 16px;
+  background: #f4f7ff;
+  border-right: 1px solid #e3e9f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTitle {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.2rem;
+  color: #004ac6;
+  font-weight: 700;
+}
+
+.brandSub {
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.62rem;
+  color: #707b92;
+}
+
+.nav {
+  margin-top: 24px;
+  display: grid;
+  gap: 6px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #54617a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.navItem:hover {
+  background: #e8efff;
+}
+
+.navItemActive {
+  color: #003ea8;
+  background: #dbe7ff;
+}
+
+.navIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #edf2ff;
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.upgradeCard {
+  margin-top: auto;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #004ac6, #2563eb);
+  color: #ffffff;
+  padding: 14px;
+}
+
+.upgradeButton {
+  margin-top: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #004ac6;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 9px 12px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(195, 198, 215, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.topbar h1 {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.18rem;
+  color: #004ac6;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search {
+  border: 0;
+  border-radius: 999px;
+  background: #eff4ff;
+  padding: 9px 14px;
+  min-width: 250px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #d7deef;
+  object-fit: cover;
+}
+
+.page {
+  padding: 24px;
+}
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid #e3e9f6;
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #667286;
+  font-size: 0.75rem;
+}
+
+.gridKpi {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5ebf7;
+  box-shadow: 0 12px 24px rgba(13, 28, 46, 0.05);
+  padding: 16px;
+}
+
+.kpiLabel {
+  color: #657286;
+  font-size: 0.76rem;
+}
+
+.kpiValue {
+  margin-top: 4px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.kpiTrend {
+  margin-top: 4px;
+  font-size: 0.73rem;
+  color: #004ac6;
+}
+
+.split {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 9px;
+  border-bottom: 1px solid #edf2fb;
+  font-size: 0.84rem;
+}
+
+.progressWrap {
+  height: 7px;
+  border-radius: 999px;
+  background: #e8efff;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.progressFill {
+  height: 100%;
+  background: #004ac6;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #dce9ff;
+  color: #003ea8;
+}
+
+.sectionTitle {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+}
+
+.sectionSub {
+  color: #5f6b80;
+  margin-top: 8px;
+}
+
+.formGrid {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: #eff4ff;
+  padding: 11px 12px;
+}
+
+.textarea {
+  min-height: 120px;
+}
+
+.buttonRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.ghostBtn,
+.primaryBtn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+.ghostBtn {
+  background: #dce9ff;
+  color: #004ac6;
+}
+
+.primaryBtn {
+  background: linear-gradient(135deg, #004ac6, #2563eb);
+  color: #ffffff;
+}
+
+.teacherDashboardStatsGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+}
+
+.teacherLargeStatCard,
+.teacherStatCard,
+.teacherRiskCard,
+.teacherChartCard,
+.teacherSpotlightCard,
+.teacherInsightsCard,
+.teacherTableCard {
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e5ebf7;
+  box-shadow: 0 12px 24px rgba(13, 28, 46, 0.05);
+}
+
+.teacherLargeStatCard {
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacherLargeStatCard p,
+.teacherStatCard p,
+.teacherRiskCard p {
+  margin: 0;
+  color: #6a768e;
+  font-size: 0.83rem;
+}
+
+.teacherLargeStatCard h3,
+.teacherStatCard h3,
+.teacherRiskCard h3 {
+  margin: 6px 0 0;
+  font-size: 2rem;
+  font-weight: 800;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.teacherTrendSuccess {
+  display: inline-flex;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #eaf8ef;
+  color: #137b44;
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 3px 8px;
+}
+
+.teacherStatCard,
+.teacherRiskCard {
+  padding: 18px;
+}
+
+.teacherRiskCard {
+  background: #fff4f3;
+  border-style: dashed;
+  border-color: #f0b8b2;
+}
+
+.teacherRiskCard span {
+  display: inline-block;
+  margin-top: 6px;
+  color: #b3261e;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.teacherMiddleGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+}
+
+.teacherChartCard {
+  padding: 18px;
+}
+
+.teacherChartHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.teacherChartHead h3 {
+  margin: 0;
+}
+
+.teacherChartHead p {
+  margin: 4px 0 0;
+  color: #667287;
+  font-size: 0.8rem;
+}
+
+.teacherRangeSelect {
+  border: 0;
+  border-radius: 9px;
+  background: #eff4ff;
+  color: #526078;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.teacherChartMock {
+  margin-top: 12px;
+  height: 230px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f7f9ff 0%, #ffffff 100%);
+  border: 1px solid #edf2fb;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacherChartMock svg {
+  width: 100%;
+  height: 100%;
+}
+
+.teacherChartMock path:first-child {
+  fill: rgba(37, 99, 235, 0.2);
+}
+
+.teacherChartLine {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 2;
+}
+
+.teacherChartLabels {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 0.63rem;
+  color: #7a859a;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.teacherSideCards {
+  display: grid;
+  gap: 14px;
+}
+
+.teacherSpotlightCard {
+  padding: 18px;
+  background: linear-gradient(135deg, #2563eb, #004ac6);
+  color: #ffffff;
+}
+
+.teacherSpotlightCard h4,
+.teacherInsightsCard h4,
+.teacherTableHead h4 {
+  margin: 0;
+}
+
+.teacherSpotlightCard p {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  opacity: 0.92;
+  font-size: 0.84rem;
+}
+
+.teacherInsightsCard {
+  padding: 18px;
+}
+
+.teacherInsightsCard ul {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.teacherInsightsCard li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacherInsightsCard li p {
+  margin: 0;
+  font-size: 0.77rem;
+}
+
+.teacherInsightDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.teacherInsight_primary {
+  background: #2563eb;
+}
+
+.teacherInsight_error {
+  background: #b3261e;
+}
+
+.teacherInsight_secondary {
+  background: #495c95;
+}
+
+.teacherTableCard {
+  margin-top: 18px;
+  overflow: hidden;
+}
+
+.teacherTableHead {
+  padding: 16px 18px;
+  border-bottom: 1px solid #edf2fb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.teacherLinkButton {
+  border: 0;
+  background: transparent;
+  color: #004ac6;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.teacherTableWrap {
+  overflow-x: auto;
+}
+
+.teacherTable {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.teacherTable th {
+  text-align: left;
+  padding: 12px 18px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: #6f7c93;
+  background: #f7f9ff;
+}
+
+.teacherTable td {
+  padding: 14px 18px;
+  border-top: 1px solid #edf2fb;
+  vertical-align: middle;
+}
+
+.teacherStudentCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.teacherInitials {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: #e6eeff;
+  color: #004ac6;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  font-size: 0.74rem;
+}
+
+.teacherStudentCell strong {
+  font-size: 0.86rem;
+}
+
+.teacherStudentCell p,
+.teacherTable td p {
+  margin: 2px 0 0;
+  color: #6b7890;
+  font-size: 0.72rem;
+}
+
+.teacherStatusPill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.teacherStatus_NeedsReview {
+  background: #e9f1ff;
+  color: #003ea8;
+}
+
+.teacherStatus_AutoValidated {
+  background: #e9f8ef;
+  color: #1b7f4d;
+}
+
+.teacherStatus_Resubmitted {
+  background: #fff4df;
+  color: #946200;
+}
+
+.teacherActionsCell {
+  text-align: right;
+}
+
+.teacherSecondaryBtn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  background: #eef2fa;
+  color: #4e5c76;
+}
+
+.courseMgmtHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.courseMgmtBreadcrumbs {
+  margin: 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7b869c;
+}
+
+.courseMgmtActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.courseMgmtStatsGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.courseMetricCard {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5ebf7;
+  box-shadow: 0 12px 24px rgba(13, 28, 46, 0.05);
+  padding: 16px;
+}
+
+.courseMetricCardSecondary {
+  border-left: 4px solid #004ac6;
+}
+
+.courseMetricCard p {
+  margin: 0;
+  color: #6c7890;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.courseMetricCard strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0d1c2e;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.courseMetricCard span {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 0.72rem;
+  color: #245f9b;
+  font-weight: 700;
+}
+
+.courseLedgerCard {
+  margin-top: 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e5ebf7;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(13, 28, 46, 0.05);
+}
+
+.courseLedgerHead {
+  padding: 15px 18px;
+  border-bottom: 1px solid #edf2fb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.courseLedgerHead h3 {
+  margin: 0;
+}
+
+.courseLedgerTools {
+  display: flex;
+  gap: 8px;
+}
+
+.courseLedgerTools button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: #eff4ff;
+  color: #536179;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.courseLedgerScroller {
+  overflow-x: auto;
+}
+
+.courseLedgerTable {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.courseLedgerTable th {
+  text-align: left;
+  padding: 11px 18px;
+  background: #f7f9ff;
+  color: #728099;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.courseLedgerTable td {
+  padding: 14px 18px;
+  border-top: 1px solid #edf2fb;
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+
+.courseLessonCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.courseLessonIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #e9f1ff;
+  color: #004ac6;
+  font-weight: 800;
+  font-size: 0.74rem;
+}
+
+.courseLessonCell strong {
+  font-size: 0.86rem;
+}
+
+.courseLessonCell p {
+  margin: 2px 0 0;
+  color: #6f7d95;
+  font-size: 0.72rem;
+}
+
+.courseTypePill {
+  border-radius: 7px;
+  padding: 4px 8px;
+  background: #e6eeff;
+  color: #004ac6;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.courseStatusPill {
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.courseStatus_Published {
+  background: #e9f8ef;
+  color: #1b7f4d;
+}
+
+.courseStatus_Draft {
+  background: #eff2f8;
+  color: #5f6b80;
+}
+
+.courseStatus_Scheduled {
+  background: #e9f1ff;
+  color: #004ac6;
+}
+
+.courseRowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.courseRowActions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: #f2f5fb;
+  color: #51607a;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.courseLedgerFooter {
+  border-top: 1px solid #edf2fb;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.courseLedgerFooter p {
+  margin: 0;
+  color: #6f7d95;
+  font-size: 0.75rem;
+}
+
+.courseLedgerFooter div {
+  display: flex;
+  gap: 6px;
+}
+
+.courseLedgerFooter button {
+  border: 0;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  background: #eff4ff;
+  color: #4e5d77;
+  font-weight: 700;
+}
+
+.courseLedgerFooter button:first-child {
+  background: #004ac6;
+  color: #ffffff;
+}
+
+.courseLowerGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+}
+
+.courseInsightCard,
+.courseProgressCard {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5ebf7;
+  box-shadow: 0 12px 24px rgba(13, 28, 46, 0.05);
+  padding: 18px;
+}
+
+.courseInsightCard {
+  border-top: 4px solid #004ac6;
+}
+
+.courseInsightHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.courseInsightHead h4,
+.courseProgressCard h4 {
+  margin: 0;
+}
+
+.courseInsightHead p {
+  margin: 4px 0 0;
+  color: #68758d;
+  font-size: 0.8rem;
+}
+
+.courseInsightBars {
+  margin-top: 14px;
+  height: 190px;
+  border-radius: 10px;
+  background: #eef3ff;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: 8px;
+  padding: 14px;
+}
+
+.courseInsightBars span {
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #2563eb, #004ac6);
+  min-height: 10px;
+}
+
+.courseInsightLegend {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e4eaf7;
+  display: flex;
+  justify-content: space-between;
+  color: #7a869d;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.courseProgressList {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.courseProgressRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.courseProgressTrack {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8edf9;
+  overflow: hidden;
+}
+
+.courseProgressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #004ac6;
+}
+
+.courseProgressSecondary {
+  background: #495c95 !important;
+}
+
+.courseProgressAction {
+  margin-top: 18px;
+  width: 100%;
+  border: 1px solid #004ac6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #004ac6;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .gridKpi {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .teacherDashboardStatsGrid,
+  .teacherMiddleGrid,
+  .courseLowerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .courseMgmtStatsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .courseMgmtHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 680px) {
+  .gridKpi {
+    grid-template-columns: 1fr;
+  }
+
+  .courseMgmtStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .search {
+    min-width: 140px;
+  }
+}
+
+@keyframes teacherShellFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.workspaceShell {
+  min-height: 100vh;
+  position: relative;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+    radial-gradient(circle at 90% 12%, rgba(15, 118, 110, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+  color: #0d1c2e;
+}
+
+.workspaceLayout {
+  --workspace-sidebar-width: 312px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 18px;
+  min-height: 100vh;
+  padding: 18px;
+}
+
+.workspaceSidebarSlot {
+  width: var(--workspace-sidebar-width);
+  flex: 0 0 var(--workspace-sidebar-width);
+}
+
+.workspaceContent {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  animation: teacherShellFadeUp 0.5s ease both;
+}
+
+.workspacePage {
+  width: min(100%, 1460px);
+  margin: 0 auto;
+  padding: 24px 6px 0;
+}
+
+.sidebarPanel {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  width: var(--workspace-sidebar-width);
+  height: calc(100vh - 36px);
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 30px;
+  border: 1px solid rgba(188, 204, 236, 0.52);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 35%),
+    rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 26px 60px rgba(13, 28, 46, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.brandCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(191, 211, 255, 0.72);
+  box-shadow: 0 16px 34px rgba(0, 74, 198, 0.08);
+}
+
+.brandMark {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  color: #ffffff;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.brandCopy {
+  display: grid;
+  gap: 3px;
+}
+
+.brandCopy strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1rem;
+}
+
+.brandCopy small {
+  color: #65758e;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sidebarIntro {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #093d9f, #0f766e);
+  color: #ffffff;
+}
+
+.sidebarEyebrow,
+.upgradeMeta,
+.workspaceBadge,
+.topbarStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sidebarEyebrow {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.sidebarLead {
+  margin-top: 14px;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.12rem;
+  line-height: 1.22;
+  letter-spacing: -0.03em;
+}
+
+.sidebarHint {
+  display: block;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.navPanel {
+  margin-top: 16px;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(191, 211, 255, 0.48);
+}
+
+.nav {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.navItem {
+  gap: 12px;
+  border-radius: 18px;
+  padding: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.navItem:hover {
+  transform: translateY(-1px);
+  background: rgba(232, 240, 255, 0.94);
+}
+
+.navItemActive {
+  background: linear-gradient(135deg, rgba(0, 74, 198, 0.1), rgba(15, 118, 110, 0.12));
+  color: #003ea8;
+  box-shadow: 0 14px 24px rgba(0, 74, 198, 0.1);
+}
+
+.navIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2252a5;
+  box-shadow: inset 0 0 0 1px rgba(207, 222, 248, 0.9);
+}
+
+.upgradeCard {
+  margin-top: auto;
+  padding: 18px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 34%),
+    linear-gradient(145deg, #0d1c2e, #225caa);
+  box-shadow: 0 22px 44px rgba(13, 28, 46, 0.18);
+}
+
+.upgradeMeta {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.upgradeCard strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.upgradeCard p {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.upgradeButton {
+  margin-top: 14px;
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.upgradeButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(255, 255, 255, 0.16);
+}
+
+.sidebarFootLinks {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sidebarFootLink {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(191, 211, 255, 0.58);
+  color: #49607f;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.workspaceTopbar {
+  position: sticky;
+  top: 18px;
+  z-index: 20;
+  min-height: 88px;
+  padding: 16px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(188, 204, 236, 0.52);
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 24px 54px rgba(13, 28, 46, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.topbarLead {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workspaceBadge {
+  width: fit-content;
+  background: rgba(0, 74, 198, 0.08);
+  color: #1f55af;
+}
+
+.topbarTitleWrap {
+  min-width: 0;
+}
+
+.topbarTitleWrap h1 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.35rem;
+  color: #0d1c2e;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.topbarSubtitle {
+  margin-top: 4px;
+  color: #61718a;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.topbarRight {
+  gap: 12px;
+}
+
+.searchShell {
+  min-width: min(360px, 42vw);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
+  border: 1px solid rgba(191, 211, 255, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.searchIcon {
+  width: 18px;
+  height: 18px;
+  color: #7b8aa1;
+  flex-shrink: 0;
+}
+
+.search {
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  padding: 0;
+}
+
+.search::placeholder {
+  color: #8a97ab;
+}
+
+.search:focus {
+  outline: none;
+}
+
+.topbarStatus {
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+}
+
+.profileCard {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(191, 211, 255, 0.64);
+  box-shadow: 0 16px 30px rgba(13, 28, 46, 0.06);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 18px rgba(13, 28, 46, 0.1);
+}
+
+.profileMeta {
+  display: grid;
+  gap: 2px;
+}
+
+.profileName {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.profileRole {
+  color: #6d7b92;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.workspaceFooter {
+  width: min(100%, 1460px);
+  margin: 18px auto 0;
+  padding: 18px 20px;
+  border-radius: 26px;
+  border: 1px solid rgba(188, 204, 236, 0.5);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 20px 44px rgba(13, 28, 46, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.footerBrand {
+  display: grid;
+  gap: 5px;
+}
+
+.footerBrand strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 0.94rem;
+}
+
+.footerBrand span {
+  color: #6d7b92;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #eef4ff;
+  color: #2456a8;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.card,
+.teacherLargeStatCard,
+.teacherStatCard,
+.teacherRiskCard,
+.teacherChartCard,
+.teacherSpotlightCard,
+.teacherInsightsCard,
+.teacherTableCard,
+.courseMetricCard,
+.courseLedgerCard,
+.courseInsightCard,
+.courseProgressCard {
+  border-radius: 24px;
+  border: 1px solid rgba(220, 229, 245, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(251, 253, 255, 0.9) 100%);
+  box-shadow: 0 18px 38px rgba(13, 28, 46, 0.06);
+}
+
+.teacherSpotlightCard {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 34%),
+    linear-gradient(145deg, #0d1c2e, #225caa);
+}
+
+.teacherRiskCard {
+  background: linear-gradient(180deg, #fff8f7 0%, #ffffff 100%);
+}
+
+.sectionTitle {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.sectionSub {
+  color: #62728a;
+  line-height: 1.65;
+}
+
+.ghostBtn,
+.primaryBtn,
+.teacherSecondaryBtn,
+.courseProgressAction {
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 0.84rem;
+  box-shadow: 0 14px 26px rgba(13, 28, 46, 0.06);
+}
+
+.ghostBtn,
+.teacherSecondaryBtn,
+.courseProgressAction {
+  border: 1px solid rgba(191, 211, 255, 0.7);
+  background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
+}
+
+.primaryBtn {
+  box-shadow: 0 18px 30px rgba(0, 74, 198, 0.22);
+}
+
+@media (max-width: 1200px) {
+  .workspaceLayout {
+    display: block;
+  }
+
+  .workspaceSidebarSlot {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .sidebarPanel {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspaceTopbar {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topbarRight {
+    flex-wrap: wrap;
+  }
+
+  .searchShell {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .profileCard {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .workspaceLayout {
+    padding: 12px;
+  }
+
+  .workspacePage {
+    padding-top: 18px;
+  }
+}

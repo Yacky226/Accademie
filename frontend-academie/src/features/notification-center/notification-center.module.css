@@ -1,0 +1,798 @@
+.page,
+.panel {
+  --notify-surface: #ffffff;
+  --notify-surface-strong: #ffffff;
+  --notify-surface-soft: #eff4ff;
+  --notify-surface-high: #dce9ff;
+  --notify-surface-highest: #d5e3fc;
+  --notify-text: #0d1c2e;
+  --notify-muted: #434655;
+  --notify-outline: #c3c6d7;
+  --notify-primary: #004ac6;
+  --notify-primary-strong: #2563eb;
+  --notify-tertiary-bg: #ffdbcd;
+  --notify-tertiary-text: #943700;
+  --notify-error-bg: #ffdad6;
+  --notify-error-text: #ba1a1a;
+  --notify-success-bg: #ddf4e5;
+  --notify-success-text: #167044;
+  --notify-info-bg: #dbeafe;
+  --notify-info-text: #1d4ed8;
+  display: grid;
+  gap: 24px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.heroCopy,
+.heroStats,
+.dashboardMock,
+.toastSection,
+.panel {
+  border: 1px solid rgba(195, 198, 215, 0.35);
+  box-shadow: 0 20px 40px rgba(13, 28, 46, 0.06);
+}
+
+.heroCopy {
+  border-radius: 24px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 32%),
+    linear-gradient(135deg, #ffffff, #f7faff);
+}
+
+.heroEyebrow,
+.sectionEyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #355ea9;
+}
+
+.heroTitle {
+  margin-top: 12px;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+}
+
+.heroLead {
+  margin-top: 16px;
+  max-width: 62ch;
+  color: #4e5c75;
+  line-height: 1.7;
+}
+
+.heroStats {
+  border-radius: 24px;
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.statCard {
+  border-radius: 18px;
+  padding: 16px;
+  background: #f7faff;
+  border: 1px solid #e6edf9;
+}
+
+.statCard span {
+  display: block;
+  color: #5f6c84;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statCard strong {
+  display: block;
+  margin-top: 10px;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 1.65rem;
+  color: var(--notify-primary);
+}
+
+.statCard p {
+  margin-top: 8px;
+  color: #617088;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.95fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.contextColumn {
+  display: grid;
+  gap: 24px;
+}
+
+.dashboardMock {
+  border-radius: 24px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at left top, rgba(37, 99, 235, 0.12), transparent 28%),
+    linear-gradient(180deg, #fbfdff, #f4f8ff);
+}
+
+.dashboardHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  opacity: 0.64;
+}
+
+.dashboardHeader h2 {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.6rem;
+}
+
+.dashboardHeader p {
+  margin-top: 6px;
+  color: #5e6b82;
+}
+
+.dashboardPill {
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #dce9ff;
+  color: var(--notify-primary);
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mockCardGrid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.92fr);
+  gap: 16px;
+  opacity: 0.5;
+}
+
+.mockCardLarge,
+.mockCardSmall {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(195, 198, 215, 0.32);
+}
+
+.mockCardLarge {
+  padding: 22px;
+}
+
+.mockColumn {
+  display: grid;
+  gap: 16px;
+}
+
+.mockCardSmall {
+  padding: 18px;
+}
+
+.mockBarShort,
+.mockBarMedium,
+.mockBarLong {
+  height: 10px;
+  border-radius: 999px;
+  background: #d9e6fb;
+}
+
+.mockBarShort {
+  width: 34%;
+}
+
+.mockBarMedium {
+  width: 58%;
+}
+
+.mockBarLong {
+  width: 72%;
+  margin-top: 22px;
+}
+
+.mockRing {
+  width: 158px;
+  height: 158px;
+  border-radius: 50%;
+  margin: 22px auto 0;
+  background: conic-gradient(#2563eb 78%, #e7efff 0);
+  display: grid;
+  place-items: center;
+}
+
+.mockRing span {
+  width: 122px;
+  height: 122px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  color: var(--notify-primary);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.mockTimeline {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.mockTimeline span,
+.mockCourseGrid span {
+  display: block;
+  height: 56px;
+  border-radius: 14px;
+  background: #edf3ff;
+}
+
+.mockCourseGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.toastSection {
+  border-radius: 24px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at right top, rgba(0, 74, 198, 0.1), transparent 30%),
+    #ffffff;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionHeading h2 {
+  margin-top: 8px;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.4rem;
+}
+
+.sectionHeading p {
+  max-width: 320px;
+  color: #5e6b82;
+  line-height: 1.6;
+}
+
+.toastStack {
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.toastCard {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(195, 198, 215, 0.28);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 30px rgba(13, 28, 46, 0.05);
+}
+
+.toastIconWrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.toastSuccess {
+  background: var(--notify-success-bg);
+  color: var(--notify-success-text);
+}
+
+.toastInfo {
+  background: var(--notify-info-bg);
+  color: var(--notify-info-text);
+}
+
+.toastError {
+  background: var(--notify-error-bg);
+  color: var(--notify-error-text);
+}
+
+.toastTertiary {
+  background: #ffedd5;
+  color: var(--notify-tertiary-text);
+}
+
+.toastGlyph {
+  width: 20px;
+  height: 20px;
+}
+
+.toastBody {
+  min-width: 0;
+}
+
+.toastTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.toastText {
+  margin-top: 4px;
+  color: #5d697f;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.toastClose,
+.toastActionPrimary {
+  border: 0;
+  background: transparent;
+  color: #5d697f;
+  cursor: pointer;
+}
+
+.toastClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+}
+
+.toastActionPrimary {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(186, 26, 26, 0.1);
+  color: var(--notify-error-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.panelColumn {
+  position: sticky;
+  top: 88px;
+}
+
+.panel {
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--notify-surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.panelCompact {
+  border-radius: 22px;
+  border-color: rgba(195, 198, 215, 0.48);
+  box-shadow: 0 24px 48px rgba(13, 28, 46, 0.12);
+}
+
+.panelCompact .panelHeader {
+  padding-bottom: 14px;
+}
+
+.panelCompact .panelTitle {
+  font-size: 1.25rem;
+}
+
+.panelCompact .filterRow {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding-bottom: 16px;
+}
+
+.panelCompact .filterChip,
+.panelCompact .filterChipActive {
+  font-size: 0.72rem;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 16px;
+}
+
+.panelTitle {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.4rem;
+}
+
+.panelSubtitle {
+  margin-top: 6px;
+  color: #5b667b;
+  font-size: 0.84rem;
+}
+
+.markAllButton {
+  border: 0;
+  background: transparent;
+  color: var(--notify-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.markAllButton:hover,
+.markAllButton:focus-visible,
+.filterChip:hover,
+.filterChip:focus-visible,
+.filterChipActive:hover,
+.filterChipActive:focus-visible,
+.notificationSurface:focus-visible,
+.inlineAction:hover,
+.inlineAction:focus-visible,
+.footerLink:hover,
+.footerLink:focus-visible,
+.toastClose:hover,
+.toastClose:focus-visible,
+.toastActionPrimary:hover,
+.toastActionPrimary:focus-visible {
+  opacity: 0.85;
+}
+
+.filterRow {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: center;
+}
+
+.filterRow::-webkit-scrollbar {
+  display: none;
+}
+
+.filterChip,
+.filterChipActive {
+  flex: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 0 15px;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.filterChip {
+  background: linear-gradient(180deg, #edf3ff 0%, #ffffff 100%);
+  color: #4c5a74;
+  border-color: rgba(191, 211, 255, 0.76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.filterChipActive {
+  background: linear-gradient(135deg, var(--notify-primary), var(--notify-primary-strong));
+  color: #ffffff;
+  box-shadow: 0 14px 26px rgba(0, 74, 198, 0.22);
+}
+
+.filterChip:hover,
+.filterChipActive:hover {
+  transform: translateY(-1px);
+}
+
+.notificationScroller {
+  max-height: 720px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #ffffff;
+  scrollbar-width: thin;
+  scrollbar-color: #dce9ff transparent;
+}
+
+.notificationScroller::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notificationScroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notificationScroller::-webkit-scrollbar-thumb {
+  background: #dce9ff;
+  border-radius: 999px;
+}
+
+.panelCompact .notificationScroller {
+  max-height: 520px;
+}
+
+.emptyState {
+  padding: 24px;
+  text-align: center;
+  color: #5d697f;
+}
+
+.emptyState h3 {
+  font-size: 1rem;
+}
+
+.emptyState p {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.notificationCard {
+  border-radius: 18px;
+  border: 1px solid #edf2fb;
+  background: #ffffff;
+}
+
+.notificationCardUnread {
+  background: #f4f8ff;
+  border-color: #dbe7ff;
+}
+
+.notificationSurface {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 18px;
+}
+
+.notificationLayout {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.iconBubble {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.iconPrimary {
+  background: #eaf1ff;
+  color: var(--notify-primary);
+}
+
+.iconTertiary {
+  background: var(--notify-tertiary-bg);
+  color: var(--notify-tertiary-text);
+}
+
+.iconError {
+  background: var(--notify-error-bg);
+  color: var(--notify-error-text);
+}
+
+.iconSuccess {
+  background: var(--notify-success-bg);
+  color: var(--notify-success-text);
+}
+
+.iconInfo {
+  background: var(--notify-info-bg);
+  color: var(--notify-info-text);
+}
+
+.itemIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.notificationBody {
+  min-width: 0;
+}
+
+.notificationMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.notificationTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.notificationTime {
+  flex-shrink: 0;
+  color: #5d697f;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notificationText {
+  margin-top: 6px;
+  color: #566379;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.notificationQuote {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px solid #e7edf8;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.notificationQuote p {
+  color: #486189;
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.notificationActionRow {
+  margin-top: 10px;
+}
+
+.inlineAction {
+  border: 0;
+  background: transparent;
+  color: var(--notify-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.notificationUnreadDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--notify-primary);
+}
+
+.panelFooter {
+  padding: 16px 20px 20px;
+  background: #f7faff;
+  text-align: center;
+}
+
+.footerLink {
+  color: #546177;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 1180px) {
+  .hero,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .panelColumn {
+    position: static;
+  }
+}
+
+@media (max-width: 860px) {
+  .heroStats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mockCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeading {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroCopy,
+  .heroStats,
+  .dashboardMock,
+  .toastSection,
+  .panel {
+    border-radius: 20px;
+  }
+
+  .heroCopy,
+  .heroStats,
+  .dashboardMock,
+  .toastSection {
+    padding: 20px;
+  }
+
+  .heroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader,
+  .filterRow {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .panelHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .notificationMeta {
+    flex-direction: column;
+  }
+
+  .notificationTime {
+    margin-top: 4px;
+  }
+
+  .notificationSurface {
+    padding: 14px;
+  }
+
+  .toastCard {
+    grid-template-columns: 1fr;
+  }
+
+  .notificationLayout {
+    grid-template-columns: auto 1fr;
+  }
+
+  .notificationUnreadDot {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(*),
+  :global(*::before),
+  :global(*::after) {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
