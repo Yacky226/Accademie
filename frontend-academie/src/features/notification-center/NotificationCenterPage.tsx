@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { StudentShell } from "../student-space/components/StudentShell";
 import {
-  notificationItems,
   notificationToasts,
   type NotificationFilterId,
   type NotificationToast,
@@ -116,20 +115,20 @@ function ToastCard({ toast }: { toast: NotificationToast }) {
 
 export function NotificationCenterPage() {
   const [activeFilter, setActiveFilter] = useState<NotificationFilterId>("all");
-  const { isUnread, markAllAsRead, markAsRead, unreadCount } = useNotificationCenterState();
+  const { isUnread, items, markAllAsRead, markAsRead, unreadCount } = useNotificationCenterState();
 
   const visibleItems =
     activeFilter === "all"
-      ? notificationItems
-      : notificationItems.filter((item) => item.kind === activeFilter);
+      ? items
+      : items.filter((item) => item.kind === activeFilter);
 
-  const mentorUnreadCount = notificationItems.filter(
+  const mentorUnreadCount = items.filter(
     (item) => item.kind === "mentor" && isUnread(item.id),
   ).length;
-  const courseUnreadCount = notificationItems.filter(
+  const courseUnreadCount = items.filter(
     (item) => item.kind === "course" && isUnread(item.id),
   ).length;
-  const systemUnreadCount = notificationItems.filter(
+  const systemUnreadCount = items.filter(
     (item) => item.kind === "system" && isUnread(item.id),
   ).length;
 

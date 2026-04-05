@@ -25,35 +25,63 @@ export class SubmissionsRepository {
   async findAllSubmissions(): Promise<SubmissionEntity[]> {
     return this.submissionsRepository.find({
       where: { deletedAt: IsNull() },
-      relations: { requester: true, problem: true, language: true, judgeRun: true },
+      relations: {
+        requester: true,
+        problem: true,
+        language: true,
+        judgeRun: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findSubmissionById(submissionId: string): Promise<SubmissionEntity | null> {
+  async findSubmissionById(
+    submissionId: string,
+  ): Promise<SubmissionEntity | null> {
     return this.submissionsRepository.findOne({
       where: { id: submissionId, deletedAt: IsNull() },
-      relations: { requester: true, problem: true, language: true, judgeRun: true },
+      relations: {
+        requester: true,
+        problem: true,
+        language: true,
+        judgeRun: true,
+      },
     });
   }
 
-  async findSubmissionsByRequesterId(requesterId: string): Promise<SubmissionEntity[]> {
+  async findSubmissionsByRequesterId(
+    requesterId: string,
+  ): Promise<SubmissionEntity[]> {
     return this.submissionsRepository.find({
       where: { requester: { id: requesterId }, deletedAt: IsNull() },
-      relations: { requester: true, problem: true, language: true, judgeRun: true },
+      relations: {
+        requester: true,
+        problem: true,
+        language: true,
+        judgeRun: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findSubmissionsByProblemId(problemId: string): Promise<SubmissionEntity[]> {
+  async findSubmissionsByProblemId(
+    problemId: string,
+  ): Promise<SubmissionEntity[]> {
     return this.submissionsRepository.find({
       where: { problem: { id: problemId }, deletedAt: IsNull() },
-      relations: { requester: true, problem: true, language: true, judgeRun: true },
+      relations: {
+        requester: true,
+        problem: true,
+        language: true,
+        judgeRun: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async saveSubmission(submission: SubmissionEntity): Promise<SubmissionEntity> {
+  async saveSubmission(
+    submission: SubmissionEntity,
+  ): Promise<SubmissionEntity> {
     return this.submissionsRepository.save(submission);
   }
 
@@ -62,19 +90,28 @@ export class SubmissionsRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findProblemById(problemId: string): Promise<ProblemEntity | null> {
-    return this.problemsRepository.findOne({ where: { id: problemId, deletedAt: IsNull() } });
+    return this.problemsRepository.findOne({
+      where: { id: problemId, deletedAt: IsNull() },
+      relations: { testCases: true },
+    });
   }
 
-  async findLanguageById(languageId: string): Promise<SupportedLanguageEntity | null> {
+  async findLanguageById(
+    languageId: string,
+  ): Promise<SupportedLanguageEntity | null> {
     return this.languagesRepository.findOne({ where: { id: languageId } });
   }
 
   async findJudgeRunById(judgeRunId: string): Promise<JudgeRunEntity | null> {
-    return this.judgeRunsRepository.findOne({ where: { id: judgeRunId, deletedAt: IsNull() } });
+    return this.judgeRunsRepository.findOne({
+      where: { id: judgeRunId, deletedAt: IsNull() },
+    });
   }
 
   async saveJudgeRun(judgeRun: JudgeRunEntity): Promise<JudgeRunEntity> {

@@ -1,9 +1,9 @@
 import type { FooterLink, SocialProvider } from "./auth.types";
 
 export const authFooterLinks: FooterLink[] = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Help Center", href: "#" },
+  { label: "About", href: "/about" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const authSocialProviders: SocialProvider[] = [

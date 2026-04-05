@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
+import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import styles from "../home.module.css";
 import type { NavItem } from "../home.types";
 
@@ -12,11 +14,8 @@ interface TopNavBarProps {
 
 export function TopNavBar({ navItems }: TopNavBarProps) {
   const pathname = usePathname();
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { dashboardHref, isAuthenticated, user } = useCurrentAuthSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userName, setUserName] = useState("Mon espace");
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -30,49 +29,10 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
 
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
   };
-
-  useEffect(() => {
-    const readAuthState = () => {
-      setIsHydrated(true);
-
-      const authFlag = localStorage.getItem("aa_is_authenticated") === "true";
-      const hasToken = Boolean(
-        localStorage.getItem("aa_access_token") ||
-        localStorage.getItem("access_token") ||
-        localStorage.getItem("token"),
-      );
-
-      const authState = authFlag || hasToken;
-      setIsAuthenticated(authState);
-
-      if (authState) {
-        const storedName =
-          localStorage.getItem("aa_user_name") ||
-          localStorage.getItem("user_name") ||
-          localStorage.getItem("userName") ||
-          "Mon espace";
-
-        const storedAvatar =
-          localStorage.getItem("aa_user_avatar") ||
-          localStorage.getItem("user_avatar") ||
-          null;
-
-        setUserName(storedName);
-        setUserAvatar(storedAvatar);
-      }
-    };
-
-    readAuthState();
-
-    const onStorageChange = () => {
-      readAuthState();
-    };
-
-    window.addEventListener("storage", onStorageChange);
-    return () => {
-      window.removeEventListener("storage", onStorageChange);
-    };
-  }, []);
+  const userName = user?.name ?? "Mon espace";
+  const userAvatar = user?.avatarUrl ?? null;
+  const workspaceLabel = user ? formatUserRoleLabel(user.role) : null;
+  const notificationsHref = user?.role === "student" ? "/student/notifications" : dashboardHref;
 
   return (
     <header className={styles.topNav}>
@@ -108,22 +68,22 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
         <div className={styles.navActions}>
           <span className={styles.statusChip}>42 mentors live</span>
 
-          {isHydrated && isAuthenticated ? (
+          {isAuthenticated ? (
             <>
               <Link
-                href="/student/notifications"
+                href={notificationsHref}
                 className={styles.navNotification}
                 aria-label="Ouvrir mes notifications"
               >
                 <span className={styles.notifyDot} />
-                <span>Notifications</span>
+                <span>{user?.role === "student" ? "Notifications" : "Workspace"}</span>
               </Link>
 
               <Link
-                href="/student/dashboard"
+                href={dashboardHref}
                 className={styles.avatarLink}
                 aria-label="Acceder a mon espace"
-                title="Mon espace"
+                title={workspaceLabel ?? "Mon espace"}
               >
                 {userAvatar ? (
                   <img
@@ -181,17 +141,17 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
             </Link>
           ))}
 
-          {isHydrated && isAuthenticated ? (
+          {isAuthenticated ? (
             <>
               <Link
-                href="/student/notifications"
+                href={notificationsHref}
                 className={styles.mobileActionPrimary}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Mes notifications
+                {user?.role === "student" ? "Mes notifications" : "Ouvrir mon espace"}
               </Link>
               <Link
-                href="/student/dashboard"
+                href={dashboardHref}
                 className={styles.mobileActionGhost}
                 onClick={() => setIsMobileMenuOpen(false)}
               >

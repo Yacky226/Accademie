@@ -16,6 +16,7 @@ export const teacherNavItems: TeacherNavItem[] = [
   { label: "Evaluations", href: "/teacher/evaluations", icon: "EV" },
   { label: "My Courses", href: "/teacher/programs", icon: "MC" },
   { label: "Students", href: "/teacher/students", icon: "ST" },
+  { label: "Settings", href: "/teacher/settings", icon: "SE" },
 ];
 
 export const teacherKpis: TeacherKpi[] = [

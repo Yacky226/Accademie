@@ -114,7 +114,9 @@ export class CoursesRepository {
     });
   }
 
-  async saveModule(courseModule: CourseModuleEntity): Promise<CourseModuleEntity> {
+  async saveModule(
+    courseModule: CourseModuleEntity,
+  ): Promise<CourseModuleEntity> {
     return this.modulesRepository.save(courseModule);
   }
 
@@ -142,26 +144,50 @@ export class CoursesRepository {
         user: { id: userId },
         course: { id: courseId },
       },
-      relations: { user: true, course: true },
+      relations: {
+        user: true,
+        course: { creator: true, modules: { lessons: true } },
+      },
     });
   }
 
   async findEnrollmentById(id: string): Promise<EnrollmentEntity | null> {
     return this.enrollmentsRepository.findOne({
       where: { id },
-      relations: { user: true, course: true },
+      relations: {
+        user: true,
+        course: { creator: true, modules: { lessons: true } },
+      },
     });
   }
 
-  async findEnrollmentsByCourseId(courseId: string): Promise<EnrollmentEntity[]> {
+  async findEnrollmentsByCourseId(
+    courseId: string,
+  ): Promise<EnrollmentEntity[]> {
     return this.enrollmentsRepository.find({
       where: { course: { id: courseId } },
-      relations: { user: true, course: true },
+      relations: {
+        user: true,
+        course: { creator: true, modules: { lessons: true } },
+      },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async saveEnrollment(enrollment: EnrollmentEntity): Promise<EnrollmentEntity> {
+  async findEnrollmentsByUserId(userId: string): Promise<EnrollmentEntity[]> {
+    return this.enrollmentsRepository.find({
+      where: { user: { id: userId } },
+      relations: {
+        user: true,
+        course: { creator: true, modules: { lessons: true } },
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async saveEnrollment(
+    enrollment: EnrollmentEntity,
+  ): Promise<EnrollmentEntity> {
     return this.enrollmentsRepository.save(enrollment);
   }
 }

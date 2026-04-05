@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { authFooterLinks } from "../auth.data";
 import styles from "../auth.module.css";
 
@@ -5,15 +6,18 @@ export function AuthFooter() {
   return (
     <footer className={styles.authFooter}>
       <div className={styles.authFooterInner}>
-        <p className={styles.authCopyright}>
-          Copyright 2026 Synthetix Pro. Architectural Precision in Education.
-        </p>
+        <div className={styles.authFooterBrand}>
+          <strong>Architect Academy</strong>
+          <p className={styles.authCopyright}>
+            Connected access for students, mentors and admins across one premium learning system.
+          </p>
+        </div>
 
         <nav className={styles.authFooterLinks}>
           {authFooterLinks.map((link) => (
-            <a key={link.label} href={link.href}>
+            <Link key={link.label} href={link.href}>
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

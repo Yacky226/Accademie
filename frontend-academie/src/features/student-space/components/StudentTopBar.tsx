@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { NotificationCenterPanel } from "@/features/notification-center/NotificationCenterPanel";
 import {
-  notificationItems,
   type NotificationFilterId,
 } from "@/features/notification-center/notification-center.data";
 import { useNotificationCenterState } from "@/features/notification-center/useNotificationCenterState";
@@ -54,14 +53,14 @@ function BellIcon({ className }: { className?: string }) {
 export function StudentTopBar({ activePath, title }: StudentTopBarProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<NotificationFilterId>("all");
-  const { isUnread, markAllAsRead, markAsRead, unreadCount } = useNotificationCenterState();
+  const { isUnread, items, markAllAsRead, markAsRead, unreadCount } = useNotificationCenterState();
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const isNotificationPage = activePath === "/student/notifications";
   const filteredNotifications =
     activeFilter === "all"
-      ? notificationItems
-      : notificationItems.filter((item) => item.kind === activeFilter);
+      ? items
+      : items.filter((item) => item.kind === activeFilter);
   const previewItems = filteredNotifications.slice(0, 3);
 
   useEffect(() => {

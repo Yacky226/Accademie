@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceProfileBadge } from "@/features/shared/components/WorkspaceProfileBadge";
 import styles from "../teacher-space.module.css";
 
 interface TeacherTopbarProps {
@@ -52,17 +52,19 @@ export function TeacherTopbar({ activePath, title }: TeacherTopbarProps) {
 
         <span className={styles.topbarStatus}>{statusLabel}</span>
 
-        <Link className={styles.profileCard} href="/teacher/dashboard">
-          <img
-            className={styles.avatar}
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxwstNUnCev--Q0rFTSV_i1Ai4jzKw698fvDZm6JX5N7adx-NxiBm0c_xbJZGspNmMAfYjpbnK6nfGpZPkK53gI5m41dI45tRuz79IarMXh2v-u3pwgysXLqgU_zv1ZtuZhRvBXq-pKBIte7QX022m-0YgR5p_2Ss7d3OOJrw1urU3iE_5cnOpDaCetiHnqJMYoRsPaVY4foMmIhRPlX7IGP9p-57J4HUd0CSuGmpfeyOyZFWU_8a5R6VdA2KJnCwBSpGR5qWwqXP5"
-            alt="Teacher avatar"
-          />
-          <span className={styles.profileMeta}>
-            <strong className={styles.profileName}>Sarah Jenkins</strong>
-            <span className={styles.profileRole}>Lead Mentor</span>
-          </span>
-        </Link>
+        <WorkspaceProfileBadge
+          avatarFallbackClassName={styles.avatarFallback}
+          avatarImageClassName={styles.avatarImage}
+          avatarShellClassName={styles.avatarShell}
+          defaultAvatarSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDxwstNUnCev--Q0rFTSV_i1Ai4jzKw698fvDZm6JX5N7adx-NxiBm0c_xbJZGspNmMAfYjpbnK6nfGpZPkK53gI5m41dI45tRuz79IarMXh2v-u3pwgysXLqgU_zv1ZtuZhRvBXq-pKBIte7QX022m-0YgR5p_2Ss7d3OOJrw1urU3iE_5cnOpDaCetiHnqJMYoRsPaVY4foMmIhRPlX7IGP9p-57J4HUd0CSuGmpfeyOyZFWU_8a5R6VdA2KJnCwBSpGR5qWwqXP5"
+          defaultName="Sarah Jenkins"
+          defaultRole="Lead Mentor"
+          href="/teacher/settings"
+          linkClassName={styles.profileCard}
+          metaClassName={styles.profileMeta}
+          nameClassName={styles.profileName}
+          roleClassName={styles.profileRole}
+        />
       </div>
     </header>
   );

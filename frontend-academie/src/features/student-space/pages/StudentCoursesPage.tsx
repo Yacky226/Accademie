@@ -1,12 +1,31 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/core/store/app-store-hooks";
 import {
-  dashboardRecommendations,
-  studentEnrolledCourses,
-} from "../student-space.data";
-import styles from "../student-space.module.css";
+  selectStudentCourseRecommendations,
+  selectStudentCoursesError,
+  selectStudentCoursesStatus,
+  selectStudentEnrollments,
+} from "@/features/student-courses/model/student-courses.selectors";
+import { fetchStudentCoursesThunk } from "@/features/student-courses/model/student-courses.slice";
 import { StudentShell } from "../components/StudentShell";
+import styles from "../student-space.module.css";
 
 export function StudentCoursesPage() {
-  const hasCourses = studentEnrolledCourses.length > 0;
+  const dispatch = useAppDispatch();
+  const recommendations = useAppSelector(selectStudentCourseRecommendations);
+  const enrolledCourses = useAppSelector(selectStudentEnrollments);
+  const status = useAppSelector(selectStudentCoursesStatus);
+  const errorMessage = useAppSelector(selectStudentCoursesError);
+  const hasCourses = enrolledCourses.length > 0;
+
+  useEffect(() => {
+    if (status === "idle") {
+      void dispatch(fetchStudentCoursesThunk());
+    }
+  }, [dispatch, status]);
 
   return (
     <StudentShell activePath="/student/courses" topbarTitle="My Courses">
@@ -16,15 +35,19 @@ export function StudentCoursesPage() {
           <p className={styles.heroSub}>
             Organisez votre parcours et suivez votre progression.
           </p>
+          {errorMessage ? <p className={styles.heroSub}>{errorMessage}</p> : null}
         </div>
 
         <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
+          <Link className={styles.ghostBtn} href="/formations">
             Voir le catalogue
-          </button>
-          <button type="button" className={styles.primaryBtn}>
+          </Link>
+          <Link
+            className={styles.primaryBtn}
+            href={hasCourses ? "/student/problems" : "/formations"}
+          >
             Continuer l apprentissage
-          </button>
+          </Link>
         </div>
       </section>
 
@@ -54,28 +77,25 @@ export function StudentCoursesPage() {
             </div>
 
             <div className={styles.emptyCoursesActions}>
-              <button type="button" className={styles.primaryBtn}>
+              <Link className={styles.primaryBtn} href="/formations">
                 Explorer les formations
-              </button>
-              <button type="button" className={styles.ghostBtn}>
+              </Link>
+              <Link className={styles.ghostBtn} href="/student/support">
                 Demander un accompagnement
-              </button>
+              </Link>
             </div>
           </article>
 
           <aside className={styles.emptyCoursesSide}>
             <h3>Suggestions pour demarrer</h3>
             <div className={styles.emptyCoursesList}>
-              {dashboardRecommendations.map((course) => (
-                <article
-                  key={course.title}
-                  className={styles.emptySuggestionItem}
-                >
+              {recommendations.map((course) => (
+                <article key={course.id} className={styles.emptySuggestionItem}>
                   <img src={course.imageUrl} alt={course.title} />
                   <div>
                     <p>{course.title}</p>
                     <span>
-                      {course.level} • {course.hours}
+                      {course.level} â€¢ {course.hours}
                     </span>
                   </div>
                 </article>
@@ -85,16 +105,14 @@ export function StudentCoursesPage() {
         </section>
       ) : (
         <section className={styles.coursesGrid}>
-          {studentEnrolledCourses.map((course) => (
-            <article key={course.title} className={styles.courseStatusCard}>
+          {enrolledCourses.map((course) => (
+            <article key={course.id} className={styles.courseStatusCard}>
               <h3>{course.title}</h3>
               <p className={styles.heroSub}>Mentor: {course.mentor}</p>
               <div className={styles.courseProgressTrack}>
                 <span style={{ width: `${course.progress}%` }} />
               </div>
-              <p className={styles.heroSub}>
-                Prochaine lecon: {course.nextLesson}
-              </p>
+              <p className={styles.heroSub}>Prochaine lecon: {course.nextLesson}</p>
             </article>
           ))}
         </section>

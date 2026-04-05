@@ -42,7 +42,8 @@ export class CoursesService {
 
   async getPublishedCourseBySlug(slug: string): Promise<CourseEntity> {
     const normalizedSlug = this.normalizeSlug(slug);
-    const course = await this.coursesRepository.findPublishedCourseBySlug(normalizedSlug);
+    const course =
+      await this.coursesRepository.findPublishedCourseBySlug(normalizedSlug);
     if (!course) {
       throw new NotFoundException('Published course not found');
     }
@@ -50,9 +51,13 @@ export class CoursesService {
     return this.filterPublishedContent(course);
   }
 
-  async createCourse(dto: CreateCourseDto, creatorId: string): Promise<CourseEntity> {
+  async createCourse(
+    dto: CreateCourseDto,
+    creatorId: string,
+  ): Promise<CourseEntity> {
     const normalizedSlug = this.normalizeSlug(dto.slug);
-    const existingCourse = await this.coursesRepository.findCourseBySlug(normalizedSlug);
+    const existingCourse =
+      await this.coursesRepository.findCourseBySlug(normalizedSlug);
     if (existingCourse) {
       throw new ConflictException('Course slug already exists');
     }
@@ -80,12 +85,16 @@ export class CoursesService {
     return this.coursesRepository.saveCourse(course);
   }
 
-  async updateCourse(courseId: string, dto: UpdateCourseDto): Promise<CourseEntity> {
+  async updateCourse(
+    courseId: string,
+    dto: UpdateCourseDto,
+  ): Promise<CourseEntity> {
     const course = await this.getCourseById(courseId);
 
     if (dto.slug && dto.slug !== course.slug) {
       const normalizedSlug = this.normalizeSlug(dto.slug);
-      const existingCourse = await this.coursesRepository.findCourseBySlug(normalizedSlug);
+      const existingCourse =
+        await this.coursesRepository.findCourseBySlug(normalizedSlug);
       if (existingCourse && existingCourse.id !== course.id) {
         throw new ConflictException('Course slug already exists');
       }
@@ -96,13 +105,17 @@ export class CoursesService {
     course.shortDescription = dto.shortDescription ?? course.shortDescription;
     course.description = dto.description ?? course.description;
     course.thumbnailUrl = dto.thumbnailUrl ?? course.thumbnailUrl;
-    course.price = dto.price !== undefined ? dto.price.toFixed(2) : course.price;
-    course.currency = dto.currency ? dto.currency.toUpperCase() : course.currency;
+    course.price =
+      dto.price !== undefined ? dto.price.toFixed(2) : course.price;
+    course.currency = dto.currency
+      ? dto.currency.toUpperCase()
+      : course.currency;
     course.level = dto.level ?? course.level;
     course.status = dto.status ?? course.status;
     course.isPublished = dto.isPublished ?? course.isPublished;
     course.durationInHours = dto.durationInHours ?? course.durationInHours;
-    course.certificateEnabled = dto.certificateEnabled ?? course.certificateEnabled;
+    course.certificateEnabled =
+      dto.certificateEnabled ?? course.certificateEnabled;
 
     return this.coursesRepository.saveCourse(course);
   }
@@ -112,7 +125,10 @@ export class CoursesService {
     await this.coursesRepository.softDeleteCourse(course);
   }
 
-  async addCourseModule(courseId: string, dto: CreateCourseModuleDto): Promise<CourseModuleEntity> {
+  async addCourseModule(
+    courseId: string,
+    dto: CreateCourseModuleDto,
+  ): Promise<CourseModuleEntity> {
     const course = await this.getCourseById(courseId);
 
     const moduleEntity = new CourseModuleEntity();
@@ -143,13 +159,19 @@ export class CoursesService {
     return this.coursesRepository.saveModule(moduleEntity);
   }
 
-  async addLesson(courseId: string, moduleId: string, dto: CreateLessonDto): Promise<LessonEntity> {
+  async addLesson(
+    courseId: string,
+    moduleId: string,
+    dto: CreateLessonDto,
+  ): Promise<LessonEntity> {
     const moduleEntity = await this.coursesRepository.findModuleById(moduleId);
     if (!moduleEntity || moduleEntity.course.id !== courseId) {
       throw new NotFoundException('Course module not found');
     }
 
-    const existingLessonBySlug = await this.coursesRepository.findLessonBySlug(dto.slug);
+    const existingLessonBySlug = await this.coursesRepository.findLessonBySlug(
+      dto.slug,
+    );
     if (existingLessonBySlug) {
       throw new ConflictException('Lesson slug already exists');
     }
@@ -176,13 +198,18 @@ export class CoursesService {
     dto: UpdateLessonDto,
   ): Promise<LessonEntity> {
     const lesson = await this.coursesRepository.findLessonById(lessonId);
-    if (!lesson || lesson.courseModule.id !== moduleId || lesson.courseModule.course.id !== courseId) {
+    if (
+      !lesson ||
+      lesson.courseModule.id !== moduleId ||
+      lesson.courseModule.course.id !== courseId
+    ) {
       throw new NotFoundException('Lesson not found');
     }
 
     if (dto.slug && dto.slug !== lesson.slug) {
       const normalizedSlug = this.normalizeSlug(dto.slug);
-      const existingLesson = await this.coursesRepository.findLessonBySlug(normalizedSlug);
+      const existingLesson =
+        await this.coursesRepository.findLessonBySlug(normalizedSlug);
       if (existingLesson && existingLesson.id !== lesson.id) {
         throw new ConflictException('Lesson slug already exists');
       }
@@ -193,7 +220,8 @@ export class CoursesService {
     lesson.content = dto.content ?? lesson.content;
     lesson.videoUrl = dto.videoUrl ?? lesson.videoUrl;
     lesson.resourceUrl = dto.resourceUrl ?? lesson.resourceUrl;
-    lesson.durationInMinutes = dto.durationInMinutes ?? lesson.durationInMinutes;
+    lesson.durationInMinutes =
+      dto.durationInMinutes ?? lesson.durationInMinutes;
     lesson.position = dto.position ?? lesson.position;
     lesson.isFreePreview = dto.isFreePreview ?? lesson.isFreePreview;
     lesson.isPublished = dto.isPublished ?? lesson.isPublished;
@@ -201,7 +229,10 @@ export class CoursesService {
     return this.coursesRepository.saveLesson(lesson);
   }
 
-  async enrollStudent(courseId: string, dto: CreateEnrollmentDto): Promise<EnrollmentEntity> {
+  async enrollStudent(
+    courseId: string,
+    dto: CreateEnrollmentDto,
+  ): Promise<EnrollmentEntity> {
     const course = await this.getCourseById(courseId);
 
     const user = await this.coursesRepository.findUserById(dto.userId);
@@ -209,10 +240,11 @@ export class CoursesService {
       throw new NotFoundException('User not found');
     }
 
-    const existingEnrollment = await this.coursesRepository.findEnrollmentByUserAndCourse(
-      dto.userId,
-      courseId,
-    );
+    const existingEnrollment =
+      await this.coursesRepository.findEnrollmentByUserAndCourse(
+        dto.userId,
+        courseId,
+      );
     if (existingEnrollment) {
       return existingEnrollment;
     }
@@ -220,14 +252,18 @@ export class CoursesService {
     const enrollment = new EnrollmentEntity();
     enrollment.user = user;
     enrollment.course = course;
-    enrollment.status = (dto.status as EnrollmentStatus) ?? EnrollmentStatus.ACTIVE;
+    enrollment.status =
+      (dto.status as EnrollmentStatus) ?? EnrollmentStatus.ACTIVE;
     enrollment.progressPercent = '0.00';
     enrollment.startedAt = new Date();
 
     return this.coursesRepository.saveEnrollment(enrollment);
   }
 
-  async enrollCurrentUser(courseId: string, userId: string): Promise<EnrollmentEntity> {
+  async enrollCurrentUser(
+    courseId: string,
+    userId: string,
+  ): Promise<EnrollmentEntity> {
     return this.enrollStudent(courseId, { userId });
   }
 
@@ -235,7 +271,8 @@ export class CoursesService {
     enrollmentId: string,
     dto: UpdateEnrollmentProgressDto,
   ): Promise<EnrollmentEntity> {
-    const enrollment = await this.coursesRepository.findEnrollmentById(enrollmentId);
+    const enrollment =
+      await this.coursesRepository.findEnrollmentById(enrollmentId);
     if (!enrollment) {
       throw new NotFoundException('Enrollment not found');
     }
@@ -254,6 +291,17 @@ export class CoursesService {
     return this.coursesRepository.findEnrollmentsByCourseId(courseId);
   }
 
+  async listCurrentUserEnrollments(
+    userId: string,
+  ): Promise<EnrollmentEntity[]> {
+    const user = await this.coursesRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.coursesRepository.findEnrollmentsByUserId(userId);
+  }
+
   private normalizeSlug(slug: string): string {
     return slug
       .trim()
@@ -267,7 +315,9 @@ export class CoursesService {
     course.modules = (course.modules ?? [])
       .filter((moduleEntity) => moduleEntity.isPublished)
       .map((moduleEntity) => {
-        moduleEntity.lessons = (moduleEntity.lessons ?? []).filter((lesson) => lesson.isPublished);
+        moduleEntity.lessons = (moduleEntity.lessons ?? []).filter(
+          (lesson) => lesson.isPublished,
+        );
         return moduleEntity;
       });
 

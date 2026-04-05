@@ -61,6 +61,11 @@ export class EnrollmentResponseDto {
     id: string;
     title: string;
     slug: string;
+    shortDescription?: string;
+    thumbnailUrl?: string;
+    creatorName?: string;
+    durationInHours?: number;
+    nextLessonTitle?: string;
   };
   createdAt!: Date;
   updatedAt!: Date;

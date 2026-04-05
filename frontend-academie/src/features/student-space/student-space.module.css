@@ -1139,6 +1139,10 @@
   padding: 18px;
 }
 
+.workspaceLayoutCollapsed {
+  --workspace-sidebar-width: 108px;
+}
+
 .workspaceSidebarSlot {
   width: var(--workspace-sidebar-width);
   flex: 0 0 var(--workspace-sidebar-width);
@@ -1152,10 +1156,28 @@
   animation: studentShellFadeUp 0.5s ease both;
 }
 
+.workspaceContentLocked {
+  min-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+
 .workspacePage {
   width: min(100%, 1440px);
   margin: 0 auto;
   padding: 24px 6px 0;
+}
+
+.workspacePageLocked {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.workspacePageWide {
+  width: 100%;
+  max-width: none;
+  padding: 18px 0 0;
 }
 
 .sidebarPanel {
@@ -1178,6 +1200,48 @@
   flex-direction: column;
 }
 
+.sidebarPanelCollapsed {
+  padding: 16px 12px;
+}
+
+.sidebarHeader {
+  display: grid;
+  gap: 10px;
+}
+
+.sidebarHeaderCollapsed {
+  justify-items: center;
+}
+
+.sidebarToggle {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(191, 211, 255, 0.78);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(238, 244, 255, 0.96) 0%, rgba(255, 255, 255, 0.94) 100%);
+  color: #2456a8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  box-shadow: 0 14px 26px rgba(13, 28, 46, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.sidebarToggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 30px rgba(13, 28, 46, 0.12);
+}
+
+.sidebarToggle svg {
+  width: 18px;
+  height: 18px;
+}
+
 .brandCard {
   display: inline-flex;
   align-items: center;
@@ -1187,6 +1251,12 @@
   background: rgba(255, 255, 255, 0.68);
   border: 1px solid rgba(191, 211, 255, 0.7);
   box-shadow: 0 16px 34px rgba(0, 74, 198, 0.08);
+}
+
+.brandCardCollapsed {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
 }
 
 .brandMark {
@@ -1210,6 +1280,10 @@
   gap: 3px;
 }
 
+.brandCopyHidden {
+  display: none;
+}
+
 .brandCopy strong {
   font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
   font-size: 1rem;
@@ -1230,6 +1304,10 @@
   border-radius: 24px;
   background: linear-gradient(160deg, #083b9d, #1a5ee0);
   color: #ffffff;
+}
+
+.sidebarIntroCollapsed {
+  display: none;
 }
 
 .sidebarEyebrow,
@@ -1275,6 +1353,10 @@
   border: 1px solid rgba(191, 211, 255, 0.48);
 }
 
+.navPanelCollapsed {
+  padding: 8px;
+}
+
 .nav {
   margin-top: 0;
   gap: 8px;
@@ -1318,6 +1400,15 @@
   background: linear-gradient(180deg, #004ac6, #3278fb);
 }
 
+.navItemCollapsed {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.navItemCollapsed.navItemActive::before {
+  display: none;
+}
+
 .navIcon {
   width: 34px;
   height: 34px;
@@ -1329,6 +1420,14 @@
   box-shadow: inset 0 0 0 1px rgba(207, 222, 248, 0.9);
 }
 
+.navLabel {
+  white-space: nowrap;
+}
+
+.navLabelHidden {
+  display: none;
+}
+
 .upgradeBox {
   margin-top: auto;
   padding: 18px;
@@ -1337,6 +1436,10 @@
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 34%),
     linear-gradient(145deg, #0d1c2e, #193f8f);
   box-shadow: 0 22px 44px rgba(13, 28, 46, 0.2);
+}
+
+.upgradeBoxCollapsed {
+  display: none;
 }
 
 .upgradeMeta {
@@ -1383,6 +1486,11 @@
   flex-wrap: wrap;
 }
 
+.sidebarFootLinksCollapsed {
+  display: grid;
+  justify-items: center;
+}
+
 .sidebarFootLink {
   min-height: 34px;
   display: inline-flex;
@@ -1394,6 +1502,34 @@
   border: 1px solid rgba(191, 211, 255, 0.58);
   font-size: 0.76rem;
   font-weight: 700;
+}
+
+.sidebarFootLinkHidden {
+  display: none;
+}
+
+.sidebarLogoutButton {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  background: rgba(255, 241, 242, 0.92);
+  color: #b42318;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  appearance: none;
+  font-family: inherit;
+}
+
+.sidebarLogoutButtonCollapsed {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 8px;
+  font-size: 0.7rem;
 }
 
 .workspaceTopbar {
@@ -1695,7 +1831,1278 @@
   border: 1px solid rgba(208, 219, 241, 0.86);
 }
 
+.codeStudioShell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 18px;
+  min-height: 0;
+  height: 100%;
+}
+
+.codeStudioTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px;
+  border-radius: 32px;
+  border: 1px solid rgba(188, 204, 236, 0.56);
+  background:
+    radial-gradient(circle at top right, rgba(50, 120, 251, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 250, 255, 0.9) 100%);
+  box-shadow: 0 24px 54px rgba(13, 28, 46, 0.08);
+}
+
+.codeStudioTopbarCopy {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.codeStudioEyebrow,
+.codeStudioMetaLabel,
+.codeStudioSectionHead h3,
+.codeStudioExplorerHead span,
+.codeStudioConsoleHeader span {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.codeStudioEyebrow {
+  width: fit-content;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(0, 74, 198, 0.08);
+  color: #2456a8;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.codeStudioHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.codeStudioHeadingRow h1 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.8rem, 1.45rem + 0.8vw, 2.35rem);
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.codeStudioTopbarCopy p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.65;
+  max-width: 72ch;
+}
+
+.codeStudioDifficultyPill {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 181, 150, 0.34);
+  color: #7d2d00;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.codeStudioTopbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.codeStudioModeButton,
+.codeStudioModeButtonActive {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 211, 255, 0.72);
+  background: linear-gradient(180deg, rgba(238, 244, 255, 0.96) 0%, rgba(255, 255, 255, 0.94) 100%);
+  color: #2456a8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  box-shadow: 0 14px 26px rgba(13, 28, 46, 0.06);
+  cursor: pointer;
+}
+
+.codeStudioModeButtonActive {
+  border-color: transparent;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0d1c2e, #2563eb);
+}
+
+.codeStudioStatCard {
+  min-width: 156px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(188, 204, 236, 0.56);
+  background: rgba(255, 255, 255, 0.88);
+  display: grid;
+  gap: 6px;
+}
+
+.codeStudioStatCard span {
+  color: #607089;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.codeStudioStatCard strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.18rem;
+  color: #0d1c2e;
+  letter-spacing: -0.04em;
+}
+
+.codeStudioBackLink {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  box-shadow: 0 18px 30px rgba(0, 74, 198, 0.22);
+}
+
+.codeStudioLayout {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.92fr) minmax(0, 1.18fr);
+  gap: 18px;
+  min-height: 0;
+}
+
+.codeStudioLayoutEditorFocus {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.codeStudioProblemPanel,
+.codeStudioEditorPanel {
+  min-height: 0;
+  border-radius: 32px;
+  border: 1px solid rgba(188, 204, 236, 0.56);
+  background:
+    radial-gradient(circle at top right, rgba(50, 120, 251, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 255, 0.92) 100%);
+  box-shadow: 0 24px 54px rgba(13, 28, 46, 0.08);
+  overflow: hidden;
+}
+
+.codeStudioProblemPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.codeStudioProblemMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 22px 22px 0;
+}
+
+.codeStudioProblemMeta div {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #f3f7ff 0%, #ffffff 100%);
+  border: 1px solid rgba(208, 219, 241, 0.86);
+}
+
+.codeStudioMetaLabel {
+  color: #607089;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.codeStudioProblemMeta strong {
+  color: #0d1c2e;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.codeStudioDocTabs {
+  margin: 18px 22px 0;
+  padding: 5px;
+  display: flex;
+  gap: 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
+  border: 1px solid rgba(191, 211, 255, 0.76);
+}
+
+.codeStudioDocTab,
+.codeStudioDocTabActive {
+  flex: 1 1 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4f5e78;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.codeStudioDocTabActive {
+  color: #ffffff;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  box-shadow: 0 14px 26px rgba(0, 74, 198, 0.24);
+}
+
+.codeStudioProblemBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px;
+  display: grid;
+  align-content: start;
+}
+
+.codeStudioDescriptionStack,
+.codeStudioExampleStack,
+.codeStudioConstraintStack,
+.codeStudioHintStack {
+  display: grid;
+  gap: 16px;
+}
+
+.codeStudioLeadCopy {
+  margin: 0;
+  color: #0d1c2e;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.codeStudioBodyCopy,
+.codeStudioExampleCard p,
+.codeStudioBulletList,
+.codeStudioHintCard p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.68;
+}
+
+.codeStudioDiagramCard {
+  margin: 0;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  border: 1px solid rgba(208, 219, 241, 0.86);
+}
+
+.codeStudioDiagram {
+  width: 100%;
+  display: block;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.codeStudioDiagramCard figcaption {
+  margin-top: 10px;
+  color: #7a879b;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.codeStudioTagRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.codeStudioTag {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(219, 232, 255, 0.72);
+  color: #2456a8;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.codeStudioExampleCard,
+.codeStudioHintCard,
+.codeStudioLimitCard {
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  border: 1px solid rgba(208, 219, 241, 0.86);
+}
+
+.codeStudioSectionHead h3,
+.codeStudioTestsHead h2 {
+  margin: 0;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.06rem;
+  letter-spacing: -0.03em;
+}
+
+.codeStudioExampleBlock {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #eff4ff;
+}
+
+.codeStudioExampleBlock strong {
+  color: #4f5e78;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.codeStudioExampleBlock code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  color: #102038;
+  font-size: 0.84rem;
+}
+
+.codeStudioLimitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.codeStudioLimitCard span {
+  color: #607089;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.codeStudioLimitCard strong {
+  display: block;
+  margin-top: 8px;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.28rem;
+  letter-spacing: -0.05em;
+}
+
+.codeStudioBulletList {
+  padding-left: 18px;
+}
+
+.codeStudioBulletList li + li {
+  margin-top: 10px;
+}
+
+.codeStudioHintCard span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(0, 74, 198, 0.08);
+  color: #2456a8;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.codeStudioHintCard p {
+  margin-top: 12px;
+}
+
+.codeStudioEditorPanel {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at top right, rgba(50, 120, 251, 0.06), transparent 24%),
+    linear-gradient(180deg, #101827 0%, #0d1320 100%);
+  border-color: rgba(73, 92, 149, 0.2);
+  color: #eaf1ff;
+}
+
+.codeStudioEditorHeader {
+  min-height: 72px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.codeStudioFileTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.codeStudioFileTab,
+.codeStudioFileTabActive {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(234, 241, 255, 0.72);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.codeStudioFileTabActive {
+  color: #ffffff;
+  background: rgba(180, 197, 255, 0.16);
+  border-color: rgba(180, 197, 255, 0.2);
+}
+
+.codeStudioEditorActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.codeStudioLanguageSelectWrap {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(234, 241, 255, 0.8);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.codeStudioLanguageSelect {
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  min-width: 92px;
+}
+
+.codeStudioLanguageSelect:focus {
+  outline: none;
+}
+
+.codeStudioLanguageSelect option {
+  color: #0d1c2e;
+  background: #ffffff;
+}
+
+.codeStudioGhostButton,
+.codeStudioRunButton,
+.codeStudioSubmitButton,
+.codeStudioConsoleButton,
+.codeStudioConsoleToggle,
+.codeStudioExplorerItem,
+.codeStudioExplorerItemActive {
+  font-family: inherit;
+}
+
+.codeStudioGhostButton,
+.codeStudioRunButton,
+.codeStudioSubmitButton {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.codeStudioGhostButton {
+  border: 1px solid rgba(180, 197, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(234, 241, 255, 0.82);
+}
+
+.codeStudioRunButton {
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  background: rgba(34, 197, 94, 0.14);
+  color: #a7f3d0;
+}
+
+.codeStudioSubmitButton {
+  border: 0;
+  color: #ffffff;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  box-shadow: 0 18px 30px rgba(0, 74, 198, 0.22);
+}
+
+.codeStudioEditorShell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.codeStudioExplorer {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.codeStudioExplorerHead {
+  display: grid;
+  gap: 4px;
+}
+
+.codeStudioExplorerHead span,
+.codeStudioConsoleHeader span {
+  color: rgba(234, 241, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.codeStudioExplorerHead strong {
+  color: #ffffff;
+  font-size: 0.92rem;
+  letter-spacing: -0.03em;
+}
+
+.codeStudioExplorerList {
+  display: grid;
+  gap: 8px;
+}
+
+.codeStudioExplorerItem,
+.codeStudioExplorerItemActive {
+  width: 100%;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+}
+
+.codeStudioExplorerItem strong,
+.codeStudioExplorerItemActive strong {
+  color: rgba(234, 241, 255, 0.92);
+  font-size: 0.82rem;
+}
+
+.codeStudioExplorerItem span,
+.codeStudioExplorerItemActive span,
+.codeStudioTestsHead p,
+.codeStudioTestCard p {
+  color: rgba(234, 241, 255, 0.58);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.codeStudioExplorerItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.codeStudioExplorerItemActive {
+  background: rgba(180, 197, 255, 0.12);
+  border-color: rgba(180, 197, 255, 0.14);
+}
+
+.codeStudioExplorerSummary {
+  margin-top: auto;
+  padding: 14px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(145deg, rgba(0, 74, 198, 0.5), rgba(50, 120, 251, 0.18));
+  display: grid;
+  gap: 4px;
+}
+
+.codeStudioExplorerSummary span {
+  color: rgba(234, 241, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.codeStudioExplorerSummary strong {
+  color: #ffffff;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: -0.05em;
+}
+
+.codeStudioWorkspace {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.codeStudioEditorCanvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  background: rgba(7, 12, 20, 0.48);
+}
+
+.codeStudioMonacoWrap {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+}
+
+.codeStudioMonacoLoading {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  color: rgba(234, 241, 255, 0.64);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.codeStudioTestsView {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 24px;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.codeStudioTestsHead h2,
+.codeStudioTestsHead p {
+  margin: 0;
+}
+
+.codeStudioTestsList {
+  display: grid;
+  gap: 12px;
+}
+
+.codeStudioTestCard {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.codeStudioTestHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.codeStudioTestHeader strong {
+  color: #ffffff;
+  font-size: 0.94rem;
+}
+
+.codeStudioTestStatus {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.codeStudioTestStatusPassed {
+  background: rgba(34, 197, 94, 0.16);
+  color: #a7f3d0;
+}
+
+.codeStudioTestStatusWarning {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+}
+
+.codeStudioTestStatusPending {
+  background: rgba(148, 163, 184, 0.16);
+  color: #cbd5f5;
+}
+
+.codeStudioConsole {
+  height: 184px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(4, 8, 14, 0.72);
+  display: flex;
+  flex-direction: column;
+}
+
+.codeStudioConsoleHeader {
+  min-height: 44px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.codeStudioConsoleButton,
+.codeStudioConsoleToggle {
+  border: 0;
+  background: transparent;
+  color: rgba(234, 241, 255, 0.68);
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.codeStudioConsoleBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.codeStudioConsoleLine {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.codeStudioConsoleMuted {
+  color: rgba(203, 213, 225, 0.62);
+}
+
+.codeStudioConsoleSuccess {
+  color: #86efac;
+}
+
+.codeStudioConsoleInfo {
+  color: #93c5fd;
+}
+
+.codeStudioConsoleWarning {
+  color: #fdba74;
+}
+
+.codeStudioStatusBar {
+  min-height: 48px;
+  padding: 0 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.codeStudioStatusMeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: rgba(234, 241, 255, 0.68);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.pageEyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(0, 74, 198, 0.08);
+  color: #2456a8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.supportLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+  gap: 18px;
+}
+
+.supportPanel,
+.supportAsideCard,
+.settingsSummaryCard,
+.settingsSectionCard,
+.supportInsightCard {
+  border-radius: 24px;
+  border: 1px solid rgba(220, 229, 245, 0.88);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(250, 252, 255, 0.92) 100%);
+  box-shadow: 0 20px 40px rgba(13, 28, 46, 0.06);
+}
+
+.supportPanel {
+  padding: 24px;
+  display: grid;
+  gap: 22px;
+}
+
+.supportPanelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.supportPanelHead h2,
+.settingsSectionHead h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.55rem);
+  letter-spacing: -0.03em;
+  color: #0d1c2e;
+}
+
+.supportPanelHead p {
+  margin: 10px 0 0;
+  color: #62728a;
+  line-height: 1.7;
+  max-width: 58ch;
+}
+
+.supportPill,
+.supportInsightLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #45607f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.supportPill {
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(0, 74, 198, 0.12), rgba(37, 99, 235, 0.06));
+  color: #004ac6;
+}
+
+.supportStatusCard {
+  min-width: 220px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 74, 198, 0.14), transparent 42%),
+    linear-gradient(160deg, #0d1c2e, #14366f);
+  color: #eaf1ff;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 22px 38px rgba(13, 28, 46, 0.18);
+}
+
+.supportStatusCard span,
+.supportStatusCard small {
+  color: rgba(234, 241, 255, 0.82);
+}
+
+.supportStatusCard strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+}
+
+.supportFormModern {
+  display: grid;
+  gap: 18px;
+}
+
+.supportFieldGrid,
+.supportInsightGrid,
+.settingsSummaryGrid,
+.settingsProfileGrid,
+.preferenceGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.supportFieldGrid,
+.supportInsightGrid,
+.settingsProfileGrid,
+.preferenceGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settingsSummaryGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldLabel {
+  color: #34455f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(208, 219, 241, 0.92);
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #0d1c2e;
+}
+
+.input {
+  min-height: 52px;
+  padding: 0 16px;
+}
+
+.textarea {
+  padding: 14px 16px;
+  min-height: 164px;
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: rgba(0, 74, 198, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 4px rgba(0, 74, 198, 0.1);
+}
+
+.supportInsightCard {
+  padding: 18px;
+  display: grid;
+  gap: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 74, 198, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(239, 244, 255, 0.88) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.supportInsightCard strong,
+.settingsSummaryCard strong,
+.settingsFieldCard strong {
+  color: #0d1c2e;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+}
+
+.supportInsightCard p,
+.settingsSummaryCard p,
+.settingsFieldCard span,
+.preferenceCopy p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.62;
+}
+
+.supportUploadPanel {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(220, 229, 245, 0.88);
+  background:
+    radial-gradient(circle at top right, rgba(0, 74, 198, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(243, 247, 255, 0.92) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.supportUploadPanel h3 {
+  margin: 8px 0 6px;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.08rem;
+}
+
+.supportUploadPanel p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.65;
+  max-width: 48ch;
+}
+
+.uploadZone {
+  min-width: min(100%, 280px);
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  text-align: center;
+  color: #496179;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.supportAside {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.supportAsideCard,
+.settingsSectionCard {
+  padding: 22px;
+}
+
+.supportAsideCard h3 {
+  margin: 8px 0 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.16rem;
+  letter-spacing: -0.03em;
+}
+
+.supportChecklist {
+  margin: 16px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: #4f6077;
+  line-height: 1.64;
+}
+
+.supportMetricList {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.supportMetricList div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f2f6ff 0%, #ffffff 100%);
+  border: 1px solid rgba(220, 229, 245, 0.84);
+}
+
+.supportMetricList strong,
+.settingsSummaryCard strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.5rem;
+}
+
+.supportMetricList span,
+.settingsSummaryCard span,
+.settingsFieldCard span {
+  color: #62728a;
+}
+
+.settingsGrid {
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.settingsSummaryCard {
+  padding: 20px;
+  display: grid;
+  gap: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 74, 198, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(243, 247, 255, 0.88) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.settingsSummaryCard span,
+.settingsFieldCard span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settingsSectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.settingsProfileGrid {
+  margin-top: 4px;
+}
+
+.settingsFieldCard {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 229, 245, 0.84);
+  background: linear-gradient(180deg, #f2f6ff 0%, #ffffff 100%);
+}
+
+.preferenceList {
+  display: grid;
+  gap: 12px;
+}
+
+.preferenceRow,
+.preferenceRowCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 229, 245, 0.84);
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+}
+
+.preferenceRowCard {
+  align-items: flex-start;
+}
+
+.preferenceCopy {
+  display: grid;
+  gap: 6px;
+}
+
+.preferenceCopy strong {
+  color: #0d1c2e;
+  font-size: 0.98rem;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 1180px) {
+  .codeStudioLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .codeStudioProblemMeta,
+  .supportLayout,
+  .settingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .codeStudioProblemPanel,
+  .codeStudioEditorPanel {
+    min-height: auto;
+  }
+
+  .settingsSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .codeStudioTopbar,
+  .codeStudioHeadingRow,
+  .codeStudioEditorHeader,
+  .codeStudioEditorActions,
+  .codeStudioTopbarActions,
+  .supportPanelHead,
+  .supportUploadPanel,
+  .settingsSectionHead,
+  .preferenceRow,
+  .preferenceRowCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .codeStudioDocTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 22px;
+  }
+
+  .codeStudioDocTab,
+  .codeStudioDocTabActive {
+    flex: initial;
+  }
+
+  .codeStudioLimitGrid,
+  .codeStudioProblemMeta,
+  .supportFieldGrid,
+  .supportInsightGrid,
+  .settingsProfileGrid,
+  .preferenceGrid,
+  .settingsSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .codeStudioEditorShell {
+    grid-template-columns: 1fr;
+  }
+
+  .codeStudioExplorer {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .codeStudioFileTabs,
+  .codeStudioStatusMeta {
+    width: 100%;
+  }
+
+  .codeStudioStatusBar {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12px 18px;
+  }
+
+  .supportStatusCard {
+    min-width: 0;
+  }
+
+  .uploadZone {
+    min-width: 0;
+  }
+}
+
 @media (max-width: 1200px) {
+  .workspaceLayoutCollapsed {
+    --workspace-sidebar-width: 312px;
+  }
+
   .workspaceLayout {
     display: block;
   }
@@ -1711,6 +3118,66 @@
     height: auto;
     overflow: visible;
     margin-bottom: 18px;
+  }
+
+  .sidebarPanelCollapsed {
+    padding: 18px;
+  }
+
+  .sidebarHeaderCollapsed {
+    justify-items: stretch;
+  }
+
+  .brandCardCollapsed {
+    justify-content: flex-start;
+    padding: 14px 16px;
+  }
+
+  .brandCopyHidden {
+    display: grid;
+  }
+
+  .sidebarIntroCollapsed,
+  .upgradeBoxCollapsed {
+    display: block;
+  }
+
+  .navPanelCollapsed {
+    padding: 10px;
+  }
+
+  .navItemCollapsed {
+    justify-content: flex-start;
+    padding-inline: 12px;
+  }
+
+  .navLabelHidden {
+    display: inline;
+  }
+
+  .sidebarFootLinksCollapsed {
+    display: flex;
+  }
+
+  .sidebarFootLinkHidden {
+    display: inline-flex;
+  }
+
+  .sidebarLogoutButtonCollapsed {
+    width: auto;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 0.76rem;
+  }
+
+  .workspaceContentLocked {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .workspacePageLocked {
+    display: block;
+    overflow: visible;
   }
 }
 
@@ -1743,6 +3210,37 @@
 
   .workspacePage {
     padding-top: 18px;
+  }
+
+  .codeStudioTopbar,
+  .codeStudioProblemBody,
+  .codeStudioProblemMeta,
+  .codeStudioEditorHeader,
+  .codeStudioTestsView {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .codeStudioTopbar {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .codeStudioHeadingRow h1 {
+    font-size: 1.5rem;
+  }
+
+  .codeStudioExplorer {
+    padding: 16px;
+  }
+
+  .codeStudioEditorCanvas {
+    min-height: 340px;
+  }
+
+  .codeStudioMonacoWrap,
+  .codeStudioMonacoLoading {
+    min-height: 340px;
   }
 
   .workspaceFooter {
