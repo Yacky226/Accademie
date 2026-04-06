@@ -5,7 +5,10 @@ import { UserStatus } from '../../../core/enums';
 import { RefreshTokenEntity } from '../../users/entities/refresh-token.entity';
 import { RoleEntity } from '../../users/entities/role.entity';
 import { UserEntity } from '../../users/entities/user.entity';
-import { AuthRefreshSession, AuthUserIdentity } from '../interfaces/auth-user.interface';
+import {
+  AuthRefreshSession,
+  AuthUserIdentity,
+} from '../interfaces/auth-user.interface';
 import { AuthUsersRepository } from './auth-users.repository';
 
 @Injectable()
@@ -27,7 +30,9 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     ];
 
     for (const role of defaultRoles) {
-      const existingRole = await this.rolesRepository.findOne({ where: { name: role.name } });
+      const existingRole = await this.rolesRepository.findOne({
+        where: { name: role.name },
+      });
       if (!existingRole) {
         await this.rolesRepository.save(this.rolesRepository.create(role));
       }
@@ -60,8 +65,12 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     passwordHash: string;
     roleNames: string[];
   }): Promise<AuthUserIdentity> {
-    const normalizedRoleNames = input.roleNames.map((role) => role.trim().toUpperCase());
-    const roles = await this.rolesRepository.find({ where: { name: In(normalizedRoleNames) } });
+    const normalizedRoleNames = input.roleNames.map((role) =>
+      role.trim().toUpperCase(),
+    );
+    const roles = await this.rolesRepository.find({
+      where: { name: In(normalizedRoleNames) },
+    });
 
     const created = this.usersRepository.create({
       firstName: input.firstName,
@@ -91,13 +100,26 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     await this.usersRepository.update({ id: userId }, { lastLoginAt: loginAt });
   }
 
+  async updatePasswordHash(
+    userId: string,
+    passwordHash: string,
+  ): Promise<void> {
+    await this.usersRepository.update({ id: userId }, { passwordHash });
+  }
+
+  async markEmailAsVerified(userId: string): Promise<void> {
+    await this.usersRepository.update({ id: userId }, { emailVerified: true });
+  }
+
   async createRefreshSession(input: {
     userId: string;
     expiresAt: Date;
     userAgent?: string;
     ipAddress?: string;
   }): Promise<AuthRefreshSession> {
-    const user = await this.usersRepository.findOne({ where: { id: input.userId } });
+    const user = await this.usersRepository.findOne({
+      where: { id: input.userId },
+    });
     if (!user) {
       throw new Error('User not found when creating refresh session');
     }
@@ -121,11 +143,16 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     };
   }
 
-  async updateRefreshSessionHash(sessionId: string, tokenHash: string): Promise<void> {
+  async updateRefreshSessionHash(
+    sessionId: string,
+    tokenHash: string,
+  ): Promise<void> {
     await this.refreshTokensRepository.update({ id: sessionId }, { tokenHash });
   }
 
-  async findRefreshSessionById(sessionId: string): Promise<AuthRefreshSession | null> {
+  async findRefreshSessionById(
+    sessionId: string,
+  ): Promise<AuthRefreshSession | null> {
     const session = await this.refreshTokensRepository.findOne({
       where: { id: sessionId },
       relations: { user: true },
@@ -144,11 +171,17 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     };
   }
 
-  async revokeRefreshSession(sessionId: string, revokedAt: Date): Promise<void> {
+  async revokeRefreshSession(
+    sessionId: string,
+    revokedAt: Date,
+  ): Promise<void> {
     await this.refreshTokensRepository.update({ id: sessionId }, { revokedAt });
   }
 
-  async revokeAllRefreshSessionsByUserId(userId: string, revokedAt: Date): Promise<void> {
+  async revokeAllRefreshSessionsByUserId(
+    userId: string,
+    revokedAt: Date,
+  ): Promise<void> {
     await this.refreshTokensRepository
       .createQueryBuilder()
       .update(RefreshTokenEntity)
@@ -164,6 +197,8 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      avatarUrl: user.avatarUrl ?? null,
+      emailVerified: user.emailVerified,
       roles: (user.roles ?? []).map((role) => role.name),
       status: user.status,
       passwordHash: user.passwordHash,

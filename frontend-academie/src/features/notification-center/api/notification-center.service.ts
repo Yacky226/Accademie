@@ -3,7 +3,7 @@ import type {
   NotificationIconName,
   NotificationItem,
   NotificationTone,
-} from "../notification-center.data";
+} from "../model/notification-center.catalog";
 import type { BackendNotificationResponse } from "../model/notification-center.types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {

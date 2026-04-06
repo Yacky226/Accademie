@@ -4,6 +4,8 @@ import type {
   UserRole,
 } from "@/entities/user/model/user-session.types";
 
+export type RegisterRole = Exclude<UserRole, "admin">;
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -14,7 +16,7 @@ export interface RegisterPayload {
   email: string;
   fullName: string;
   password: string;
-  role: UserRole;
+  role: RegisterRole;
   acceptTerms: boolean;
 }
 
@@ -22,10 +24,44 @@ export type LoginFormValues = LoginCredentials;
 
 export type RegisterFormValues = RegisterPayload;
 
+export interface ForgotPasswordValues {
+  email: string;
+}
+
+export interface ResetPasswordValues {
+  password: string;
+  rememberSession: boolean;
+  token: string;
+}
+
+export interface VerifyEmailValues {
+  email: string;
+  token: string;
+}
+
+export interface AuthActionFeedback {
+  message: string;
+  previewToken?: string | null;
+  previewUrl?: string | null;
+}
+
 export interface AuthState extends SessionSnapshot {
+  actionPreviewToken: string | null;
+  actionPreviewUrl: string | null;
   errorMessage: string | null;
   isInitialized: boolean;
-  pendingAction: "login" | "logout" | "profile" | "register" | null;
+  pendingAction:
+    | "forgotPassword"
+    | "login"
+    | "logout"
+    | "logoutAll"
+    | "profile"
+    | "register"
+    | "requestEmailVerification"
+    | "resetPassword"
+    | "verifyEmail"
+    | null;
+  statusMessage: string | null;
 }
 
 export interface AuthRequestContext {
@@ -37,4 +73,22 @@ export interface AuthRequestContext {
 export interface AuthenticatedSession {
   accessToken: string;
   user: SessionUser;
+}
+
+export interface RequestPasswordResetPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  password: string;
+  rememberSession: boolean;
+  token: string;
+}
+
+export interface RequestEmailVerificationPayload {
+  email: string;
+}
+
+export interface VerifyEmailPayload {
+  token: string;
 }

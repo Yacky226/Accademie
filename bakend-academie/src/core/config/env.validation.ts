@@ -27,4 +27,3 @@ export class EnvironmentVariables {
   @IsString()
   STRIPE_WEBHOOK_SECRET?: string;
 }
-

@@ -21,14 +21,18 @@ export class NotificationsRepository {
     });
   }
 
-  async findNotificationById(notificationId: string): Promise<NotificationEntity | null> {
+  async findNotificationById(
+    notificationId: string,
+  ): Promise<NotificationEntity | null> {
     return this.notificationsRepository.findOne({
       where: { id: notificationId, deletedAt: IsNull() },
       relations: { recipient: true, sender: true },
     });
   }
 
-  async findNotificationsByRecipientId(recipientId: string): Promise<NotificationEntity[]> {
+  async findNotificationsByRecipientId(
+    recipientId: string,
+  ): Promise<NotificationEntity[]> {
     return this.notificationsRepository.find({
       where: { recipient: { id: recipientId }, deletedAt: IsNull() },
       relations: { recipient: true, sender: true },
@@ -36,15 +40,21 @@ export class NotificationsRepository {
     });
   }
 
-  async saveNotification(notification: NotificationEntity): Promise<NotificationEntity> {
+  async saveNotification(
+    notification: NotificationEntity,
+  ): Promise<NotificationEntity> {
     return this.notificationsRepository.save(notification);
   }
 
-  async softDeleteNotification(notification: NotificationEntity): Promise<void> {
+  async softDeleteNotification(
+    notification: NotificationEntity,
+  ): Promise<void> {
     await this.notificationsRepository.softRemove(notification);
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 }

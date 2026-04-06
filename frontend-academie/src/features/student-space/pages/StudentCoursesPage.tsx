@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/core/store/app-store-hooks";
 import {
@@ -91,7 +92,13 @@ export function StudentCoursesPage() {
             <div className={styles.emptyCoursesList}>
               {recommendations.map((course) => (
                 <article key={course.id} className={styles.emptySuggestionItem}>
-                  <img src={course.imageUrl} alt={course.title} />
+                  <Image
+                    alt={course.title}
+                    height={160}
+                    sizes="72px"
+                    src={course.imageUrl}
+                    width={160}
+                  />
                   <div>
                     <p>{course.title}</p>
                     <span>

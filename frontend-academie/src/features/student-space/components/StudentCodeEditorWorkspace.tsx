@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/core/store/app-store-hooks";
 import {
@@ -22,13 +23,13 @@ import {
 import {
   studentCodeConsoleBoot,
   studentCodeExercise as fallbackStudentCodeExercise,
-} from "../student-code-editor.data";
-import { StudentMonacoEditor } from "./StudentMonacoEditor";
-import styles from "../student-space.module.css";
+} from "@/features/student-code-editor/model/student-code-editor.catalog";
 import type {
   StudentCodingLanguageId,
   StudentConsoleEntry,
-} from "../student-space.types";
+} from "@/features/student-code-editor/model/student-code-editor.contracts";
+import { StudentMonacoEditor } from "./StudentMonacoEditor";
+import styles from "../student-space.module.css";
 
 type ProblemTabId = "description" | "examples" | "constraints" | "hints";
 type WorkspaceFileId = "solution" | "notes" | "tests";
@@ -532,10 +533,13 @@ export function StudentCodeEditorWorkspace() {
         </p>
 
         <figure className={styles.codeStudioDiagramCard}>
-          <img
+          <Image
             alt={studentCodeExercise.diagramAlt}
             className={styles.codeStudioDiagram}
+            height={720}
+            sizes="(max-width: 1200px) 100vw, 40vw"
             src={studentCodeExercise.diagramUrl}
+            width={1280}
           />
           <figcaption>{studentCodeExercise.diagramCaption}</figcaption>
         </figure>

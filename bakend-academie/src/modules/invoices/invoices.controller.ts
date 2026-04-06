@@ -41,7 +41,9 @@ export class InvoicesController {
 
   @Permissions(INVOICE_PERMISSIONS.INVOICES_READ)
   @Get('me')
-  async listMyInvoices(@CurrentUser('sub') userId: string): Promise<InvoiceResponseDto[]> {
+  async listMyInvoices(
+    @CurrentUser('sub') userId: string,
+  ): Promise<InvoiceResponseDto[]> {
     return this.invoicesService.listMyInvoices(userId);
   }
 
@@ -83,7 +85,11 @@ export class InvoicesController {
     @CurrentUser('roles') roles: string[],
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
-    const result = await this.invoicesService.generateInvoicePdf(id, userId, roles ?? []);
+    const result = await this.invoicesService.generateInvoicePdf(
+      id,
+      userId,
+      roles ?? [],
+    );
     response.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${result.fileName}"`,
@@ -95,7 +101,7 @@ export class InvoicesController {
 
   @Permissions(INVOICE_PERMISSIONS.INVOICES_READ)
   @Post('preview-tax')
-  async previewTax(@Body() dto: PreviewInvoiceTaxDto): Promise<InvoiceTaxPreviewResponseDto> {
+  previewTax(@Body() dto: PreviewInvoiceTaxDto): InvoiceTaxPreviewResponseDto {
     return this.invoicesService.previewTax(dto);
   }
 
@@ -153,10 +159,6 @@ export class InvoicesController {
       throw new BadRequestException('format must be json or csv');
     }
 
-    return this.invoicesService.exportAccounting(
-      normalized as 'json' | 'csv',
-      from,
-      to,
-    );
+    return this.invoicesService.exportAccounting(normalized, from, to);
   }
 }

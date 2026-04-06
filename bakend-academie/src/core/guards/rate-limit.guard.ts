@@ -6,7 +6,10 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RATE_LIMIT_KEY, RateLimitOptions } from '../decorators/rate-limit.decorator';
+import {
+  RATE_LIMIT_KEY,
+  RateLimitOptions,
+} from '../decorators/rate-limit.decorator';
 
 interface RateLimitBucket {
   count: number;
@@ -20,10 +23,10 @@ export class RateLimitGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const options = this.reflector.getAllAndOverride<RateLimitOptions>(RATE_LIMIT_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const options = this.reflector.getAllAndOverride<RateLimitOptions>(
+      RATE_LIMIT_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (!options) {
       return true;

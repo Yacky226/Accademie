@@ -9,19 +9,28 @@ import { NotificationResponseDto } from './dto/notification-response.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationEntity } from './entities/notification.entity';
 import { NotificationsRepository } from './repositories/notifications.repository';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly notificationsRepository: NotificationsRepository) {}
+  constructor(
+    private readonly notificationsRepository: NotificationsRepository,
+  ) {}
 
   async getNotifications(): Promise<NotificationResponseDto[]> {
-    const notifications = await this.notificationsRepository.findAllNotifications();
-    return notifications.map((notification) => this.mapToResponseDto(notification));
+    const notifications =
+      await this.notificationsRepository.findAllNotifications();
+    return notifications.map((notification) =>
+      this.mapToResponseDto(notification),
+    );
   }
 
   async getMyNotifications(userId: string): Promise<NotificationResponseDto[]> {
-    const notifications = await this.notificationsRepository.findNotificationsByRecipientId(userId);
-    return notifications.map((notification) => this.mapToResponseDto(notification));
+    const notifications =
+      await this.notificationsRepository.findNotificationsByRecipientId(userId);
+    return notifications.map((notification) =>
+      this.mapToResponseDto(notification),
+    );
   }
 
   async getNotificationById(
@@ -29,7 +38,8 @@ export class NotificationsService {
     userId: string,
     roles: string[],
   ): Promise<NotificationResponseDto> {
-    const notification = await this.notificationsRepository.findNotificationById(notificationId);
+    const notification =
+      await this.notificationsRepository.findNotificationById(notificationId);
     if (!notification) {
       throw new NotFoundException('Notification not found');
     }
@@ -46,18 +56,25 @@ export class NotificationsService {
     return this.mapToResponseDto(notification);
   }
 
-  async createNotification(createDto: CreateNotificationDto): Promise<NotificationResponseDto> {
-    const recipient = await this.notificationsRepository.findUserById(createDto.recipientId);
+  async createNotification(
+    createDto: CreateNotificationDto,
+  ): Promise<NotificationResponseDto> {
+    const recipient = await this.notificationsRepository.findUserById(
+      createDto.recipientId,
+    );
     if (!recipient) {
       throw new NotFoundException('Recipient user not found');
     }
 
-    let sender;
+    let sender: UserEntity | undefined;
     if (createDto.senderId) {
-      sender = await this.notificationsRepository.findUserById(createDto.senderId);
-      if (!sender) {
+      const resolvedSender = await this.notificationsRepository.findUserById(
+        createDto.senderId,
+      );
+      if (!resolvedSender) {
         throw new NotFoundException('Sender user not found');
       }
+      sender = resolvedSender;
     }
 
     const notification = new NotificationEntity();
@@ -69,8 +86,11 @@ export class NotificationsService {
     notification.recipient = recipient;
     notification.sender = sender;
 
-    const saved = await this.notificationsRepository.saveNotification(notification);
-    const hydrated = await this.notificationsRepository.findNotificationById(saved.id);
+    const saved =
+      await this.notificationsRepository.saveNotification(notification);
+    const hydrated = await this.notificationsRepository.findNotificationById(
+      saved.id,
+    );
 
     return this.mapToResponseDto(hydrated ?? saved);
   }
@@ -81,15 +101,19 @@ export class NotificationsService {
     userId: string,
     roles: string[],
   ): Promise<NotificationResponseDto> {
-    const notification = await this.notificationsRepository.findNotificationById(notificationId);
+    const notification =
+      await this.notificationsRepository.findNotificationById(notificationId);
     if (!notification) {
       throw new NotFoundException('Notification not found');
     }
 
-    const canEdit = this.hasElevatedRole(roles) || notification.recipient.id === userId;
+    const canEdit =
+      this.hasElevatedRole(roles) || notification.recipient.id === userId;
 
     if (!canEdit) {
-      throw new ForbiddenException('You are not allowed to update this notification');
+      throw new ForbiddenException(
+        'You are not allowed to update this notification',
+      );
     }
 
     if (updateDto.title !== undefined) {
@@ -112,8 +136,11 @@ export class NotificationsService {
       notification.readAt = updateDto.isRead ? new Date() : undefined;
     }
 
-    const updated = await this.notificationsRepository.saveNotification(notification);
-    const hydrated = await this.notificationsRepository.findNotificationById(updated.id);
+    const updated =
+      await this.notificationsRepository.saveNotification(notification);
+    const hydrated = await this.notificationsRepository.findNotificationById(
+      updated.id,
+    );
 
     return this.mapToResponseDto(hydrated ?? updated);
   }
@@ -123,25 +150,40 @@ export class NotificationsService {
     userId: string,
     roles: string[],
   ): Promise<NotificationResponseDto> {
-    return this.updateNotification(notificationId, { isRead: true }, userId, roles);
+    return this.updateNotification(
+      notificationId,
+      { isRead: true },
+      userId,
+      roles,
+    );
   }
 
-  async deleteNotification(notificationId: string, userId: string, roles: string[]): Promise<void> {
-    const notification = await this.notificationsRepository.findNotificationById(notificationId);
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+    roles: string[],
+  ): Promise<void> {
+    const notification =
+      await this.notificationsRepository.findNotificationById(notificationId);
     if (!notification) {
       throw new NotFoundException('Notification not found');
     }
 
-    const canDelete = this.hasElevatedRole(roles) || notification.recipient.id === userId;
+    const canDelete =
+      this.hasElevatedRole(roles) || notification.recipient.id === userId;
 
     if (!canDelete) {
-      throw new ForbiddenException('You are not allowed to delete this notification');
+      throw new ForbiddenException(
+        'You are not allowed to delete this notification',
+      );
     }
 
     await this.notificationsRepository.softDeleteNotification(notification);
   }
 
-  private mapToResponseDto(notification: NotificationEntity): NotificationResponseDto {
+  private mapToResponseDto(
+    notification: NotificationEntity,
+  ): NotificationResponseDto {
     return {
       id: notification.id,
       title: notification.title,

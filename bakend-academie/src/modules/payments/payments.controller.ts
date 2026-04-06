@@ -38,7 +38,9 @@ export class PaymentsController {
 
   @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_READ)
   @Get('me')
-  async listMyPayments(@CurrentUser('sub') userId: string): Promise<PaymentResponseDto[]> {
+  async listMyPayments(
+    @CurrentUser('sub') userId: string,
+  ): Promise<PaymentResponseDto[]> {
     return this.paymentsService.listMyPayments(userId);
   }
 
@@ -69,7 +71,11 @@ export class PaymentsController {
     @CurrentUser('roles') roles: string[],
     @Body() dto: CreateSubscriptionPaymentDto,
   ): Promise<PaymentResponseDto> {
-    return this.paymentsService.createSubscriptionPayment(userId, dto, roles ?? []);
+    return this.paymentsService.createSubscriptionPayment(
+      userId,
+      dto,
+      roles ?? [],
+    );
   }
 
   @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_UPDATE)

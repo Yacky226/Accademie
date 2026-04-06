@@ -9,10 +9,16 @@ import { GradesRepository } from './repositories/grades.repository';
 import { GradesService } from './grades.service';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([GradeEntity, UserEntity, CourseEntity, EvaluationAttemptEntity])],
-	controllers: [GradesController],
-	providers: [GradesService, GradesRepository],
-	exports: [GradesService, GradesRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      GradeEntity,
+      UserEntity,
+      CourseEntity,
+      EvaluationAttemptEntity,
+    ]),
+  ],
+  controllers: [GradesController],
+  providers: [GradesService, GradesRepository],
+  exports: [GradesService, GradesRepository],
 })
 export class GradesModule {}
-

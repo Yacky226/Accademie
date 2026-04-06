@@ -53,7 +53,10 @@ export class AnalyticsService {
   }
 
   async getActivity(periodDays = 30): Promise<AnalyticsActivityResponseDto> {
-    const normalizedPeriodDays = Number.isFinite(periodDays) && periodDays > 0 ? Math.floor(periodDays) : 30;
+    const normalizedPeriodDays =
+      Number.isFinite(periodDays) && periodDays > 0
+        ? Math.floor(periodDays)
+        : 30;
     const since = new Date();
     since.setDate(since.getDate() - normalizedPeriodDays);
 

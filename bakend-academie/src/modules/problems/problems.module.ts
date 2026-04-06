@@ -10,18 +10,17 @@ import { ProblemsService } from './problems.service';
 import { ProblemsRepository } from './repositories/problems.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			ProblemEntity,
-			ProblemTagEntity,
-			ProblemTestCaseEntity,
-			SupportedLanguageEntity,
-			UserEntity,
-		]),
-	],
-	controllers: [ProblemsController],
-	providers: [ProblemsService, ProblemsRepository],
-	exports: [ProblemsService, ProblemsRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      ProblemEntity,
+      ProblemTagEntity,
+      ProblemTestCaseEntity,
+      SupportedLanguageEntity,
+      UserEntity,
+    ]),
+  ],
+  controllers: [ProblemsController],
+  providers: [ProblemsService, ProblemsRepository],
+  exports: [ProblemsService, ProblemsRepository],
 })
 export class ProblemsModule {}
-

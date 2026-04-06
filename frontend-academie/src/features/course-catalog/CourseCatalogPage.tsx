@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { MarketingPageFrame } from "../marketing-site/MarketingPageFrame";
 import {
   catalogCourses,
@@ -212,7 +213,14 @@ export function CourseCatalogPage() {
             {visibleCourses.map((course) => (
               <article className={styles.card} key={course.title}>
                 <div className={styles.cardMedia}>
-                  <img alt={course.imageAlt} className={styles.cardImage} src={course.imageUrl} />
+                  <Image
+                    alt={course.imageAlt}
+                    className={styles.cardImage}
+                    height={720}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    src={course.imageUrl}
+                    width={1280}
+                  />
                   <span className={styles.cardCategory}>{course.category}</span>
                 </div>
 
@@ -229,10 +237,13 @@ export function CourseCatalogPage() {
                   </div>
 
                   <div className={styles.mentorRow}>
-                    <img
+                    <Image
                       alt={course.mentorAvatarAlt}
                       className={styles.mentorAvatar}
+                      height={80}
+                      sizes="20px"
                       src={course.mentorAvatarUrl}
+                      width={80}
                     />
                     <span className={styles.mentorName}>{course.mentor}</span>
                   </div>

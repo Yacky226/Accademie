@@ -1,4 +1,7 @@
-import { AuthRefreshSession, AuthUserIdentity } from '../interfaces/auth-user.interface';
+import {
+  AuthRefreshSession,
+  AuthUserIdentity,
+} from '../interfaces/auth-user.interface';
 
 export const AUTH_USERS_REPOSITORY = Symbol('AUTH_USERS_REPOSITORY');
 
@@ -14,6 +17,8 @@ export interface AuthUsersRepository {
     roleNames: string[];
   }): Promise<AuthUserIdentity>;
   updateLastLoginAt(userId: string, loginAt: Date): Promise<void>;
+  updatePasswordHash(userId: string, passwordHash: string): Promise<void>;
+  markEmailAsVerified(userId: string): Promise<void>;
   createRefreshSession(input: {
     userId: string;
     expiresAt: Date;
@@ -23,5 +28,8 @@ export interface AuthUsersRepository {
   updateRefreshSessionHash(sessionId: string, tokenHash: string): Promise<void>;
   findRefreshSessionById(sessionId: string): Promise<AuthRefreshSession | null>;
   revokeRefreshSession(sessionId: string, revokedAt: Date): Promise<void>;
-  revokeAllRefreshSessionsByUserId(userId: string, revokedAt: Date): Promise<void>;
+  revokeAllRefreshSessionsByUserId(
+    userId: string,
+    revokedAt: Date,
+  ): Promise<void>;
 }

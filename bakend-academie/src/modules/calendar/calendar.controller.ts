@@ -35,14 +35,18 @@ export class CalendarController {
 
   @Permissions(CALENDAR_PERMISSIONS.CALENDAR_READ)
   @Get('events/me')
-  async listMyEvents(@CurrentUser('sub') userId: string): Promise<CalendarEventResponseDto[]> {
+  async listMyEvents(
+    @CurrentUser('sub') userId: string,
+  ): Promise<CalendarEventResponseDto[]> {
     const events = await this.calendarService.listMyEvents(userId);
     return events.map((event) => this.toResponse(event));
   }
 
   @Permissions(CALENDAR_PERMISSIONS.CALENDAR_READ)
   @Get('events/:id')
-  async getEventById(@Param('id') id: string): Promise<CalendarEventResponseDto> {
+  async getEventById(
+    @Param('id') id: string,
+  ): Promise<CalendarEventResponseDto> {
     const event = await this.calendarService.getEventById(id);
     return this.toResponse(event);
   }
@@ -50,7 +54,9 @@ export class CalendarController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(CALENDAR_PERMISSIONS.CALENDAR_CREATE)
   @Post('events')
-  async createEvent(@Body() dto: CreateCalendarEventDto): Promise<CalendarEventResponseDto> {
+  async createEvent(
+    @Body() dto: CreateCalendarEventDto,
+  ): Promise<CalendarEventResponseDto> {
     const event = await this.calendarService.createEvent(dto);
     return this.toResponse(event);
   }
@@ -69,7 +75,10 @@ export class CalendarController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(CALENDAR_PERMISSIONS.CALENDAR_ATTENDEES_MANAGE)
   @Post('events/:id/attendees')
-  async addAttendee(@Param('id') eventId: string, @Body() dto: AddCalendarAttendeeDto) {
+  async addAttendee(
+    @Param('id') eventId: string,
+    @Body() dto: AddCalendarAttendeeDto,
+  ) {
     return this.calendarService.addAttendee(eventId, dto);
   }
 

@@ -27,7 +27,9 @@ export class CourseModuleEntity {
   @Column({ type: 'boolean', default: false })
   isPublished!: boolean;
 
-  @ManyToOne(() => CourseEntity, (course) => course.modules, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CourseEntity, (course) => course.modules, {
+    onDelete: 'CASCADE',
+  })
   course!: CourseEntity;
 
   @OneToMany(() => LessonEntity, (lesson) => lesson.courseModule)

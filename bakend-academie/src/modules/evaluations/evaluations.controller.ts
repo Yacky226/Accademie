@@ -34,7 +34,9 @@ export class EvaluationsController {
   @Get()
   async listEvaluations(): Promise<EvaluationResponseDto[]> {
     const evaluations = await this.evaluationsService.listEvaluations();
-    return evaluations.map((evaluation) => this.toEvaluationResponse(evaluation));
+    return evaluations.map((evaluation) =>
+      this.toEvaluationResponse(evaluation),
+    );
   }
 
   @Permissions(EVALUATION_PERMISSIONS.EVALUATION_ATTEMPTS_SUBMIT)
@@ -48,7 +50,9 @@ export class EvaluationsController {
 
   @Permissions(EVALUATION_PERMISSIONS.EVALUATIONS_READ)
   @Get(':id')
-  async getEvaluationById(@Param('id') id: string): Promise<EvaluationResponseDto> {
+  async getEvaluationById(
+    @Param('id') id: string,
+  ): Promise<EvaluationResponseDto> {
     const evaluation = await this.evaluationsService.getEvaluationById(id);
     return this.toEvaluationResponse(evaluation);
   }
@@ -60,7 +64,10 @@ export class EvaluationsController {
     @Body() dto: CreateEvaluationDto,
     @CurrentUser('sub') creatorId: string,
   ): Promise<EvaluationResponseDto> {
-    const evaluation = await this.evaluationsService.createEvaluation(dto, creatorId);
+    const evaluation = await this.evaluationsService.createEvaluation(
+      dto,
+      creatorId,
+    );
     return this.toEvaluationResponse(evaluation);
   }
 
@@ -101,7 +108,11 @@ export class EvaluationsController {
     @Param('questionId') questionId: string,
     @Body() dto: UpdateEvaluationQuestionDto,
   ) {
-    return this.evaluationsService.updateQuestion(evaluationId, questionId, dto);
+    return this.evaluationsService.updateQuestion(
+      evaluationId,
+      questionId,
+      dto,
+    );
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -122,14 +133,20 @@ export class EvaluationsController {
     @CurrentUser('sub') userId: string,
     @Body() dto: SubmitEvaluationAttemptDto,
   ): Promise<EvaluationAttemptResponseDto> {
-    const attempt = await this.evaluationsService.submitAttempt(evaluationId, dto, userId);
+    const attempt = await this.evaluationsService.submitAttempt(
+      evaluationId,
+      dto,
+      userId,
+    );
     return this.toAttemptResponse(attempt);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(EVALUATION_PERMISSIONS.EVALUATION_ATTEMPTS_READ)
   @Get(':id/attempts')
-  async listAttempts(@Param('id') evaluationId: string): Promise<EvaluationAttemptResponseDto[]> {
+  async listAttempts(
+    @Param('id') evaluationId: string,
+  ): Promise<EvaluationAttemptResponseDto[]> {
     const attempts = await this.evaluationsService.listAttempts(evaluationId);
     return attempts.map((attempt) => this.toAttemptResponse(attempt));
   }
@@ -142,11 +159,17 @@ export class EvaluationsController {
     @CurrentUser('sub') graderId: string,
     @Body() dto: GradeEvaluationAttemptDto,
   ): Promise<EvaluationAttemptResponseDto> {
-    const attempt = await this.evaluationsService.gradeAttempt(attemptId, dto, graderId);
+    const attempt = await this.evaluationsService.gradeAttempt(
+      attemptId,
+      dto,
+      graderId,
+    );
     return this.toAttemptResponse(attempt);
   }
 
-  private toEvaluationResponse(evaluation: EvaluationEntity): EvaluationResponseDto {
+  private toEvaluationResponse(
+    evaluation: EvaluationEntity,
+  ): EvaluationResponseDto {
     return {
       id: evaluation.id,
       title: evaluation.title,
@@ -187,7 +210,9 @@ export class EvaluationsController {
     };
   }
 
-  private toAttemptResponse(attempt: EvaluationAttemptEntity): EvaluationAttemptResponseDto {
+  private toAttemptResponse(
+    attempt: EvaluationAttemptEntity,
+  ): EvaluationAttemptResponseDto {
     return {
       id: attempt.id,
       status: attempt.status,

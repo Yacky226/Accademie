@@ -66,7 +66,9 @@ export class ProgramsService {
     program.description = dto.description ?? program.description;
     program.goal = dto.goal ?? program.goal;
     program.status = dto.status ?? program.status;
-    program.startDate = dto.startDate ? new Date(dto.startDate) : program.startDate;
+    program.startDate = dto.startDate
+      ? new Date(dto.startDate)
+      : program.startDate;
     program.endDate = dto.endDate ? new Date(dto.endDate) : program.endDate;
 
     return this.programsRepository.saveProgram(program);
@@ -77,7 +79,10 @@ export class ProgramsService {
     await this.programsRepository.removeProgram(program);
   }
 
-  async addStep(programId: string, dto: CreateProgramStepDto): Promise<ProgramStepEntity> {
+  async addStep(
+    programId: string,
+    dto: CreateProgramStepDto,
+  ): Promise<ProgramStepEntity> {
     const program = await this.getProgramById(programId);
 
     const duplicatePosition = (program.steps ?? []).find(
@@ -115,7 +120,8 @@ export class ProgramsService {
     if (dto.position !== undefined) {
       const program = await this.getProgramById(programId);
       const duplicatePosition = (program.steps ?? []).find(
-        (programStep) => programStep.position === dto.position && programStep.id !== step.id,
+        (programStep) =>
+          programStep.position === dto.position && programStep.id !== step.id,
       );
       if (duplicatePosition) {
         throw new ConflictException('A step already exists at this position');

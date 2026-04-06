@@ -38,7 +38,9 @@ export class EvaluationsRepository {
     });
   }
 
-  async findEvaluationById(evaluationId: string): Promise<EvaluationEntity | null> {
+  async findEvaluationById(
+    evaluationId: string,
+  ): Promise<EvaluationEntity | null> {
     return this.evaluationsRepository.findOne({
       where: { id: evaluationId, deletedAt: IsNull() },
       relations: {
@@ -62,7 +64,9 @@ export class EvaluationsRepository {
     });
   }
 
-  async saveEvaluation(evaluation: EvaluationEntity): Promise<EvaluationEntity> {
+  async saveEvaluation(
+    evaluation: EvaluationEntity,
+  ): Promise<EvaluationEntity> {
     return this.evaluationsRepository.save(evaluation);
   }
 
@@ -70,14 +74,18 @@ export class EvaluationsRepository {
     await this.evaluationsRepository.softRemove(evaluation);
   }
 
-  async findQuestionById(questionId: string): Promise<EvaluationQuestionEntity | null> {
+  async findQuestionById(
+    questionId: string,
+  ): Promise<EvaluationQuestionEntity | null> {
     return this.questionsRepository.findOne({
       where: { id: questionId },
       relations: { evaluation: true },
     });
   }
 
-  async saveQuestion(question: EvaluationQuestionEntity): Promise<EvaluationQuestionEntity> {
+  async saveQuestion(
+    question: EvaluationQuestionEntity,
+  ): Promise<EvaluationQuestionEntity> {
     return this.questionsRepository.save(question);
   }
 
@@ -85,7 +93,9 @@ export class EvaluationsRepository {
     await this.questionsRepository.remove(question);
   }
 
-  async findAttemptById(attemptId: string): Promise<EvaluationAttemptEntity | null> {
+  async findAttemptById(
+    attemptId: string,
+  ): Promise<EvaluationAttemptEntity | null> {
     return this.attemptsRepository.findOne({
       where: { id: attemptId },
       relations: {
@@ -96,11 +106,15 @@ export class EvaluationsRepository {
     });
   }
 
-  async saveAttempt(attempt: EvaluationAttemptEntity): Promise<EvaluationAttemptEntity> {
+  async saveAttempt(
+    attempt: EvaluationAttemptEntity,
+  ): Promise<EvaluationAttemptEntity> {
     return this.attemptsRepository.save(attempt);
   }
 
-  async findAttemptsByEvaluationId(evaluationId: string): Promise<EvaluationAttemptEntity[]> {
+  async findAttemptsByEvaluationId(
+    evaluationId: string,
+  ): Promise<EvaluationAttemptEntity[]> {
     return this.attemptsRepository.find({
       where: { evaluation: { id: evaluationId } },
       relations: {
@@ -112,7 +126,9 @@ export class EvaluationsRepository {
     });
   }
 
-  async findAttemptsByStudentId(studentId: string): Promise<EvaluationAttemptEntity[]> {
+  async findAttemptsByStudentId(
+    studentId: string,
+  ): Promise<EvaluationAttemptEntity[]> {
     return this.attemptsRepository.find({
       where: { student: { id: studentId } },
       relations: {
@@ -124,7 +140,10 @@ export class EvaluationsRepository {
     });
   }
 
-  async countAttemptsByStudent(evaluationId: string, studentId: string): Promise<number> {
+  async countAttemptsByStudent(
+    evaluationId: string,
+    studentId: string,
+  ): Promise<number> {
     return this.attemptsRepository.count({
       where: {
         evaluation: { id: evaluationId },
@@ -134,10 +153,14 @@ export class EvaluationsRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findCourseById(courseId: string): Promise<CourseEntity | null> {
-    return this.coursesRepository.findOne({ where: { id: courseId, deletedAt: IsNull() } });
+    return this.coursesRepository.findOne({
+      where: { id: courseId, deletedAt: IsNull() },
+    });
   }
 }

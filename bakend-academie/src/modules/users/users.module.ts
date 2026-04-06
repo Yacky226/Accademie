@@ -10,10 +10,16 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([UserEntity, RoleEntity, RefreshTokenEntity])],
-	controllers: [UsersController],
-	providers: [UsersService, UsersRepository, PasswordHashService, UserSelfOrAdminGuard],
-	exports: [UsersService, UsersRepository],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, RoleEntity, RefreshTokenEntity]),
+  ],
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    UsersRepository,
+    PasswordHashService,
+    UserSelfOrAdminGuard,
+  ],
+  exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}
-

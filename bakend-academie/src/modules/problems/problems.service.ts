@@ -38,7 +38,8 @@ export class ProblemsService {
 
   async getPublishedProblemBySlug(slug: string): Promise<ProblemEntity> {
     const normalizedSlug = this.normalizeSlug(slug);
-    const problem = await this.problemsRepository.findPublishedProblemBySlug(normalizedSlug);
+    const problem =
+      await this.problemsRepository.findPublishedProblemBySlug(normalizedSlug);
     if (!problem) {
       throw new NotFoundException('Published problem not found');
     }
@@ -46,9 +47,13 @@ export class ProblemsService {
     return problem;
   }
 
-  async createProblem(dto: CreateProblemDto, creatorId: string): Promise<ProblemEntity> {
+  async createProblem(
+    dto: CreateProblemDto,
+    creatorId: string,
+  ): Promise<ProblemEntity> {
     const normalizedSlug = this.normalizeSlug(dto.slug);
-    const existingProblem = await this.problemsRepository.findProblemBySlug(normalizedSlug);
+    const existingProblem =
+      await this.problemsRepository.findProblemBySlug(normalizedSlug);
     if (existingProblem) {
       throw new ConflictException('Problem slug already exists');
     }
@@ -79,12 +84,16 @@ export class ProblemsService {
     return this.problemsRepository.saveProblem(problem);
   }
 
-  async updateProblem(problemId: string, dto: UpdateProblemDto): Promise<ProblemEntity> {
+  async updateProblem(
+    problemId: string,
+    dto: UpdateProblemDto,
+  ): Promise<ProblemEntity> {
     const problem = await this.getProblemById(problemId);
 
     if (dto.slug && dto.slug !== problem.slug) {
       const normalizedSlug = this.normalizeSlug(dto.slug);
-      const existingProblem = await this.problemsRepository.findProblemBySlug(normalizedSlug);
+      const existingProblem =
+        await this.problemsRepository.findProblemBySlug(normalizedSlug);
       if (existingProblem && existingProblem.id !== problem.id) {
         throw new ConflictException('Problem slug already exists');
       }
@@ -115,7 +124,8 @@ export class ProblemsService {
 
   async createTag(dto: CreateProblemTagDto): Promise<ProblemTagEntity> {
     const normalizedSlug = this.normalizeSlug(dto.slug);
-    const existingTag = await this.problemsRepository.findTagBySlug(normalizedSlug);
+    const existingTag =
+      await this.problemsRepository.findTagBySlug(normalizedSlug);
     if (existingTag) {
       throw new ConflictException('Tag slug already exists');
     }
@@ -138,7 +148,9 @@ export class ProblemsService {
       throw new NotFoundException('Tag not found');
     }
 
-    const alreadyAttached = (problem.tags ?? []).some((existingTag) => existingTag.id === tag.id);
+    const alreadyAttached = (problem.tags ?? []).some(
+      (existingTag) => existingTag.id === tag.id,
+    );
     if (!alreadyAttached) {
       problem.tags = [...(problem.tags ?? []), tag];
     }
@@ -162,7 +174,9 @@ export class ProblemsService {
       (testCase) => testCase.position === dto.position,
     );
     if (duplicatePosition) {
-      throw new ConflictException('A test case already exists at this position');
+      throw new ConflictException(
+        'A test case already exists at this position',
+      );
     }
 
     const testCase = new ProblemTestCaseEntity();
@@ -189,7 +203,8 @@ export class ProblemsService {
     dto: CreateSupportedLanguageDto,
   ): Promise<SupportedLanguageEntity> {
     const normalizedSlug = this.normalizeSlug(dto.slug);
-    const existingLanguage = await this.problemsRepository.findLanguageBySlug(normalizedSlug);
+    const existingLanguage =
+      await this.problemsRepository.findLanguageBySlug(normalizedSlug);
     if (existingLanguage) {
       throw new ConflictException('Language slug already exists');
     }
@@ -208,7 +223,10 @@ export class ProblemsService {
     return this.problemsRepository.findAllLanguages();
   }
 
-  async toggleLanguageActive(languageId: string, isActive: boolean): Promise<SupportedLanguageEntity> {
+  async toggleLanguageActive(
+    languageId: string,
+    isActive: boolean,
+  ): Promise<SupportedLanguageEntity> {
     const language = await this.problemsRepository.findLanguageById(languageId);
     if (!language) {
       throw new NotFoundException('Language not found');

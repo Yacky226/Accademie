@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "../home.module.css";
 import type { CourseCard } from "../home.types";
 
@@ -34,7 +35,13 @@ export function FeaturedCoursesSection({
               style={{ "--reveal-index": index } as CSSProperties}
             >
               <div className={styles.courseImageWrap}>
-                <img src={course.imageUrl} alt={course.imageAlt} />
+                <Image
+                  alt={course.imageAlt}
+                  height={720}
+                  sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                  src={course.imageUrl}
+                  width={1280}
+                />
                 <span className={styles.courseTag}>{course.category}</span>
               </div>
               <h3 className={styles.courseTitle}>{course.title}</h3>

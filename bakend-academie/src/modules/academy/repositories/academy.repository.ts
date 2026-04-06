@@ -32,7 +32,9 @@ export class AcademyRepository {
     });
   }
 
-  async findAnnouncementById(id: string): Promise<AcademyAnnouncementEntity | null> {
+  async findAnnouncementById(
+    id: string,
+  ): Promise<AcademyAnnouncementEntity | null> {
     return this.announcementsRepository.findOne({
       where: { id, deletedAt: IsNull() },
       relations: { createdBy: true },
@@ -45,7 +47,9 @@ export class AcademyRepository {
     return this.announcementsRepository.save(announcement);
   }
 
-  async softDeleteAnnouncement(announcement: AcademyAnnouncementEntity): Promise<void> {
+  async softDeleteAnnouncement(
+    announcement: AcademyAnnouncementEntity,
+  ): Promise<void> {
     await this.announcementsRepository.softRemove(announcement);
   }
 
@@ -69,7 +73,9 @@ export class AcademyRepository {
     });
   }
 
-  async saveSetting(setting: AcademySettingEntity): Promise<AcademySettingEntity> {
+  async saveSetting(
+    setting: AcademySettingEntity,
+  ): Promise<AcademySettingEntity> {
     return this.settingsRepository.save(setting);
   }
 

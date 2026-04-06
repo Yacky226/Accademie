@@ -51,7 +51,11 @@ export class PaymentsService {
     return payments.map((payment) => this.toResponse(payment));
   }
 
-  async getPaymentById(id: string, userId: string, roles: string[]): Promise<PaymentResponseDto> {
+  async getPaymentById(
+    id: string,
+    userId: string,
+    roles: string[],
+  ): Promise<PaymentResponseDto> {
     const payment = await this.paymentsRepository.findPaymentById(id);
     if (!payment) {
       throw new NotFoundException('Payment not found');
@@ -60,7 +64,9 @@ export class PaymentsService {
     const isOwner = payment.user?.id === userId;
     const canRead = this.hasElevatedRole(roles) || isOwner;
     if (!canRead) {
-      throw new ForbiddenException('You are not allowed to access this payment');
+      throw new ForbiddenException(
+        'You are not allowed to access this payment',
+      );
     }
 
     return this.toResponse(payment);
@@ -81,18 +87,25 @@ export class PaymentsService {
     payment.reference = this.generateReference();
     payment.amount = dto.amount.toFixed(2);
     payment.currency = (dto.currency ?? 'XOF').toUpperCase();
-    payment.status = elevatedAccess ? dto.status ?? PaymentStatus.PENDING : PaymentStatus.PENDING;
+    payment.status = elevatedAccess
+      ? (dto.status ?? PaymentStatus.PENDING)
+      : PaymentStatus.PENDING;
     payment.provider = elevatedAccess ? dto.provider : undefined;
-    payment.providerTransactionId = elevatedAccess ? dto.providerTransactionId : undefined;
+    payment.providerTransactionId = elevatedAccess
+      ? dto.providerTransactionId
+      : undefined;
     payment.description = dto.description;
     payment.metadata = dto.metadata;
     payment.isSubscription = dto.isSubscription ?? false;
     payment.subscriptionPlanCode = dto.subscriptionPlanCode;
     payment.subscriptionStatus = payment.isSubscription ? 'ACTIVE' : undefined;
     payment.billingInterval = dto.billingInterval;
-    payment.nextBillingAt = dto.nextBillingAt ? new Date(dto.nextBillingAt) : undefined;
+    payment.nextBillingAt = dto.nextBillingAt
+      ? new Date(dto.nextBillingAt)
+      : undefined;
     payment.user = user;
-    payment.paidAt = payment.status === PaymentStatus.PAID ? new Date() : undefined;
+    payment.paidAt =
+      payment.status === PaymentStatus.PAID ? new Date() : undefined;
 
     if (dto.courseId) {
       const course = await this.paymentsRepository.findCourseById(dto.courseId);
@@ -143,7 +156,9 @@ export class PaymentsService {
     const isOwner = payment.user?.id === userId;
     const canUpdate = this.hasElevatedRole(roles) || isOwner;
     if (!canUpdate) {
-      throw new ForbiddenException('You are not allowed to update this payment');
+      throw new ForbiddenException(
+        'You are not allowed to update this payment',
+      );
     }
 
     const elevatedAccess = this.hasElevatedRole(roles);
@@ -164,7 +179,8 @@ export class PaymentsService {
         dto.status !== undefined ||
         dto.provider !== undefined ||
         dto.providerTransactionId !== undefined ||
-        (dto.subscriptionStatus !== undefined && !isCancellingOwnSubscription) ||
+        (dto.subscriptionStatus !== undefined &&
+          !isCancellingOwnSubscription) ||
         dto.billingInterval !== undefined ||
         dto.nextBillingAt !== undefined;
 
@@ -183,7 +199,8 @@ export class PaymentsService {
     }
     if (dto.status !== undefined) {
       payment.status = dto.status;
-      payment.paidAt = dto.status === PaymentStatus.PAID ? new Date() : payment.paidAt;
+      payment.paidAt =
+        dto.status === PaymentStatus.PAID ? new Date() : payment.paidAt;
     }
     if (dto.provider !== undefined) {
       payment.provider = dto.provider;
@@ -210,11 +227,16 @@ export class PaymentsService {
       payment.billingInterval = dto.billingInterval.toUpperCase();
     }
     if (dto.nextBillingAt !== undefined) {
-      payment.nextBillingAt = dto.nextBillingAt ? new Date(dto.nextBillingAt) : undefined;
+      payment.nextBillingAt = dto.nextBillingAt
+        ? new Date(dto.nextBillingAt)
+        : undefined;
     }
 
     const updated = await this.paymentsRepository.savePayment(payment);
-    await this.invoicesService.ensureInvoiceForPayment(updated.id, payment.user?.id ?? userId);
+    await this.invoicesService.ensureInvoiceForPayment(
+      updated.id,
+      payment.user?.id ?? userId,
+    );
     await this.invoicesService.syncInvoiceFromPayment(updated.id);
     const hydrated = await this.paymentsRepository.findPaymentById(updated.id);
     return this.toResponse(hydrated ?? updated);
@@ -235,13 +257,18 @@ export class PaymentsService {
       throw new ForbiddenException('Only staff members can refund payments');
     }
 
-    if (payment.status !== PaymentStatus.PAID && payment.status !== PaymentStatus.REFUNDED) {
+    if (
+      payment.status !== PaymentStatus.PAID &&
+      payment.status !== PaymentStatus.REFUNDED
+    ) {
       throw new ConflictException('Only paid payments can be refunded');
     }
 
     const amountToRefund = dto.amount ?? Number(payment.amount);
     if (amountToRefund > Number(payment.amount)) {
-      throw new ConflictException('Refund amount cannot exceed original amount');
+      throw new ConflictException(
+        'Refund amount cannot exceed original amount',
+      );
     }
 
     payment.status = PaymentStatus.REFUNDED;
@@ -267,7 +294,10 @@ export class PaymentsService {
       this.assertValidWebhookSignature(dto, signatureHeader, timestampHeader);
     }
 
-    const normalizedEvent = this.normalizeWebhookEvent(dto, Boolean(stripeSignatureHeader));
+    const normalizedEvent = this.normalizeWebhookEvent(
+      dto,
+      Boolean(stripeSignatureHeader),
+    );
     const payment = await this.findPaymentForWebhook(normalizedEvent);
 
     if (!payment) {
@@ -277,7 +307,10 @@ export class PaymentsService {
     this.applyWebhookEventToPayment(payment, normalizedEvent);
 
     const savedPayment = await this.paymentsRepository.savePayment(payment);
-    await this.invoicesService.ensureInvoiceForPayment(savedPayment.id, savedPayment.user?.id);
+    await this.invoicesService.ensureInvoiceForPayment(
+      savedPayment.id,
+      savedPayment.user?.id,
+    );
     await this.invoicesService.syncInvoiceFromPayment(savedPayment.id);
     return { processed: true };
   }
@@ -306,16 +339,23 @@ export class PaymentsService {
   ): void {
     const signature = this.extractWebhookSignature(signatureHeader);
     const timestamp = this.parseWebhookTimestamp(timestampHeader);
-    const toleranceSeconds = Number(process.env.PAYMENT_WEBHOOK_TOLERANCE_SECONDS ?? 300);
+    const toleranceSeconds = Number(
+      process.env.PAYMENT_WEBHOOK_TOLERANCE_SECONDS ?? 300,
+    );
     const nowSeconds = Math.floor(Date.now() / 1000);
 
     if (Math.abs(nowSeconds - timestamp) > toleranceSeconds) {
-      throw new UnauthorizedException('Webhook timestamp is outside the accepted tolerance window');
+      throw new UnauthorizedException(
+        'Webhook timestamp is outside the accepted tolerance window',
+      );
     }
 
-    const secret = process.env.PAYMENT_WEBHOOK_SECRET ?? 'academie-payment-webhook-secret';
+    const secret =
+      process.env.PAYMENT_WEBHOOK_SECRET ?? 'academie-payment-webhook-secret';
     const payload = `${timestamp}.${this.serializeWebhookPayload(dto)}`;
-    const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
+    const expectedSignature = createHmac('sha256', secret)
+      .update(payload)
+      .digest('hex');
 
     const providedSignatureBuffer = Buffer.from(signature, 'hex');
     const expectedSignatureBuffer = Buffer.from(expectedSignature, 'hex');
@@ -339,23 +379,35 @@ export class PaymentsService {
     const normalizedSignature = rawSignature.trim().toLowerCase();
 
     if (!/^[a-f0-9]{64}$/.test(normalizedSignature)) {
-      throw new BadRequestException('Webhook signature must be a sha256 hex digest');
+      throw new BadRequestException(
+        'Webhook signature must be a sha256 hex digest',
+      );
     }
 
     return normalizedSignature;
   }
 
-  private assertValidStripeWebhookSignature(rawBody: Buffer | undefined, signatureHeader: string): void {
+  private assertValidStripeWebhookSignature(
+    rawBody: Buffer | undefined,
+    signatureHeader: string,
+  ): void {
     if (!rawBody) {
-      throw new UnauthorizedException('Missing raw body required for Stripe webhook verification');
+      throw new UnauthorizedException(
+        'Missing raw body required for Stripe webhook verification',
+      );
     }
 
-    const { timestamp, signatures } = this.parseStripeSignatureHeader(signatureHeader);
-    const toleranceSeconds = Number(process.env.PAYMENT_WEBHOOK_TOLERANCE_SECONDS ?? 300);
+    const { timestamp, signatures } =
+      this.parseStripeSignatureHeader(signatureHeader);
+    const toleranceSeconds = Number(
+      process.env.PAYMENT_WEBHOOK_TOLERANCE_SECONDS ?? 300,
+    );
     const nowSeconds = Math.floor(Date.now() / 1000);
 
     if (Math.abs(nowSeconds - timestamp) > toleranceSeconds) {
-      throw new UnauthorizedException('Webhook timestamp is outside the accepted tolerance window');
+      throw new UnauthorizedException(
+        'Webhook timestamp is outside the accepted tolerance window',
+      );
     }
 
     const secret =
@@ -363,7 +415,9 @@ export class PaymentsService {
       process.env.PAYMENT_WEBHOOK_SECRET ??
       'academie-payment-webhook-secret';
     const signedPayload = `${timestamp}.${rawBody.toString('utf8')}`;
-    const expectedSignature = createHmac('sha256', secret).update(signedPayload).digest('hex');
+    const expectedSignature = createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
     const expectedSignatureBuffer = Buffer.from(expectedSignature, 'hex');
 
     const hasMatchingSignature = signatures.some((signature) => {
@@ -392,18 +446,27 @@ export class PaymentsService {
         return { key, value };
       });
 
-    const timestampValue = parsedEntries.find((entry) => entry.key === 't')?.value;
+    const timestampValue = parsedEntries.find(
+      (entry) => entry.key === 't',
+    )?.value;
     const signatures = parsedEntries
       .filter((entry) => entry.key === 'v1')
       .map((entry) => entry.value?.trim().toLowerCase())
-      .filter((value): value is string => Boolean(value) && /^[a-f0-9]{64}$/.test(value));
+      .filter(
+        (value): value is string =>
+          Boolean(value) && /^[a-f0-9]{64}$/.test(value),
+      );
 
     if (!timestampValue || !/^\d+$/.test(timestampValue)) {
-      throw new BadRequestException('Stripe signature header is missing a valid timestamp');
+      throw new BadRequestException(
+        'Stripe signature header is missing a valid timestamp',
+      );
     }
 
     if (!signatures.length) {
-      throw new BadRequestException('Stripe signature header is missing a valid v1 signature');
+      throw new BadRequestException(
+        'Stripe signature header is missing a valid v1 signature',
+      );
     }
 
     return {
@@ -419,7 +482,9 @@ export class PaymentsService {
 
     const normalizedTimestamp = timestampHeader.trim();
     if (!/^\d+$/.test(normalizedTimestamp)) {
-      throw new BadRequestException('Webhook timestamp must be expressed as UNIX seconds');
+      throw new BadRequestException(
+        'Webhook timestamp must be expressed as UNIX seconds',
+      );
     }
 
     return Number(normalizedTimestamp);
@@ -474,7 +539,8 @@ export class PaymentsService {
         {
           key: 'stripeCheckoutSessionId',
           value:
-            this.readStringValue(stripeObject, ['object']) === 'checkout.session'
+            this.readStringValue(stripeObject, ['object']) ===
+            'checkout.session'
               ? this.readStringValue(stripeObject, ['id'])
               : undefined,
         },
@@ -484,7 +550,9 @@ export class PaymentsService {
         },
         {
           key: 'stripeChargeId',
-          value: this.readStringValue(stripeObject, ['latest_charge']) ?? this.readStringValue(stripeObject, ['charge']),
+          value:
+            this.readStringValue(stripeObject, ['latest_charge']) ??
+            this.readStringValue(stripeObject, ['charge']),
         },
         {
           key: 'stripeInvoiceId',
@@ -513,11 +581,21 @@ export class PaymentsService {
           ...(metadata ?? {}),
           stripeEventId: dto.id,
           stripeObjectType: this.readStringValue(stripeObject, ['object']),
-          stripeCheckoutSessionId: metadataLookups.find((entry) => entry.key === 'stripeCheckoutSessionId')?.value,
-          stripePaymentIntentId: metadataLookups.find((entry) => entry.key === 'stripePaymentIntentId')?.value,
-          stripeChargeId: metadataLookups.find((entry) => entry.key === 'stripeChargeId')?.value,
-          stripeInvoiceId: metadataLookups.find((entry) => entry.key === 'stripeInvoiceId')?.value,
-          stripeSubscriptionId: metadataLookups.find((entry) => entry.key === 'stripeSubscriptionId')?.value,
+          stripeCheckoutSessionId: metadataLookups.find(
+            (entry) => entry.key === 'stripeCheckoutSessionId',
+          )?.value,
+          stripePaymentIntentId: metadataLookups.find(
+            (entry) => entry.key === 'stripePaymentIntentId',
+          )?.value,
+          stripeChargeId: metadataLookups.find(
+            (entry) => entry.key === 'stripeChargeId',
+          )?.value,
+          stripeInvoiceId: metadataLookups.find(
+            (entry) => entry.key === 'stripeInvoiceId',
+          )?.value,
+          stripeSubscriptionId: metadataLookups.find(
+            (entry) => entry.key === 'stripeSubscriptionId',
+          )?.value,
           stripeCustomerId: this.readStringValue(stripeObject, ['customer']),
         },
         occurredAt: this.resolveWebhookOccurredAt(dto.created, stripeObject),
@@ -540,14 +618,18 @@ export class PaymentsService {
     event: NormalizedWebhookEvent,
   ): Promise<PaymentEntity | null> {
     for (const reference of event.referenceCandidates) {
-      const payment = await this.paymentsRepository.findPaymentByReference(reference);
+      const payment =
+        await this.paymentsRepository.findPaymentByReference(reference);
       if (payment) {
         return payment;
       }
     }
 
     for (const transactionId of event.transactionIds) {
-      const payment = await this.paymentsRepository.findPaymentByProviderTransactionId(transactionId);
+      const payment =
+        await this.paymentsRepository.findPaymentByProviderTransactionId(
+          transactionId,
+        );
       if (payment) {
         return payment;
       }
@@ -588,13 +670,15 @@ export class PaymentsService {
     if (event.eventType === 'payment_succeeded') {
       payment.status = PaymentStatus.PAID;
       payment.paidAt = event.occurredAt ?? new Date();
-      payment.providerTransactionId = event.transactionIds[0] ?? payment.providerTransactionId;
+      payment.providerTransactionId =
+        event.transactionIds[0] ?? payment.providerTransactionId;
     } else if (event.eventType === 'payment_failed') {
       payment.status = PaymentStatus.FAILED;
     } else if (event.eventType === 'payment_refunded') {
       payment.status = PaymentStatus.REFUNDED;
       payment.refundedAt = event.occurredAt ?? new Date();
-      payment.providerTransactionId = event.transactionIds[0] ?? payment.providerTransactionId;
+      payment.providerTransactionId =
+        event.transactionIds[0] ?? payment.providerTransactionId;
     }
   }
 
@@ -606,7 +690,10 @@ export class PaymentsService {
     const occurredAt = event.occurredAt ?? new Date();
     const primaryTransactionId = event.transactionIds[0];
 
-    if (primaryTransactionId && !event.eventType.startsWith('customer.subscription.')) {
+    if (
+      primaryTransactionId &&
+      !event.eventType.startsWith('customer.subscription.')
+    ) {
       payment.providerTransactionId = primaryTransactionId;
     }
 
@@ -684,7 +771,8 @@ export class PaymentsService {
       case 'charge.refunded':
         payment.status = PaymentStatus.REFUNDED;
         payment.refundedAt = occurredAt;
-        payment.refundedAmount = this.extractStripeRefundAmount(stripeObject)?.toFixed(2);
+        payment.refundedAmount =
+          this.extractStripeRefundAmount(stripeObject)?.toFixed(2);
         break;
 
       case 'customer.subscription.updated': {
@@ -692,10 +780,12 @@ export class PaymentsService {
         const subscriptionStatus = this.normalizeExternalStatus(
           this.readStringValue(stripeObject, ['status']),
         );
-        payment.subscriptionStatus = subscriptionStatus ?? payment.subscriptionStatus;
+        payment.subscriptionStatus =
+          subscriptionStatus ?? payment.subscriptionStatus;
         if (subscriptionStatus === 'CANCELED') {
           payment.status = PaymentStatus.CANCELLED;
-          payment.canceledAt = this.extractStripeCancellationDate(stripeObject) ?? occurredAt;
+          payment.canceledAt =
+            this.extractStripeCancellationDate(stripeObject) ?? occurredAt;
         }
         break;
       }
@@ -704,10 +794,12 @@ export class PaymentsService {
         payment.isSubscription = true;
         payment.status = PaymentStatus.CANCELLED;
         payment.subscriptionStatus = 'CANCELED';
-        payment.canceledAt = this.extractStripeCancellationDate(stripeObject) ?? occurredAt;
+        payment.canceledAt =
+          this.extractStripeCancellationDate(stripeObject) ?? occurredAt;
         if (!payment.providerTransactionId) {
           payment.providerTransactionId =
-            this.readStringValue(stripeObject, ['id']) ?? payment.providerTransactionId;
+            this.readStringValue(stripeObject, ['id']) ??
+            payment.providerTransactionId;
         }
         break;
 
@@ -716,7 +808,9 @@ export class PaymentsService {
     }
   }
 
-  private extractStripeEventObject(dto: ProviderWebhookDto): Record<string, unknown> | undefined {
+  private extractStripeEventObject(
+    dto: ProviderWebhookDto,
+  ): Record<string, unknown> | undefined {
     const dataObject = dto.data?.['object'];
     return dataObject && typeof dataObject === 'object'
       ? (dataObject as Record<string, unknown>)
@@ -771,7 +865,11 @@ export class PaymentsService {
   private extractStripeRefundAmount(
     stripeObject: Record<string, unknown> | undefined,
   ): number | undefined {
-    const amountRefunded = this.readNumberValue(stripeObject, ['amount_refunded'], ['amount']);
+    const amountRefunded = this.readNumberValue(
+      stripeObject,
+      ['amount_refunded'],
+      ['amount'],
+    );
     return amountRefunded !== undefined ? amountRefunded / 100 : undefined;
   }
 
@@ -780,7 +878,10 @@ export class PaymentsService {
   ): string | undefined {
     return (
       this.readStringValue(stripeObject, ['metadata', 'planCode']) ??
-      this.readStringValue(stripeObject, ['metadata', 'subscriptionPlanCode']) ??
+      this.readStringValue(stripeObject, [
+        'metadata',
+        'subscriptionPlanCode',
+      ]) ??
       this.readStringValue(stripeObject, ['plan', 'id']) ??
       this.readStringValue(stripeObject, ['items', 'data', 0, 'plan', 'id']) ??
       this.readStringValue(stripeObject, ['items', 'data', 0, 'price', 'id'])
@@ -793,9 +894,29 @@ export class PaymentsService {
     const interval =
       this.readStringValue(stripeObject, ['metadata', 'billingInterval']) ??
       this.readStringValue(stripeObject, ['plan', 'interval']) ??
-      this.readStringValue(stripeObject, ['items', 'data', 0, 'plan', 'interval']) ??
-      this.readStringValue(stripeObject, ['items', 'data', 0, 'price', 'recurring', 'interval']) ??
-      this.readStringValue(stripeObject, ['lines', 'data', 0, 'price', 'recurring', 'interval']);
+      this.readStringValue(stripeObject, [
+        'items',
+        'data',
+        0,
+        'plan',
+        'interval',
+      ]) ??
+      this.readStringValue(stripeObject, [
+        'items',
+        'data',
+        0,
+        'price',
+        'recurring',
+        'interval',
+      ]) ??
+      this.readStringValue(stripeObject, [
+        'lines',
+        'data',
+        0,
+        'price',
+        'recurring',
+        'interval',
+      ]);
 
     return interval ? interval.toUpperCase() : undefined;
   }
@@ -826,21 +947,32 @@ export class PaymentsService {
     return this.toDateFromUnixSeconds(canceledAtUnixSeconds);
   }
 
-  private normalizeExternalStatus(status: string | undefined): string | undefined {
-    return status ? status.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_') : undefined;
+  private normalizeExternalStatus(
+    status: string | undefined,
+  ): string | undefined {
+    return status
+      ? status
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9]+/g, '_')
+      : undefined;
   }
 
   private compactUnique(values: Array<string | undefined>): string[] {
-    return [...new Set(values.filter((value): value is string => Boolean(value && value.trim())))]
-      .map((value) => value.trim());
+    return [
+      ...new Set(
+        values.filter((value): value is string =>
+          Boolean(value && value.trim()),
+        ),
+      ),
+    ].map((value) => value.trim());
   }
 
   private compactMetadataLookups(
     lookups: Array<{ key: string; value: string | undefined }>,
   ): Array<{ key: string; value: string }> {
-    return lookups.filter(
-      (lookup): lookup is { key: string; value: string } =>
-        Boolean(lookup.value && lookup.value.trim()),
+    return lookups.filter((lookup): lookup is { key: string; value: string } =>
+      Boolean(lookup.value && lookup.value.trim()),
     );
   }
 
@@ -849,7 +981,9 @@ export class PaymentsService {
     key: string,
   ): string | undefined {
     const value = input?.[key];
-    return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+    return typeof value === 'string' && value.trim().length > 0
+      ? value
+      : undefined;
   }
 
   private readStringValue(
@@ -906,7 +1040,9 @@ export class PaymentsService {
   }
 
   private toDateFromUnixSeconds(value: number | undefined): Date | undefined {
-    return typeof value === 'number' && value > 0 ? new Date(value * 1000) : undefined;
+    return typeof value === 'number' && value > 0
+      ? new Date(value * 1000)
+      : undefined;
   }
 
   private toResponse(payment: PaymentEntity): PaymentResponseDto {

@@ -41,8 +41,12 @@ export class JwtAuthGuard implements CanActivate {
     const authorizationHeader = request.headers?.authorization;
     const accessToken = this.extractBearerToken(authorizationHeader);
     const payload = await this.tokenService.verifyAccessToken(accessToken);
-    const normalizedRoles = payload.roles.map((role) => role.trim().toUpperCase());
-    const permissions = normalizedRoles.flatMap((role) => ROLE_PERMISSIONS[role] ?? []);
+    const normalizedRoles = payload.roles.map((role) =>
+      role.trim().toUpperCase(),
+    );
+    const permissions = normalizedRoles.flatMap(
+      (role) => ROLE_PERMISSIONS[role] ?? [],
+    );
 
     request.user = {
       ...payload,
@@ -65,4 +69,3 @@ export class JwtAuthGuard implements CanActivate {
     return token;
   }
 }
-

@@ -1,3 +1,4 @@
+import { AccountSecurityPanel } from "@/features/auth/ui/components/AccountSecurityPanel";
 import styles from "../teacher-space.module.css";
 import { TeacherShell } from "../components/TeacherShell";
 
@@ -111,6 +112,12 @@ export function TeacherSettingsPage() {
               </div>
             </div>
           </article>
+
+          <AccountSecurityPanel
+            description="Keep your mentor identity verified and close active sessions across review stations, laptops and classroom devices."
+            eyebrow="Mentor identity security"
+            title="Protect teacher access"
+          />
         </div>
 
         <aside className={styles.teacherSettingsAside}>

@@ -43,7 +43,10 @@ export class GradesService {
     return grade;
   }
 
-  async createGrade(dto: CreateGradeDto, graderId?: string): Promise<GradeEntity> {
+  async createGrade(
+    dto: CreateGradeDto,
+    graderId?: string,
+  ): Promise<GradeEntity> {
     this.assertValidScore(dto.score, dto.maxScore);
 
     const student = await this.gradesRepository.findUserById(dto.studentId);
@@ -53,7 +56,8 @@ export class GradesService {
 
     const resolvedGraderId = graderId ?? dto.gradedById;
     const gradedBy = resolvedGraderId
-      ? (await this.gradesRepository.findUserById(resolvedGraderId)) ?? undefined
+      ? ((await this.gradesRepository.findUserById(resolvedGraderId)) ??
+        undefined)
       : undefined;
     if (resolvedGraderId && !gradedBy) {
       throw new NotFoundException('Grader user not found');
@@ -64,7 +68,9 @@ export class GradesService {
     grade.type = (dto.type ?? 'MANUAL').toUpperCase();
     grade.score = dto.score.toFixed(2);
     grade.maxScore = dto.maxScore.toFixed(2);
-    grade.percentage = this.computePercentage(dto.score, dto.maxScore).toFixed(2);
+    grade.percentage = this.computePercentage(dto.score, dto.maxScore).toFixed(
+      2,
+    );
     grade.weight = dto.weight !== undefined ? dto.weight.toFixed(2) : undefined;
     grade.feedback = dto.feedback;
     grade.status = (dto.status ?? 'DRAFT').toUpperCase();
@@ -81,7 +87,9 @@ export class GradesService {
     }
 
     if (dto.evaluationAttemptId) {
-      const attempt = await this.gradesRepository.findEvaluationAttemptById(dto.evaluationAttemptId);
+      const attempt = await this.gradesRepository.findEvaluationAttemptById(
+        dto.evaluationAttemptId,
+      );
       if (!attempt) {
         throw new NotFoundException('Evaluation attempt not found');
       }
@@ -100,7 +108,8 @@ export class GradesService {
       status?: string;
     },
   ): Promise<GradeEntity> {
-    const attempt = await this.gradesRepository.findEvaluationAttemptById(attemptId);
+    const attempt =
+      await this.gradesRepository.findEvaluationAttemptById(attemptId);
     if (!attempt) {
       throw new NotFoundException('Evaluation attempt not found');
     }
@@ -111,13 +120,15 @@ export class GradesService {
 
     const resolvedGraderId = options?.graderId ?? attempt.grader?.id;
     const gradedBy = resolvedGraderId
-      ? (await this.gradesRepository.findUserById(resolvedGraderId)) ?? undefined
+      ? ((await this.gradesRepository.findUserById(resolvedGraderId)) ??
+        undefined)
       : undefined;
     if (resolvedGraderId && !gradedBy) {
       throw new NotFoundException('Grader user not found');
     }
 
-    const existingGrade = await this.gradesRepository.findGradeByEvaluationAttemptId(attempt.id);
+    const existingGrade =
+      await this.gradesRepository.findGradeByEvaluationAttemptId(attempt.id);
     const grade = existingGrade ?? new GradeEntity();
     grade.title = attempt.evaluation.title;
     grade.type = 'EVALUATION';
@@ -135,7 +146,10 @@ export class GradesService {
     return this.gradesRepository.saveGrade(grade);
   }
 
-  async updateGrade(gradeId: string, dto: UpdateGradeDto): Promise<GradeEntity> {
+  async updateGrade(
+    gradeId: string,
+    dto: UpdateGradeDto,
+  ): Promise<GradeEntity> {
     const grade = await this.getGradeById(gradeId);
 
     const nextScore = dto.score ?? Number(grade.score);
@@ -146,8 +160,11 @@ export class GradesService {
     grade.type = dto.type ? dto.type.toUpperCase() : grade.type;
     grade.score = nextScore.toFixed(2);
     grade.maxScore = nextMaxScore.toFixed(2);
-    grade.percentage = this.computePercentage(nextScore, nextMaxScore).toFixed(2);
-    grade.weight = dto.weight !== undefined ? dto.weight.toFixed(2) : grade.weight;
+    grade.percentage = this.computePercentage(nextScore, nextMaxScore).toFixed(
+      2,
+    );
+    grade.weight =
+      dto.weight !== undefined ? dto.weight.toFixed(2) : grade.weight;
     grade.feedback = dto.feedback ?? grade.feedback;
     grade.status = dto.status ? dto.status.toUpperCase() : grade.status;
     grade.gradedAt = dto.gradedAt ? new Date(dto.gradedAt) : grade.gradedAt;

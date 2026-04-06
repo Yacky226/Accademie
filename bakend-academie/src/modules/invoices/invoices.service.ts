@@ -44,7 +44,11 @@ export class InvoicesService {
     return invoices.map((invoice) => this.toResponse(invoice));
   }
 
-  async getInvoiceById(id: string, userId: string, roles: string[]): Promise<InvoiceResponseDto> {
+  async getInvoiceById(
+    id: string,
+    userId: string,
+    roles: string[],
+  ): Promise<InvoiceResponseDto> {
     const invoice = await this.invoicesRepository.findInvoiceById(id);
     if (!invoice) {
       throw new NotFoundException('Invoice not found');
@@ -53,13 +57,18 @@ export class InvoicesService {
     const isOwner = invoice.user?.id === userId;
     const canRead = this.hasElevatedRole(roles) || isOwner;
     if (!canRead) {
-      throw new ForbiddenException('You are not allowed to access this invoice');
+      throw new ForbiddenException(
+        'You are not allowed to access this invoice',
+      );
     }
 
     return this.toResponse(invoice);
   }
 
-  async createInvoice(userId: string, dto: CreateInvoiceDto): Promise<InvoiceResponseDto> {
+  async createInvoice(
+    userId: string,
+    dto: CreateInvoiceDto,
+  ): Promise<InvoiceResponseDto> {
     const user = await this.invoicesRepository.findUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -71,7 +80,8 @@ export class InvoicesService {
     const resolvedTaxRate = this.resolveTaxRate(dto.vatCategory, dto.taxRate);
     const tax = this.computeTax(dto.amount, resolvedTaxRate);
     invoice.subtotalHt = tax.subtotalHt.toFixed(2);
-    invoice.vatCategory = dto.vatCategory ?? this.resolveVatCategoryByRate(resolvedTaxRate);
+    invoice.vatCategory =
+      dto.vatCategory ?? this.resolveVatCategoryByRate(resolvedTaxRate);
     invoice.taxRate = tax.taxRate.toFixed(2);
     invoice.taxAmount = tax.taxAmount.toFixed(2);
     invoice.totalTtc = tax.totalTtc.toFixed(2);
@@ -87,7 +97,9 @@ export class InvoicesService {
     invoice.user = user;
 
     if (dto.paymentId) {
-      const payment = await this.invoicesRepository.findPaymentById(dto.paymentId);
+      const payment = await this.invoicesRepository.findPaymentById(
+        dto.paymentId,
+      );
       if (!payment) {
         throw new NotFoundException('Payment not found');
       }
@@ -111,8 +123,12 @@ export class InvoicesService {
     return this.toResponse(hydrated ?? saved);
   }
 
-  async ensureInvoiceForPayment(paymentId: string, userId?: string): Promise<InvoiceResponseDto | null> {
-    const existingInvoice = await this.invoicesRepository.findInvoiceByPaymentId(paymentId);
+  async ensureInvoiceForPayment(
+    paymentId: string,
+    userId?: string,
+  ): Promise<InvoiceResponseDto | null> {
+    const existingInvoice =
+      await this.invoicesRepository.findInvoiceByPaymentId(paymentId);
     if (existingInvoice) {
       return this.toResponse(existingInvoice);
     }
@@ -129,9 +145,18 @@ export class InvoicesService {
       paymentId: payment.id,
       note: payment.description,
       metadata: payment.metadata,
-      customerCompanyName: this.readStringMetadata(payment.metadata, 'customerCompanyName'),
-      customerVatNumber: this.readStringMetadata(payment.metadata, 'customerVatNumber'),
-      taxExemptionReason: this.readStringMetadata(payment.metadata, 'taxExemptionReason'),
+      customerCompanyName: this.readStringMetadata(
+        payment.metadata,
+        'customerCompanyName',
+      ),
+      customerVatNumber: this.readStringMetadata(
+        payment.metadata,
+        'customerVatNumber',
+      ),
+      taxExemptionReason: this.readStringMetadata(
+        payment.metadata,
+        'taxExemptionReason',
+      ),
     });
   }
 
@@ -149,7 +174,9 @@ export class InvoicesService {
     const isOwner = invoice.user?.id === userId;
     const canUpdate = this.hasElevatedRole(roles) || isOwner;
     if (!canUpdate) {
-      throw new ForbiddenException('You are not allowed to update this invoice');
+      throw new ForbiddenException(
+        'You are not allowed to update this invoice',
+      );
     }
 
     if (this.isInvoiceLocked(invoice.status)) {
@@ -170,11 +197,15 @@ export class InvoicesService {
     if (dto.amount !== undefined) {
       invoice.amount = dto.amount.toFixed(2);
     }
-    const taxRate = this.resolveTaxRate(dto.vatCategory, dto.taxRate ?? Number(invoice.taxRate));
+    const taxRate = this.resolveTaxRate(
+      dto.vatCategory,
+      dto.taxRate ?? Number(invoice.taxRate),
+    );
     const grossAmount = dto.amount ?? Number(invoice.amount);
     const tax = this.computeTax(grossAmount, taxRate);
     invoice.subtotalHt = tax.subtotalHt.toFixed(2);
-    invoice.vatCategory = dto.vatCategory ?? this.resolveVatCategoryByRate(taxRate);
+    invoice.vatCategory =
+      dto.vatCategory ?? this.resolveVatCategoryByRate(taxRate);
     invoice.taxRate = tax.taxRate.toFixed(2);
     invoice.taxAmount = tax.taxAmount.toFixed(2);
     invoice.totalTtc = tax.totalTtc.toFixed(2);
@@ -248,7 +279,9 @@ export class InvoicesService {
     }
 
     if (invoice.status === 'DRAFT') {
-      throw new ConflictException('Draft invoice must be issued before payment');
+      throw new ConflictException(
+        'Draft invoice must be issued before payment',
+      );
     }
 
     invoice.status = 'PAID';
@@ -265,7 +298,8 @@ export class InvoicesService {
   }
 
   async syncInvoiceFromPayment(paymentId: string): Promise<void> {
-    const invoice = await this.invoicesRepository.findInvoiceByPaymentId(paymentId);
+    const invoice =
+      await this.invoicesRepository.findInvoiceByPaymentId(paymentId);
     if (!invoice) {
       return;
     }
@@ -347,7 +381,9 @@ export class InvoicesService {
     const isOwner = invoice.user?.id === userId;
     const canRead = this.hasElevatedRole(roles) || isOwner;
     if (!canRead) {
-      throw new ForbiddenException('You are not allowed to export this invoice');
+      throw new ForbiddenException(
+        'You are not allowed to export this invoice',
+      );
     }
 
     if (invoice.status === 'DRAFT') {
@@ -398,10 +434,13 @@ export class InvoicesService {
     const isOwner = invoice.user?.id === userId;
     const canRead = this.hasElevatedRole(roles) || isOwner;
     if (!canRead) {
-      throw new ForbiddenException('You are not allowed to access invoice fiscal events');
+      throw new ForbiddenException(
+        'You are not allowed to access invoice fiscal events',
+      );
     }
 
-    const events = await this.invoicesRepository.listFiscalEventsByInvoiceId(id);
+    const events =
+      await this.invoicesRepository.listFiscalEventsByInvoiceId(id);
     return events.map((event) => this.toFiscalEventResponse(event));
   }
 
@@ -418,10 +457,13 @@ export class InvoicesService {
     const isOwner = invoice.user?.id === userId;
     const canRead = this.hasElevatedRole(roles) || isOwner;
     if (!canRead) {
-      throw new ForbiddenException('You are not allowed to access invoice archive package');
+      throw new ForbiddenException(
+        'You are not allowed to access invoice archive package',
+      );
     }
 
-    const events = await this.invoicesRepository.listFiscalEventsByInvoiceId(id);
+    const events =
+      await this.invoicesRepository.listFiscalEventsByInvoiceId(id);
     const retentionDate = new Date(invoice.createdAt);
     retentionDate.setFullYear(retentionDate.getFullYear() + 6);
 
@@ -446,7 +488,10 @@ export class InvoicesService {
   ): Promise<AccountingExportResponseDto> {
     const fromDate = from ? new Date(from) : undefined;
     const toDate = to ? new Date(to) : undefined;
-    const invoices = await this.invoicesRepository.listInvoicesForAccounting(fromDate, toDate);
+    const invoices = await this.invoicesRepository.listInvoicesForAccounting(
+      fromDate,
+      toDate,
+    );
     const rows = invoices.map((invoice) => this.toAccountingRow(invoice));
 
     if (format === 'json') {
@@ -497,7 +542,8 @@ export class InvoicesService {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const prefix = `${year}${month}-`;
-    const currentCount = await this.invoicesRepository.countInvoicesByPrefix(prefix);
+    const currentCount =
+      await this.invoicesRepository.countInvoicesByPrefix(prefix);
     const sequence = String(currentCount + 1).padStart(6, '0');
     return `${prefix}${sequence}`;
   }
@@ -552,7 +598,12 @@ export class InvoicesService {
   private computeTax(
     totalTtc: number,
     taxRate: number,
-  ): { subtotalHt: number; taxRate: number; taxAmount: number; totalTtc: number } {
+  ): {
+    subtotalHt: number;
+    taxRate: number;
+    taxAmount: number;
+    totalTtc: number;
+  } {
     const normalizedRate = taxRate >= 0 ? taxRate : 0;
     const normalizedTotal = totalTtc >= 0 ? totalTtc : 0;
     const subtotalHt = normalizedTotal / (1 + normalizedRate / 100);
@@ -572,7 +623,8 @@ export class InvoicesService {
     actorUserId?: string,
     payload?: Record<string, unknown>,
   ): Promise<void> {
-    const previousEvents = await this.invoicesRepository.listFiscalEventsByInvoiceId(invoice.id);
+    const previousEvents =
+      await this.invoicesRepository.listFiscalEventsByInvoiceId(invoice.id);
     const previousSignature = previousEvents.length
       ? previousEvents[previousEvents.length - 1].signature
       : undefined;
@@ -585,7 +637,8 @@ export class InvoicesService {
       previousSignature: previousSignature ?? null,
     });
 
-    const signatureSecret = process.env.INVOICE_AUDIT_SECRET ?? 'academie-invoice-audit-secret';
+    const signatureSecret =
+      process.env.INVOICE_AUDIT_SECRET ?? 'academie-invoice-audit-secret';
     const signature = createHmac('sha256', signatureSecret)
       .update(signaturePayload)
       .digest('hex');
@@ -673,6 +726,8 @@ export class InvoicesService {
     key: string,
   ): string | undefined {
     const value = metadata?.[key];
-    return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+    return typeof value === 'string' && value.trim().length > 0
+      ? value
+      : undefined;
   }
 }

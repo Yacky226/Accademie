@@ -1,27 +1,41 @@
 "use client";
 
-import { useAppSelector } from "@/core/store/app-store-hooks";
+import { useAuthStoreSelector } from "@/core/store/auth-store-hooks";
 import { getDashboardPathForRole } from "@/core/router/route-access-control";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
 import {
+  selectAuthActionPreviewToken,
+  selectAuthActionPreviewUrl,
   selectAuthError,
+  selectAuthStatusMessage,
   selectCurrentUser,
   selectIsAuthenticated,
   selectPendingAuthAction,
 } from "./auth.selectors";
 
 export function useCurrentAuthSession() {
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const user = useAppSelector(selectCurrentUser);
-  const errorMessage = useAppSelector(selectAuthError);
-  const pendingAction = useAppSelector(selectPendingAuthAction);
+  const isAuthenticated = useAuthStoreSelector(selectIsAuthenticated);
+  const user = useAuthStoreSelector(selectCurrentUser);
+  const errorMessage = useAuthStoreSelector(selectAuthError);
+  const statusMessage = useAuthStoreSelector(selectAuthStatusMessage);
+  const actionPreviewUrl = useAuthStoreSelector(selectAuthActionPreviewUrl);
+  const actionPreviewToken = useAuthStoreSelector(selectAuthActionPreviewToken);
+  const pendingAction = useAuthStoreSelector(selectPendingAuthAction);
 
   return {
-    dashboardHref: user ? getDashboardPathForRole(user.role) : "/auth/login",
+    actionPreviewToken,
+    actionPreviewUrl,
+    dashboardHref: user
+      ? user.emailVerified
+        ? getDashboardPathForRole(user.role)
+        : `/auth/verify${user.email ? `?email=${encodeURIComponent(user.email)}` : ""}`
+      : "/auth/login",
     errorMessage,
+    emailVerified: user?.emailVerified ?? false,
     isAuthenticated,
     pendingAction,
     roleLabel: user ? formatUserRoleLabel(user.role) : null,
+    statusMessage,
     user,
   };
 }

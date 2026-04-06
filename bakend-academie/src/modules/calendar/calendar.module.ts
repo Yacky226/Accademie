@@ -9,17 +9,16 @@ import { CalendarEventEntity } from './entities/calendar-event.entity';
 import { CalendarRepository } from './repositories/calendar.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			CalendarEventEntity,
-			CalendarEventAttendeeEntity,
-			UserEntity,
-			CourseEntity,
-		]),
-	],
-	controllers: [CalendarController],
-	providers: [CalendarService, CalendarRepository],
-	exports: [CalendarService, CalendarRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      CalendarEventEntity,
+      CalendarEventAttendeeEntity,
+      UserEntity,
+      CourseEntity,
+    ]),
+  ],
+  controllers: [CalendarController],
+  providers: [CalendarService, CalendarRepository],
+  exports: [CalendarService, CalendarRepository],
 })
 export class CalendarModule {}
-

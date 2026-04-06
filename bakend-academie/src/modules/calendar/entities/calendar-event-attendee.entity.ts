@@ -20,7 +20,9 @@ export class CalendarEventAttendeeEntity {
   @Column({ type: 'text', nullable: true })
   note?: string;
 
-  @ManyToOne(() => CalendarEventEntity, (event) => event.attendees, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CalendarEventEntity, (event) => event.attendees, {
+    onDelete: 'CASCADE',
+  })
   event!: CalendarEventEntity;
 
   @ManyToOne(() => UserEntity, { onDelete: 'CASCADE' })

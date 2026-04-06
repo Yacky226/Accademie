@@ -8,4 +8,3 @@ export default () => ({
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
   ssl: process.env.DB_SSL === 'true',
 });
-

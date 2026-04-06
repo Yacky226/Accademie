@@ -8,10 +8,15 @@ import { ProgramsService } from './programs.service';
 import { ProgramsRepository } from './repositories/programs.repository';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([StudentProgramEntity, ProgramStepEntity, UserEntity])],
-	controllers: [ProgramsController],
-	providers: [ProgramsService, ProgramsRepository],
-	exports: [ProgramsService, ProgramsRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      StudentProgramEntity,
+      ProgramStepEntity,
+      UserEntity,
+    ]),
+  ],
+  controllers: [ProgramsController],
+  providers: [ProgramsService, ProgramsRepository],
+  exports: [ProgramsService, ProgramsRepository],
 })
 export class ProgramsModule {}
-

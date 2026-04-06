@@ -46,7 +46,9 @@ export class AdminRepository {
   }
 
   async countUsersByStatus(status: UserStatus): Promise<number> {
-    return this.usersRepository.count({ where: { status, deletedAt: IsNull() } });
+    return this.usersRepository.count({
+      where: { status, deletedAt: IsNull() },
+    });
   }
 
   async countCoursesDraft(): Promise<number> {

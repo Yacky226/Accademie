@@ -29,7 +29,9 @@ export class InvoicePdfService {
 
       doc.moveDown();
       doc.fontSize(12).text('Montants', { underline: true });
-      doc.fontSize(10).text(`Montant HT: ${invoice.subtotalHt} ${invoice.currency}`);
+      doc
+        .fontSize(10)
+        .text(`Montant HT: ${invoice.subtotalHt} ${invoice.currency}`);
       doc.text(`Taux TVA: ${invoice.taxRate}%`);
       doc.text(`Montant TVA: ${invoice.taxAmount} ${invoice.currency}`);
       doc.text(`Montant TTC: ${invoice.totalTtc} ${invoice.currency}`);

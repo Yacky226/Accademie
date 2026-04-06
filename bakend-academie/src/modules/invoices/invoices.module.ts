@@ -10,17 +10,16 @@ import { InvoicesService } from './invoices.service';
 import { InvoicesRepository } from './repositories/invoices.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			InvoiceEntity,
-			InvoiceFiscalEventEntity,
-			UserEntity,
-			PaymentEntity,
-		]),
-	],
-	controllers: [InvoicesController],
-	providers: [InvoicesService, InvoicesRepository, InvoicePdfService],
-	exports: [InvoicesService, InvoicesRepository, InvoicePdfService],
+  imports: [
+    TypeOrmModule.forFeature([
+      InvoiceEntity,
+      InvoiceFiscalEventEntity,
+      UserEntity,
+      PaymentEntity,
+    ]),
+  ],
+  controllers: [InvoicesController],
+  providers: [InvoicesService, InvoicesRepository, InvoicePdfService],
+  exports: [InvoicesService, InvoicesRepository, InvoicePdfService],
 })
 export class InvoicesModule {}
-

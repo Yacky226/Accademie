@@ -1,7 +1,4 @@
-import {
-  ProblemDifficulty,
-  ProblemStatus,
-} from '../../../core/enums';
+import { ProblemDifficulty, ProblemStatus } from '../../../core/enums';
 
 export class ProblemResponseDto {
   id!: string;

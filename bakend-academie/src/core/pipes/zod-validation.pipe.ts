@@ -2,8 +2,8 @@ import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
-  transform(value: unknown, _metadata: ArgumentMetadata): unknown {
+  transform(value: unknown, metadata: ArgumentMetadata): unknown {
+    void metadata;
     return value;
   }
 }
-

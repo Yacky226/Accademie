@@ -8,16 +8,15 @@ import { AcademySettingEntity } from './entities/academy-setting.entity';
 import { AcademyRepository } from './repositories/academy.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			AcademyAnnouncementEntity,
-			AcademySettingEntity,
-			UserEntity,
-		]),
-	],
-	controllers: [AcademyController],
-	providers: [AcademyService, AcademyRepository],
-	exports: [AcademyService, AcademyRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      AcademyAnnouncementEntity,
+      AcademySettingEntity,
+      UserEntity,
+    ]),
+  ],
+  controllers: [AcademyController],
+  providers: [AcademyService, AcademyRepository],
+  exports: [AcademyService, AcademyRepository],
 })
 export class AcademyModule {}
-

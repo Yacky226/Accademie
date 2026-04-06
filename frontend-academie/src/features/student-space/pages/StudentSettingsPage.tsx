@@ -1,3 +1,4 @@
+import { AccountSecurityPanel } from "@/features/auth/ui/components/AccountSecurityPanel";
 import styles from "../student-space.module.css";
 import { StudentShell } from "../components/StudentShell";
 
@@ -147,6 +148,12 @@ export function StudentSettingsPage() {
           </div>
         </div>
       </article>
+
+      <AccountSecurityPanel
+        description="Manage verification, trusted sessions and cross-device access without leaving the student workspace."
+        eyebrow="Student identity security"
+        title="Secure your learning account"
+      />
     </StudentShell>
   );
 }

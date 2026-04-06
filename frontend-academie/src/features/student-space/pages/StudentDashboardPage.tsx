@@ -1,4 +1,5 @@
-import { dashboardRecommendations } from "../student-space.data";
+import Image from "next/image";
+import { dashboardRecommendations } from "../model/student-workspace.catalog";
 import styles from "../student-space.module.css";
 import { StudentShell } from "../components/StudentShell";
 
@@ -73,10 +74,13 @@ export function StudentDashboardPage() {
             <div className={styles.courseGrid}>
               {dashboardRecommendations.map((course) => (
                 <div key={course.title} className={styles.courseCard}>
-                  <img
+                  <Image
                     className={styles.courseImage}
                     src={course.imageUrl}
                     alt={course.title}
+                    height={720}
+                    sizes="(max-width: 768px) 100vw, 280px"
+                    width={1280}
                   />
                   <div className={styles.courseBody}>
                     <span className={styles.levelPill}>{course.level}</span>

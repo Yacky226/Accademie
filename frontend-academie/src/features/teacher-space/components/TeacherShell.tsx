@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useWorkspaceSidebarState } from "@/features/shared/hooks/useWorkspaceSidebarState";
+import { useWorkspaceSidebarState } from "@/features/workspace-shell/hooks/useWorkspaceSidebarState";
 import styles from "../teacher-space.module.css";
 import { TeacherFooter } from "./TeacherFooter";
 import { TeacherSidebar } from "./TeacherSidebar";

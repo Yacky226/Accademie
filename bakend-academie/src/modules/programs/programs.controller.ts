@@ -87,7 +87,10 @@ export class ProgramsController {
   @Permissions(PROGRAM_PERMISSIONS.PROGRAM_STEPS_MANAGE)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id/steps/:stepId')
-  async deleteStep(@Param('id') programId: string, @Param('stepId') stepId: string): Promise<void> {
+  async deleteStep(
+    @Param('id') programId: string,
+    @Param('stepId') stepId: string,
+  ): Promise<void> {
     await this.programsService.deleteStep(programId, stepId);
   }
 

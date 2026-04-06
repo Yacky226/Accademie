@@ -127,7 +127,12 @@ describe('Public routes (e2e)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [AcademyController, CoursesController, ProblemsController, PaymentsController],
+      controllers: [
+        AcademyController,
+        CoursesController,
+        ProblemsController,
+        PaymentsController,
+      ],
       providers: [
         { provide: AcademyService, useValue: academyServiceMock },
         { provide: CoursesService, useValue: coursesServiceMock },
@@ -171,8 +176,12 @@ describe('Public routes (e2e)', () => {
   });
 
   it('exposes academy public content without authentication', async () => {
-    await request(app.getHttpServer()).get('/academy/announcements').expect(200);
-    await request(app.getHttpServer()).get('/academy/settings/public').expect(200);
+    await request(app.getHttpServer())
+      .get('/academy/announcements')
+      .expect(200);
+    await request(app.getHttpServer())
+      .get('/academy/settings/public')
+      .expect(200);
   });
 
   it('exposes the public course and problem catalogs without authentication', async () => {

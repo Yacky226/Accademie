@@ -62,7 +62,9 @@ export class ProblemEntity {
   @Column({ type: 'boolean', default: false })
   isPublished!: boolean;
 
-  @ManyToOne(() => UserEntity, (user) => user.createdProblems, { onDelete: 'SET NULL' })
+  @ManyToOne(() => UserEntity, (user) => user.createdProblems, {
+    onDelete: 'SET NULL',
+  })
   creator!: UserEntity;
 
   @OneToMany(() => ProblemTestCaseEntity, (testCase) => testCase.problem)

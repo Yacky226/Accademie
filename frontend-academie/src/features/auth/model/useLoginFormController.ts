@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAppDispatch } from "@/core/store/app-store-hooks";
+import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import {
   getDashboardPathForRole,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
-import { clearAuthError, loginThunk } from "./auth.slice";
+import { clearAuthFeedback, loginThunk } from "./auth.slice";
 import { useCurrentAuthSession } from "./useCurrentAuthSession";
 import type { LoginFormValues } from "./auth.types";
 
@@ -18,7 +18,7 @@ const initialValues: LoginFormValues = {
 };
 
 export function useLoginFormController() {
-  const dispatch = useAppDispatch();
+  const dispatch = useAuthStoreDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { errorMessage, pendingAction } = useCurrentAuthSession();
@@ -36,7 +36,7 @@ export function useLoginFormController() {
     }));
 
     if (errorMessage) {
-      dispatch(clearAuthError());
+      dispatch(clearAuthFeedback());
     }
   }
 
@@ -50,6 +50,15 @@ export function useLoginFormController() {
         searchParams.get("redirect"),
         fallbackTarget,
       );
+
+      if (!sessionUser.emailVerified) {
+        const verificationTarget = new URLSearchParams();
+        verificationTarget.set("email", sessionUser.email ?? values.email);
+        verificationTarget.set("redirect", redirectTarget);
+        router.replace(`/auth/verify?${verificationTarget.toString()}`);
+        router.refresh();
+        return;
+      }
 
       router.replace(redirectTarget);
       router.refresh();

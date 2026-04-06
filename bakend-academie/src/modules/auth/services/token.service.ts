@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
@@ -12,6 +13,19 @@ export interface TokenPayload {
   roles: string[];
   type: 'access' | 'refresh';
   sid?: string;
+}
+
+interface EmailVerificationTokenPayload {
+  sub: string;
+  email: string;
+  type: 'email-verification';
+}
+
+interface PasswordResetTokenPayload {
+  sub: string;
+  email: string;
+  passwordFingerprint: string;
+  type: 'password-reset';
 }
 
 @Injectable()
@@ -35,20 +49,19 @@ export class TokenService {
       sid: input.refreshSessionId,
     };
 
-    const accessToken = await this.jwtService.signAsync(
-      accessPayload,
-      { expiresIn: this.resolveDurationInSeconds(process.env.JWT_EXPIRES_IN, 15 * 60) },
-    );
+    const accessToken = await this.jwtService.signAsync(accessPayload, {
+      expiresIn: this.resolveDurationInSeconds(
+        process.env.JWT_EXPIRES_IN,
+        15 * 60,
+      ),
+    });
 
-    const refreshToken = await this.jwtService.signAsync(
-      refreshPayload,
-      {
-        expiresIn: this.resolveDurationInSeconds(
-          process.env.JWT_REFRESH_EXPIRES_IN,
-          7 * 24 * 60 * 60,
-        ),
-      },
-    );
+    const refreshToken = await this.jwtService.signAsync(refreshPayload, {
+      expiresIn: this.resolveDurationInSeconds(
+        process.env.JWT_REFRESH_EXPIRES_IN,
+        7 * 24 * 60 * 60,
+      ),
+    });
 
     return { accessToken, refreshToken };
   }
@@ -59,6 +72,60 @@ export class TokenService {
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
     return this.verifyTokenByType(token, 'refresh');
+  }
+
+  async generateEmailVerificationToken(input: {
+    user: { id: string; email: string };
+  }): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        sub: input.user.id,
+        email: input.user.email,
+        type: 'email-verification',
+      } satisfies EmailVerificationTokenPayload,
+      {
+        expiresIn: this.resolveDurationInSeconds(
+          process.env.JWT_EMAIL_VERIFICATION_EXPIRES_IN,
+          24 * 60 * 60,
+        ),
+      },
+    );
+  }
+
+  async verifyEmailVerificationToken(
+    token: string,
+  ): Promise<EmailVerificationTokenPayload> {
+    return this.verifyActionTokenByType(token, 'email-verification');
+  }
+
+  async generatePasswordResetToken(input: {
+    user: { id: string; email: string };
+    passwordHash: string;
+  }): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        sub: input.user.id,
+        email: input.user.email,
+        passwordFingerprint: this.createPasswordFingerprint(input.passwordHash),
+        type: 'password-reset',
+      } satisfies PasswordResetTokenPayload,
+      {
+        expiresIn: this.resolveDurationInSeconds(
+          process.env.JWT_PASSWORD_RESET_EXPIRES_IN,
+          30 * 60,
+        ),
+      },
+    );
+  }
+
+  async verifyPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetTokenPayload> {
+    return this.verifyActionTokenByType(token, 'password-reset');
+  }
+
+  createPasswordFingerprint(passwordHash: string) {
+    return createHash('sha256').update(passwordHash).digest('hex').slice(0, 32);
   }
 
   private async verifyTokenByType(
@@ -72,7 +139,24 @@ export class TokenService {
       }
 
       if (expectedType === 'refresh' && !payload.sid) {
-        throw new UnauthorizedException('Refresh session identifier is missing');
+        throw new UnauthorizedException(
+          'Refresh session identifier is missing',
+        );
+      }
+
+      return payload;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  private async verifyActionTokenByType<
+    TPayload extends EmailVerificationTokenPayload | PasswordResetTokenPayload,
+  >(token: string, expectedType: TPayload['type']): Promise<TPayload> {
+    try {
+      const payload = await this.jwtService.verifyAsync<TPayload>(token);
+      if (!payload || payload.type !== expectedType) {
+        throw new UnauthorizedException('Invalid token type');
       }
 
       return payload;
@@ -82,7 +166,10 @@ export class TokenService {
   }
 
   // Parses values like "15m", "1h", "7d" into seconds for jwt options.
-  private resolveDurationInSeconds(rawValue: string | undefined, fallbackSeconds: number): number {
+  private resolveDurationInSeconds(
+    rawValue: string | undefined,
+    fallbackSeconds: number,
+  ): number {
     if (!rawValue) {
       return fallbackSeconds;
     }

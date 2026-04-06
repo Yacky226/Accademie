@@ -35,9 +35,9 @@ export class AuditInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: async () => {
+        next: () => {
           const sanitizedBody = this.sanitizePayload(request.body ?? {});
-          await this.auditService.createLog({
+          void this.auditService.createLog({
             action: method,
             resource: path,
             userId: request.user?.sub,
@@ -54,8 +54,15 @@ export class AuditInterceptor implements NestInterceptor {
     );
   }
 
-  private sanitizePayload(payload: Record<string, unknown>): Record<string, unknown> {
-    const sensitiveKeys = new Set(['password', 'passwordHash', 'refreshToken', 'accessToken']);
+  private sanitizePayload(
+    payload: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const sensitiveKeys = new Set([
+      'password',
+      'passwordHash',
+      'refreshToken',
+      'accessToken',
+    ]);
     const result: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(payload)) {

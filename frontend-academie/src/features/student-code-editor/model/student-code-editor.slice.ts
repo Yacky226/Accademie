@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { studentCodeExercise } from "@/features/student-space/student-code-editor.data";
+import { studentCodeExercise } from "./student-code-editor.catalog";
 import {
   createJudgeRun,
   createSubmission,

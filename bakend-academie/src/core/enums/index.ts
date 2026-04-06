@@ -95,4 +95,3 @@ export enum NotificationChannel {
   SMS = 'SMS',
   WHATSAPP = 'WHATSAPP',
 }
-

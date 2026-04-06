@@ -50,7 +50,9 @@ export class CalendarRepository {
       .leftJoinAndSelect('event.attendees', 'attendees')
       .leftJoinAndSelect('attendees.user', 'attendeeUser')
       .where('event.deletedAt IS NULL')
-      .andWhere('(createdBy.id = :userId OR attendeeUser.id = :userId)', { userId })
+      .andWhere('(createdBy.id = :userId OR attendeeUser.id = :userId)', {
+        userId,
+      })
       .orderBy('event.startsAt', 'ASC')
       .getMany();
   }
@@ -63,7 +65,9 @@ export class CalendarRepository {
     await this.eventsRepository.softRemove(event);
   }
 
-  async findAttendeeById(attendeeId: string): Promise<CalendarEventAttendeeEntity | null> {
+  async findAttendeeById(
+    attendeeId: string,
+  ): Promise<CalendarEventAttendeeEntity | null> {
     return this.attendeesRepository.findOne({
       where: { id: attendeeId },
       relations: { event: true, user: true },
@@ -80,7 +84,9 @@ export class CalendarRepository {
     });
   }
 
-  async saveAttendee(attendee: CalendarEventAttendeeEntity): Promise<CalendarEventAttendeeEntity> {
+  async saveAttendee(
+    attendee: CalendarEventAttendeeEntity,
+  ): Promise<CalendarEventAttendeeEntity> {
     return this.attendeesRepository.save(attendee);
   }
 
@@ -89,10 +95,14 @@ export class CalendarRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findCourseById(courseId: string): Promise<CourseEntity | null> {
-    return this.coursesRepository.findOne({ where: { id: courseId, deletedAt: IsNull() } });
+    return this.coursesRepository.findOne({
+      where: { id: courseId, deletedAt: IsNull() },
+    });
   }
 }

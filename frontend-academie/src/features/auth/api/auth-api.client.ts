@@ -7,10 +7,15 @@ import {
 } from "@/entities/user/model/user-session.types";
 import { isApiClientError, requestApiJson } from "@/core/api/api-http-client";
 import type {
+  AuthActionFeedback,
   AuthRequestContext,
   AuthenticatedSession,
+  RequestEmailVerificationPayload,
+  RequestPasswordResetPayload,
+  ResetPasswordPayload,
   LoginCredentials,
   RegisterPayload,
+  VerifyEmailPayload,
 } from "../model/auth.types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -93,6 +98,27 @@ function mapSessionUser(payload: unknown, context: AuthRequestContext = {}): Ses
       null,
     name: nameCandidate,
     role: toUserRole(roleCandidate, context.fallbackRole ?? "student"),
+    emailVerified:
+      (typeof source.emailVerified === "boolean" && source.emailVerified) ||
+      (typeof data.emailVerified === "boolean" && data.emailVerified) ||
+      false,
+  };
+}
+
+function mapActionFeedback(payload: unknown, fallbackMessage: string): AuthActionFeedback {
+  const data = extractData(payload);
+
+  return {
+    message:
+      (typeof data.message === "string" && data.message) ||
+      (typeof data.status === "string" && data.status) ||
+      fallbackMessage,
+    previewToken:
+      (typeof data.previewToken === "string" && data.previewToken) ||
+      null,
+    previewUrl:
+      (typeof data.previewUrl === "string" && data.previewUrl) ||
+      null,
   };
 }
 
@@ -146,6 +172,7 @@ export async function requestLoginSession(credentials: LoginCredentials) {
       body: JSON.stringify({
         email: credentials.email,
         password: credentials.password,
+        rememberSession: credentials.rememberSession,
       }),
       method: "POST",
     },
@@ -165,7 +192,7 @@ export async function requestRegistrationSession(payload: RegisterPayload) {
         email: payload.email,
         fullName: payload.fullName,
         password: payload.password,
-        role: payload.role,
+        role: payload.role.toUpperCase(),
       }),
       method: "POST",
     },
@@ -225,4 +252,107 @@ export async function requestSessionLogout() {
 
     throw error;
   }
+}
+
+export async function requestLogoutAllSessions() {
+  async function performRequest(accessToken: string) {
+    return requestApiJson<unknown>(
+      appEnvironment.auth.logoutAllPath,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      "Unable to close your active sessions.",
+    );
+  }
+
+  let accessToken = getInMemoryAccessToken();
+  if (!accessToken) {
+    accessToken = (await requestSessionRefresh()).accessToken;
+  }
+
+  try {
+    await performRequest(accessToken);
+  } catch (error) {
+    if (!isApiClientError(error) || error.status !== 401) {
+      throw error;
+    }
+
+    accessToken = (await requestSessionRefresh()).accessToken;
+    await performRequest(accessToken);
+  }
+}
+
+export async function requestPasswordResetLink(payload: RequestPasswordResetPayload) {
+  const response = await requestApiJson<unknown>(
+    appEnvironment.auth.forgotPasswordPath,
+    {
+      body: JSON.stringify({
+        email: payload.email,
+      }),
+      method: "POST",
+    },
+    "Unable to start the password reset flow right now.",
+  );
+
+  return mapActionFeedback(
+    response,
+    "If the account exists, a password reset link has been prepared.",
+  );
+}
+
+export async function requestPasswordResetCompletion(payload: ResetPasswordPayload) {
+  const response = await requestApiJson<unknown>(
+    appEnvironment.auth.resetPasswordPath,
+    {
+      body: JSON.stringify({
+        token: payload.token,
+        password: payload.password,
+        rememberSession: payload.rememberSession,
+      }),
+      method: "POST",
+    },
+    "Unable to reset the password right now.",
+  );
+
+  return mapAuthenticatedSession(response);
+}
+
+export async function requestEmailVerificationLink(
+  payload: RequestEmailVerificationPayload,
+) {
+  const response = await requestApiJson<unknown>(
+    appEnvironment.auth.verifyEmailRequestPath,
+    {
+      body: JSON.stringify({
+        email: payload.email,
+      }),
+      method: "POST",
+    },
+    "Unable to prepare a verification link right now.",
+  );
+
+  return mapActionFeedback(
+    response,
+    "If the account exists, a verification link has been prepared.",
+  );
+}
+
+export async function requestEmailVerificationConfirmation(
+  payload: VerifyEmailPayload,
+) {
+  const response = await requestApiJson<unknown>(
+    appEnvironment.auth.verifyEmailPath,
+    {
+      body: JSON.stringify({
+        token: payload.token,
+      }),
+      method: "POST",
+    },
+    "Unable to verify this email address right now.",
+  );
+
+  return mapActionFeedback(response, "Your email address has been verified successfully.");
 }

@@ -34,7 +34,9 @@ export class GradesController {
 
   @Permissions(GRADE_PERMISSIONS.GRADES_READ)
   @Get('me')
-  async listMyGrades(@CurrentUser('sub') userId: string): Promise<GradeResponseDto[]> {
+  async listMyGrades(
+    @CurrentUser('sub') userId: string,
+  ): Promise<GradeResponseDto[]> {
     const grades = await this.gradesService.listMyGrades(userId);
     return grades.map((grade) => this.toResponse(grade));
   }
@@ -42,7 +44,9 @@ export class GradesController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(GRADE_PERMISSIONS.GRADES_READ)
   @Get('student/:studentId')
-  async listGradesByStudent(@Param('studentId') studentId: string): Promise<GradeResponseDto[]> {
+  async listGradesByStudent(
+    @Param('studentId') studentId: string,
+  ): Promise<GradeResponseDto[]> {
     const grades = await this.gradesService.listGradesByStudent(studentId);
     return grades.map((grade) => this.toResponse(grade));
   }
@@ -69,7 +73,10 @@ export class GradesController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(GRADE_PERMISSIONS.GRADES_UPDATE)
   @Patch(':id')
-  async updateGrade(@Param('id') id: string, @Body() dto: UpdateGradeDto): Promise<GradeResponseDto> {
+  async updateGrade(
+    @Param('id') id: string,
+    @Body() dto: UpdateGradeDto,
+  ): Promise<GradeResponseDto> {
     const grade = await this.gradesService.updateGrade(id, dto);
     return this.toResponse(grade);
   }

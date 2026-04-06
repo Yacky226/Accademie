@@ -30,7 +30,9 @@ export class ProgramsRepository {
     });
   }
 
-  async findProgramById(programId: string): Promise<StudentProgramEntity | null> {
+  async findProgramById(
+    programId: string,
+  ): Promise<StudentProgramEntity | null> {
     return this.programsRepository.findOne({
       where: { id: programId },
       relations: {
@@ -42,10 +44,14 @@ export class ProgramsRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
-  async saveProgram(program: StudentProgramEntity): Promise<StudentProgramEntity> {
+  async saveProgram(
+    program: StudentProgramEntity,
+  ): Promise<StudentProgramEntity> {
     return this.programsRepository.save(program);
   }
 

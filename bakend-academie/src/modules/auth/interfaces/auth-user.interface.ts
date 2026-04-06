@@ -5,6 +5,8 @@ export interface AuthUserIdentity {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
+  emailVerified: boolean;
   roles: string[];
   status: UserStatus;
   passwordHash: string;
@@ -14,6 +16,8 @@ export interface PublicAuthUser {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl?: string | null;
+  emailVerified: boolean;
   roles: string[];
 }
 

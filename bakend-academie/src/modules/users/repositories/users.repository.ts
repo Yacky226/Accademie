@@ -39,7 +39,9 @@ export class UsersRepository {
   }
 
   async findRolesByNames(roleNames: string[]): Promise<RoleEntity[]> {
-    const normalizedNames = roleNames.map((roleName) => roleName.trim().toUpperCase());
+    const normalizedNames = roleNames.map((roleName) =>
+      roleName.trim().toUpperCase(),
+    );
     return this.rolesRepository.find({ where: { name: In(normalizedNames) } });
   }
 
@@ -51,7 +53,9 @@ export class UsersRepository {
     ];
 
     for (const role of defaultRoles) {
-      const existingRole = await this.rolesRepository.findOne({ where: { name: role.name } });
+      const existingRole = await this.rolesRepository.findOne({
+        where: { name: role.name },
+      });
       if (!existingRole) {
         await this.rolesRepository.save(this.rolesRepository.create(role));
       }

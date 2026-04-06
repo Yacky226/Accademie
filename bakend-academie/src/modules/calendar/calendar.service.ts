@@ -38,7 +38,9 @@ export class CalendarService {
   }
 
   async createEvent(dto: CreateCalendarEventDto): Promise<CalendarEventEntity> {
-    const createdBy = await this.calendarRepository.findUserById(dto.createdById);
+    const createdBy = await this.calendarRepository.findUserById(
+      dto.createdById,
+    );
     if (!createdBy) {
       throw new NotFoundException('Creator user not found');
     }
@@ -70,7 +72,10 @@ export class CalendarService {
     return this.calendarRepository.saveEvent(event);
   }
 
-  async updateEvent(eventId: string, dto: UpdateCalendarEventDto): Promise<CalendarEventEntity> {
+  async updateEvent(
+    eventId: string,
+    dto: UpdateCalendarEventDto,
+  ): Promise<CalendarEventEntity> {
     const event = await this.getEventById(eventId);
 
     const startsAt = dto.startsAt ? new Date(dto.startsAt) : event.startsAt;
@@ -114,10 +119,11 @@ export class CalendarService {
       throw new NotFoundException('Attendee user not found');
     }
 
-    const existingAttendee = await this.calendarRepository.findAttendeeByEventAndUser(
-      eventId,
-      dto.userId,
-    );
+    const existingAttendee =
+      await this.calendarRepository.findAttendeeByEventAndUser(
+        eventId,
+        dto.userId,
+      );
     if (existingAttendee) {
       throw new ConflictException('User is already invited to this event');
     }
@@ -147,7 +153,10 @@ export class CalendarService {
   ): Promise<CalendarEventAttendeeEntity> {
     await this.getEventById(eventId);
 
-    const attendee = await this.calendarRepository.findAttendeeByEventAndUser(eventId, userId);
+    const attendee = await this.calendarRepository.findAttendeeByEventAndUser(
+      eventId,
+      userId,
+    );
     if (!attendee) {
       throw new NotFoundException('You are not invited to this event');
     }

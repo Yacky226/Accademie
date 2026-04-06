@@ -4,8 +4,13 @@ import type {
   SessionUser,
 } from "@/entities/user/model/user-session.types";
 import {
+  requestEmailVerificationConfirmation,
+  requestEmailVerificationLink,
   requestCurrentSession,
   requestLoginSession,
+  requestLogoutAllSessions,
+  requestPasswordResetCompletion,
+  requestPasswordResetLink,
   requestRegistrationSession,
   requestSessionLogout,
 } from "../api/auth-api.client";
@@ -13,13 +18,25 @@ import {
   clearPersistedAuthenticatedSession,
   persistAuthenticatedSession,
 } from "./auth-session-persistence";
-import type { AuthState, LoginCredentials, RegisterPayload } from "./auth.types";
+import type {
+  AuthActionFeedback,
+  AuthState,
+  LoginCredentials,
+  RegisterPayload,
+  RequestEmailVerificationPayload,
+  RequestPasswordResetPayload,
+  ResetPasswordPayload,
+  VerifyEmailPayload,
+} from "./auth.types";
 
 const initialState: AuthState = {
+  actionPreviewToken: null,
+  actionPreviewUrl: null,
   errorMessage: null,
   isAuthenticated: false,
   isInitialized: false,
   pendingAction: null,
+  statusMessage: null,
   user: null,
 };
 
@@ -82,6 +99,88 @@ export const logoutThunk = createAsyncThunk<void, void, { rejectValue: string }>
   },
 );
 
+export const logoutAllSessionsThunk = createAsyncThunk<void, void, { rejectValue: string }>(
+  "auth/logoutAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      await requestLogoutAllSessions();
+      clearPersistedAuthenticatedSession();
+    } catch (error) {
+      clearPersistedAuthenticatedSession();
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Unable to close all sessions.",
+      );
+    }
+  },
+);
+
+export const requestPasswordResetThunk = createAsyncThunk<
+  AuthActionFeedback,
+  RequestPasswordResetPayload,
+  { rejectValue: string }
+>("auth/requestPasswordReset", async (payload, { rejectWithValue }) => {
+  try {
+    return await requestPasswordResetLink(payload);
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error
+        ? error.message
+        : "Unable to start the password reset flow.",
+    );
+  }
+});
+
+export const resetPasswordThunk = createAsyncThunk<
+  SessionUser,
+  ResetPasswordPayload,
+  { rejectValue: string }
+>("auth/resetPassword", async (payload, { rejectWithValue }) => {
+  try {
+    return persistAuthenticatedSession(await requestPasswordResetCompletion(payload));
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "Unable to reset the password.",
+    );
+  }
+});
+
+export const requestEmailVerificationThunk = createAsyncThunk<
+  AuthActionFeedback,
+  RequestEmailVerificationPayload,
+  { rejectValue: string }
+>("auth/requestEmailVerification", async (payload, { rejectWithValue }) => {
+  try {
+    return await requestEmailVerificationLink(payload);
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error
+        ? error.message
+        : "Unable to prepare a verification link.",
+    );
+  }
+});
+
+export const verifyEmailThunk = createAsyncThunk<
+  AuthActionFeedback,
+  VerifyEmailPayload,
+  { rejectValue: string }
+>("auth/verifyEmail", async (payload, { rejectWithValue }) => {
+  try {
+    return await requestEmailVerificationConfirmation(payload);
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "Unable to verify this email address.",
+    );
+  }
+});
+
+function resetAuthFeedback(state: AuthState) {
+  state.actionPreviewToken = null;
+  state.actionPreviewUrl = null;
+  state.errorMessage = null;
+  state.statusMessage = null;
+}
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -89,7 +188,12 @@ const authSlice = createSlice({
     clearAuthError(state) {
       state.errorMessage = null;
     },
+    clearAuthFeedback(state) {
+      resetAuthFeedback(state);
+    },
     hydrateAuthState(state, action: { payload: SessionSnapshot }) {
+      state.actionPreviewToken = null;
+      state.actionPreviewUrl = null;
       state.isAuthenticated = action.payload.isAuthenticated;
       state.isInitialized = true;
       state.user = action.payload.user;
@@ -98,7 +202,7 @@ const authSlice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(loginThunk.pending, (state) => {
-        state.errorMessage = null;
+        resetAuthFeedback(state);
         state.pendingAction = "login";
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
@@ -112,7 +216,7 @@ const authSlice = createSlice({
         state.pendingAction = null;
       })
       .addCase(registerThunk.pending, (state) => {
-        state.errorMessage = null;
+        resetAuthFeedback(state);
         state.pendingAction = "register";
       })
       .addCase(registerThunk.fulfilled, (state, action) => {
@@ -146,7 +250,7 @@ const authSlice = createSlice({
         state.pendingAction = "logout";
       })
       .addCase(logoutThunk.fulfilled, (state) => {
-        state.errorMessage = null;
+        resetAuthFeedback(state);
         state.isAuthenticated = false;
         state.isInitialized = true;
         state.pendingAction = null;
@@ -158,9 +262,89 @@ const authSlice = createSlice({
         state.isInitialized = true;
         state.pendingAction = null;
         state.user = null;
+      })
+      .addCase(logoutAllSessionsThunk.pending, (state) => {
+        state.pendingAction = "logoutAll";
+      })
+      .addCase(logoutAllSessionsThunk.fulfilled, (state) => {
+        resetAuthFeedback(state);
+        state.isAuthenticated = false;
+        state.isInitialized = true;
+        state.pendingAction = null;
+        state.user = null;
+      })
+      .addCase(logoutAllSessionsThunk.rejected, (state, action) => {
+        state.errorMessage = action.payload ?? null;
+        state.isAuthenticated = false;
+        state.isInitialized = true;
+        state.pendingAction = null;
+        state.user = null;
+      })
+      .addCase(requestPasswordResetThunk.pending, (state) => {
+        resetAuthFeedback(state);
+        state.pendingAction = "forgotPassword";
+      })
+      .addCase(requestPasswordResetThunk.fulfilled, (state, action) => {
+        state.actionPreviewToken = action.payload.previewToken ?? null;
+        state.actionPreviewUrl = action.payload.previewUrl ?? null;
+        state.pendingAction = null;
+        state.statusMessage = action.payload.message;
+      })
+      .addCase(requestPasswordResetThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload ?? "Unable to start the password reset flow.";
+        state.pendingAction = null;
+      })
+      .addCase(resetPasswordThunk.pending, (state) => {
+        resetAuthFeedback(state);
+        state.pendingAction = "resetPassword";
+      })
+      .addCase(resetPasswordThunk.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.isInitialized = true;
+        state.pendingAction = null;
+        state.statusMessage = "Your password has been reset successfully.";
+        state.user = action.payload;
+      })
+      .addCase(resetPasswordThunk.rejected, (state, action) => {
+        state.errorMessage = action.payload ?? "Unable to reset the password.";
+        state.pendingAction = null;
+      })
+      .addCase(requestEmailVerificationThunk.pending, (state) => {
+        resetAuthFeedback(state);
+        state.pendingAction = "requestEmailVerification";
+      })
+      .addCase(requestEmailVerificationThunk.fulfilled, (state, action) => {
+        state.actionPreviewToken = action.payload.previewToken ?? null;
+        state.actionPreviewUrl = action.payload.previewUrl ?? null;
+        state.pendingAction = null;
+        state.statusMessage = action.payload.message;
+      })
+      .addCase(requestEmailVerificationThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload ?? "Unable to prepare a verification link.";
+        state.pendingAction = null;
+      })
+      .addCase(verifyEmailThunk.pending, (state) => {
+        state.errorMessage = null;
+        state.pendingAction = "verifyEmail";
+      })
+      .addCase(verifyEmailThunk.fulfilled, (state, action) => {
+        state.pendingAction = null;
+        state.statusMessage = action.payload.message;
+        state.actionPreviewToken = null;
+        state.actionPreviewUrl = null;
+        if (state.user) {
+          state.user.emailVerified = true;
+        }
+      })
+      .addCase(verifyEmailThunk.rejected, (state, action) => {
+        state.errorMessage =
+          action.payload ?? "Unable to verify this email address.";
+        state.pendingAction = null;
       });
   },
 });
 
-export const { clearAuthError, hydrateAuthState } = authSlice.actions;
+export const { clearAuthError, clearAuthFeedback, hydrateAuthState } = authSlice.actions;
 export const authReducer = authSlice.reducer;

@@ -28,7 +28,9 @@ export class ProblemTestCaseEntity {
   @Column({ type: 'int' })
   position!: number;
 
-  @ManyToOne(() => ProblemEntity, (problem) => problem.testCases, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ProblemEntity, (problem) => problem.testCases, {
+    onDelete: 'CASCADE',
+  })
   problem!: ProblemEntity;
 
   @CreateDateColumn({ type: 'timestamptz' })

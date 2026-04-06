@@ -28,7 +28,8 @@ export class EvaluationsService {
   }
 
   async getEvaluationById(evaluationId: string): Promise<EvaluationEntity> {
-    const evaluation = await this.evaluationsRepository.findEvaluationById(evaluationId);
+    const evaluation =
+      await this.evaluationsRepository.findEvaluationById(evaluationId);
     if (!evaluation) {
       throw new NotFoundException('Evaluation not found');
     }
@@ -36,9 +37,13 @@ export class EvaluationsService {
     return evaluation;
   }
 
-  async createEvaluation(dto: CreateEvaluationDto, creatorId: string): Promise<EvaluationEntity> {
+  async createEvaluation(
+    dto: CreateEvaluationDto,
+    creatorId: string,
+  ): Promise<EvaluationEntity> {
     const normalizedSlug = this.normalizeSlug(dto.slug);
-    const existingEvaluation = await this.evaluationsRepository.findEvaluationBySlug(normalizedSlug);
+    const existingEvaluation =
+      await this.evaluationsRepository.findEvaluationBySlug(normalizedSlug);
     if (existingEvaluation) {
       throw new ConflictException('Evaluation slug already exists');
     }
@@ -63,7 +68,9 @@ export class EvaluationsService {
     evaluation.creator = creator;
 
     if (dto.courseId) {
-      const course = await this.evaluationsRepository.findCourseById(dto.courseId);
+      const course = await this.evaluationsRepository.findCourseById(
+        dto.courseId,
+      );
       if (!course) {
         throw new NotFoundException('Course not found');
       }
@@ -80,9 +87,10 @@ export class EvaluationsService {
     const evaluation = await this.getEvaluationById(evaluationId);
 
     if (dto.slug && this.normalizeSlug(dto.slug) !== evaluation.slug) {
-      const existingEvaluation = await this.evaluationsRepository.findEvaluationBySlug(
-        this.normalizeSlug(dto.slug),
-      );
+      const existingEvaluation =
+        await this.evaluationsRepository.findEvaluationBySlug(
+          this.normalizeSlug(dto.slug),
+        );
       if (existingEvaluation && existingEvaluation.id !== evaluation.id) {
         throw new ConflictException('Evaluation slug already exists');
       }
@@ -93,15 +101,23 @@ export class EvaluationsService {
     evaluation.description = dto.description ?? evaluation.description;
     evaluation.type = dto.type ?? evaluation.type;
     evaluation.instructions = dto.instructions ?? evaluation.instructions;
-    evaluation.durationInMinutes = dto.durationInMinutes ?? evaluation.durationInMinutes;
+    evaluation.durationInMinutes =
+      dto.durationInMinutes ?? evaluation.durationInMinutes;
     evaluation.maxAttempts = dto.maxAttempts ?? evaluation.maxAttempts;
-    evaluation.passScore = dto.passScore !== undefined ? dto.passScore.toFixed(2) : evaluation.passScore;
-    evaluation.startsAt = dto.startsAt ? new Date(dto.startsAt) : evaluation.startsAt;
+    evaluation.passScore =
+      dto.passScore !== undefined
+        ? dto.passScore.toFixed(2)
+        : evaluation.passScore;
+    evaluation.startsAt = dto.startsAt
+      ? new Date(dto.startsAt)
+      : evaluation.startsAt;
     evaluation.endsAt = dto.endsAt ? new Date(dto.endsAt) : evaluation.endsAt;
     evaluation.isPublished = dto.isPublished ?? evaluation.isPublished;
 
     if (dto.courseId) {
-      const course = await this.evaluationsRepository.findCourseById(dto.courseId);
+      const course = await this.evaluationsRepository.findCourseById(
+        dto.courseId,
+      );
       if (!course) {
         throw new NotFoundException('Course not found');
       }
@@ -146,7 +162,8 @@ export class EvaluationsService {
     questionId: string,
     dto: UpdateEvaluationQuestionDto,
   ): Promise<EvaluationQuestionEntity> {
-    const question = await this.evaluationsRepository.findQuestionById(questionId);
+    const question =
+      await this.evaluationsRepository.findQuestionById(questionId);
     if (!question || question.evaluation.id !== evaluationId) {
       throw new NotFoundException('Evaluation question not found');
     }
@@ -155,10 +172,13 @@ export class EvaluationsService {
       const evaluation = await this.getEvaluationById(evaluationId);
       const duplicatePosition = (evaluation.questions ?? []).find(
         (evaluationQuestion) =>
-          evaluationQuestion.position === dto.position && evaluationQuestion.id !== question.id,
+          evaluationQuestion.position === dto.position &&
+          evaluationQuestion.id !== question.id,
       );
       if (duplicatePosition) {
-        throw new ConflictException('A question already exists at this position');
+        throw new ConflictException(
+          'A question already exists at this position',
+        );
       }
     }
 
@@ -168,14 +188,19 @@ export class EvaluationsService {
       : question.questionType;
     question.options = dto.options ?? question.options;
     question.correctAnswer = dto.correctAnswer ?? question.correctAnswer;
-    question.points = dto.points !== undefined ? dto.points.toFixed(2) : question.points;
+    question.points =
+      dto.points !== undefined ? dto.points.toFixed(2) : question.points;
     question.position = dto.position ?? question.position;
 
     return this.evaluationsRepository.saveQuestion(question);
   }
 
-  async deleteQuestion(evaluationId: string, questionId: string): Promise<void> {
-    const question = await this.evaluationsRepository.findQuestionById(questionId);
+  async deleteQuestion(
+    evaluationId: string,
+    questionId: string,
+  ): Promise<void> {
+    const question =
+      await this.evaluationsRepository.findQuestionById(questionId);
     if (!question || question.evaluation.id !== evaluationId) {
       throw new NotFoundException('Evaluation question not found');
     }
@@ -203,7 +228,9 @@ export class EvaluationsService {
     }
 
     if (!(evaluation.questions ?? []).length) {
-      throw new ConflictException('Evaluation must contain at least one question before submission');
+      throw new ConflictException(
+        'Evaluation must contain at least one question before submission',
+      );
     }
 
     const student = await this.evaluationsRepository.findUserById(studentId);
@@ -211,23 +238,31 @@ export class EvaluationsService {
       throw new NotFoundException('Student user not found');
     }
 
-    const existingAttempts = await this.evaluationsRepository.countAttemptsByStudent(
-      evaluationId,
-      studentId,
-    );
+    const existingAttempts =
+      await this.evaluationsRepository.countAttemptsByStudent(
+        evaluationId,
+        studentId,
+      );
     if (existingAttempts >= evaluation.maxAttempts) {
-      throw new ConflictException('Maximum attempts reached for this evaluation');
+      throw new ConflictException(
+        'Maximum attempts reached for this evaluation',
+      );
     }
 
     const attempt = new EvaluationAttemptEntity();
     attempt.status = 'SUBMITTED';
     attempt.answers = dto.answers ?? {};
-    attempt.maxScore = this.computeMaxScore(evaluation.questions ?? []).toFixed(2);
+    attempt.maxScore = this.computeMaxScore(evaluation.questions ?? []).toFixed(
+      2,
+    );
     attempt.startedAt = now;
     attempt.submittedAt = now;
     attempt.student = student;
     attempt.evaluation = evaluation;
-    const autoGrade = this.tryAutoGradeAttempt(evaluation.questions ?? [], attempt.answers);
+    const autoGrade = this.tryAutoGradeAttempt(
+      evaluation.questions ?? [],
+      attempt.answers,
+    );
     if (autoGrade) {
       attempt.status = 'GRADED';
       attempt.score = autoGrade.score.toFixed(2);
@@ -236,11 +271,14 @@ export class EvaluationsService {
 
     const savedAttempt = await this.evaluationsRepository.saveAttempt(attempt);
     if (autoGrade) {
-      await this.gradesService.upsertGradeFromEvaluationAttempt(savedAttempt.id, {
-        score: autoGrade.score,
-        feedback: autoGrade.feedback,
-        status: 'PUBLISHED',
-      });
+      await this.gradesService.upsertGradeFromEvaluationAttempt(
+        savedAttempt.id,
+        {
+          score: autoGrade.score,
+          feedback: autoGrade.feedback,
+          status: 'PUBLISHED',
+        },
+      );
     }
 
     return savedAttempt;
@@ -297,7 +335,10 @@ export class EvaluationsService {
   }
 
   private computeMaxScore(questions: EvaluationQuestionEntity[]): number {
-    return questions.reduce((total, question) => total + Number(question.points), 0);
+    return questions.reduce(
+      (total, question) => total + Number(question.points),
+      0,
+    );
   }
 
   private normalizeSlug(slug: string): string {
@@ -318,7 +359,9 @@ export class EvaluationsService {
     }
 
     const submittedAnswers = answers ?? {};
-    const isFullyAutoGradable = questions.every((question) => question.correctAnswer !== undefined);
+    const isFullyAutoGradable = questions.every(
+      (question) => question.correctAnswer !== undefined,
+    );
     if (!isFullyAutoGradable) {
       return null;
     }
@@ -351,7 +394,10 @@ export class EvaluationsService {
   }
 
   private answersMatch(left: unknown, right: unknown): boolean {
-    return JSON.stringify(this.normalizeAnswer(left)) === JSON.stringify(this.normalizeAnswer(right));
+    return (
+      JSON.stringify(this.normalizeAnswer(left)) ===
+      JSON.stringify(this.normalizeAnswer(right))
+    );
   }
 
   private normalizeAnswer(value: unknown): unknown {
@@ -362,7 +408,9 @@ export class EvaluationsService {
     if (Array.isArray(value)) {
       return value
         .map((item) => this.normalizeAnswer(item))
-        .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+        .sort((left, right) =>
+          JSON.stringify(left).localeCompare(JSON.stringify(right)),
+        );
     }
 
     if (value && typeof value === 'object') {

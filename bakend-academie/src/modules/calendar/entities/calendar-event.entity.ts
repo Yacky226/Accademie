@@ -44,7 +44,9 @@ export class CalendarEventEntity {
   @Column({ type: 'boolean', default: false })
   isAllDay!: boolean;
 
-  @ManyToOne(() => UserEntity, (user) => user.createdCalendarEvents, { onDelete: 'SET NULL' })
+  @ManyToOne(() => UserEntity, (user) => user.createdCalendarEvents, {
+    onDelete: 'SET NULL',
+  })
   createdBy!: UserEntity;
 
   @ManyToOne(() => CourseEntity, { onDelete: 'SET NULL', nullable: true })

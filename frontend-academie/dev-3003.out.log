@@ -1,0 +1,10 @@
+
+> frontend-academie@0.1.0 dev
+> next dev --port 3003
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3003
+- Network:       http://172.23.112.1:3003
+- Environments: .env
+✓ Ready in 5.1s
+[?25h

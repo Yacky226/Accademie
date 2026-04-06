@@ -83,7 +83,9 @@ export class UsersService {
     user.bio = dto.bio ?? user.bio;
     user.status = dto.status ?? user.status;
     user.gender = dto.gender ?? user.gender;
-    user.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : user.dateOfBirth;
+    user.dateOfBirth = dto.dateOfBirth
+      ? new Date(dto.dateOfBirth)
+      : user.dateOfBirth;
     user.country = dto.country ?? user.country;
     user.city = dto.city ?? user.city;
 
@@ -128,7 +130,9 @@ export class UsersService {
     };
   }
 
-  async requestMyDataDeletion(userId: string): Promise<RequestDataDeletionResponseDto> {
+  async requestMyDataDeletion(
+    userId: string,
+  ): Promise<RequestDataDeletionResponseDto> {
     const user = await this.getUserById(userId);
     const deletedAt = new Date();
 

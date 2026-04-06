@@ -83,14 +83,20 @@ export class GradesRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findCourseById(courseId: string): Promise<CourseEntity | null> {
-    return this.coursesRepository.findOne({ where: { id: courseId, deletedAt: IsNull() } });
+    return this.coursesRepository.findOne({
+      where: { id: courseId, deletedAt: IsNull() },
+    });
   }
 
-  async findEvaluationAttemptById(attemptId: string): Promise<EvaluationAttemptEntity | null> {
+  async findEvaluationAttemptById(
+    attemptId: string,
+  ): Promise<EvaluationAttemptEntity | null> {
     return this.attemptsRepository.findOne({
       where: { id: attemptId },
       relations: {

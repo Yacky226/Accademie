@@ -34,7 +34,9 @@ export class JudgeController {
 
   @Permissions(JUDGE_PERMISSIONS.JUDGE_RUNS_READ)
   @Get('runs/me')
-  async listMyRuns(@CurrentUser('sub') userId: string): Promise<JudgeRunResponseDto[]> {
+  async listMyRuns(
+    @CurrentUser('sub') userId: string,
+  ): Promise<JudgeRunResponseDto[]> {
     const runs = await this.judgeService.listMyRuns(userId);
     return runs.map((run) => this.toResponse(run));
   }

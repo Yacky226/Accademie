@@ -1,3 +1,4 @@
+import { AccountSecurityPanel } from "@/features/auth/ui/components/AccountSecurityPanel";
 import styles from "../admin-space.module.css";
 import { AdminShell } from "../components/AdminShell";
 
@@ -134,6 +135,12 @@ export function AdminSettingsPage() {
               </div>
             </div>
           </article>
+
+          <AccountSecurityPanel
+            description="Protect the administrative account, confirm verification state and rotate access across every privileged device."
+            eyebrow="Administrative identity security"
+            title="Control privileged authentication"
+          />
         </aside>
       </section>
     </AdminShell>

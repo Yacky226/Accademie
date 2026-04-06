@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "../home.module.css";
 import type { HeroMetric } from "../home.types";
 
@@ -55,9 +56,13 @@ export function HeroSection({ metrics }: HeroSectionProps) {
 
           <div className={styles.heroVisual}>
             <div className={styles.visualPhoto}>
-              <img
+              <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoJu-0hoD12ffTdSLNhSEy_QTWuBsuHpUFI1IdwHgJSiu7cJBcgLUN64s-zCxTzjmTK-EQs7aUx0Ss5hennv5iCQJbJp1fH8wzOAOYnQiIh8OvLbUv2vjxqWpDe0-yZrhrNDObRWS0Zq116BAz9WRFgpHnQks2bwRYODvyQv8_PsSW0aw6WesGPS2n4bOMwpGGWxWrPq89lx27MCuTt61bamY5NWm67EPstMXlsmOI4SW4LhGmsbLwD12Z2NnBNxCX5aFe6cSLzUup"
                 alt="Setup de developpement moderne"
+                height={960}
+                priority
+                sizes="(max-width: 1100px) 100vw, 48vw"
+                width={1280}
               />
               <div className={styles.photoTint} />
 

@@ -10,18 +10,17 @@ import { AdminService } from './admin.service';
 import { AdminRepository } from './repositories/admin.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			UserEntity,
-			RoleEntity,
-			CourseEntity,
-			EvaluationEntity,
-			AcademyAnnouncementEntity,
-		]),
-	],
-	controllers: [AdminController],
-	providers: [AdminService, AdminRepository],
-	exports: [AdminService, AdminRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      UserEntity,
+      RoleEntity,
+      CourseEntity,
+      EvaluationEntity,
+      AcademyAnnouncementEntity,
+    ]),
+  ],
+  controllers: [AdminController],
+  providers: [AdminService, AdminRepository],
+  exports: [AdminService, AdminRepository],
 })
 export class AdminModule {}
-

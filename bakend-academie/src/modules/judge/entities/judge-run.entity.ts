@@ -59,7 +59,10 @@ export class JudgeRunEntity {
   @ManyToOne(() => ProblemEntity, { onDelete: 'SET NULL', nullable: true })
   problem?: ProblemEntity;
 
-  @ManyToOne(() => SupportedLanguageEntity, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => SupportedLanguageEntity, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   language?: SupportedLanguageEntity;
 
   @CreateDateColumn({ type: 'timestamptz' })

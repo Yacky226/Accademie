@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { dashboardRecommendations } from "@/features/student-space/student-space.data";
+import { dashboardRecommendations } from "@/features/student-space/model/student-workspace.catalog";
 import {
   enrollInCourse,
   fetchMyStudentEnrollments,

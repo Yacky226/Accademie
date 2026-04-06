@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import type { SessionSnapshot } from "@/entities/user/model/user-session.types";
 import { createAuthPreloadedState, fetchCurrentSessionThunk } from "@/features/auth/model/auth.slice";
-import { useAppDispatch } from "@/core/store/app-store-hooks";
+import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import { createAppStore, type AppStore } from "@/core/store/app-store";
 
 interface ApplicationProvidersProps {
@@ -13,7 +13,7 @@ interface ApplicationProvidersProps {
 }
 
 function SessionBootstrap({ shouldRefresh }: { shouldRefresh: boolean }) {
-  const dispatch = useAppDispatch();
+  const dispatch = useAuthStoreDispatch();
 
   useEffect(() => {
     if (!shouldRefresh) {

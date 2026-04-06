@@ -94,7 +94,9 @@ export class AcademyController {
   @Roles(UserRole.ADMIN)
   @Permissions(ACADEMY_PERMISSIONS.ACADEMY_SETTINGS_MANAGE)
   @Post('settings')
-  async createSetting(@Body() dto: CreateAcademySettingDto): Promise<AcademySettingResponseDto> {
+  async createSetting(
+    @Body() dto: CreateAcademySettingDto,
+  ): Promise<AcademySettingResponseDto> {
     return this.academyService.createSetting(dto);
   }
 

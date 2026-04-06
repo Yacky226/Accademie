@@ -28,11 +28,15 @@ export class UserSelfOrAdminGuard implements CanActivate {
       throw new ForbiddenException('Unable to evaluate ownership');
     }
 
-    const isAdmin = (user.roles ?? []).map((role) => role.trim().toUpperCase()).includes('ADMIN');
+    const isAdmin = (user.roles ?? [])
+      .map((role) => role.trim().toUpperCase())
+      .includes('ADMIN');
     const isOwner = user.sub === targetUserId;
 
     if (!isAdmin && !isOwner) {
-      throw new ForbiddenException('You can only access your own user resource');
+      throw new ForbiddenException(
+        'You can only access your own user resource',
+      );
     }
 
     return true;

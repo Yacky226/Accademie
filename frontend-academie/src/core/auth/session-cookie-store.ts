@@ -7,6 +7,7 @@ export const SESSION_NAME_COOKIE = "aa_session_name";
 export const SESSION_AVATAR_COOKIE = "aa_session_avatar";
 export const SESSION_EMAIL_COOKIE = "aa_session_email";
 export const SESSION_ID_COOKIE = "aa_session_id";
+export const SESSION_VERIFIED_COOKIE = "aa_session_verified";
 
 const SESSION_COOKIE_KEYS = [
   SESSION_STATUS_COOKIE,
@@ -15,6 +16,7 @@ const SESSION_COOKIE_KEYS = [
   SESSION_AVATAR_COOKIE,
   SESSION_EMAIL_COOKIE,
   SESSION_ID_COOKIE,
+  SESSION_VERIFIED_COOKIE,
 ] as const;
 
 const SESSION_COOKIE_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -42,6 +44,7 @@ function createSessionSnapshot(values: {
   name?: string | null;
   role?: string | null;
   avatarUrl?: string | null;
+  emailVerified?: boolean | null;
 }): SessionSnapshot {
   if (!values.isAuthenticated || !isUserRole(values.role)) {
     return {
@@ -58,6 +61,7 @@ function createSessionSnapshot(values: {
       name: values.name?.trim() || "Architect Academy",
       role: values.role,
       avatarUrl: values.avatarUrl ?? null,
+      emailVerified: values.emailVerified === true,
     },
   };
 }
@@ -90,6 +94,7 @@ export function readClientSessionCookieSnapshot(): SessionSnapshot {
     isAuthenticated: cookieMap.get(SESSION_STATUS_COOKIE) === "authenticated",
     name: readCookieValue(cookieMap.get(SESSION_NAME_COOKIE)),
     role: readCookieValue(cookieMap.get(SESSION_ROLE_COOKIE)),
+    emailVerified: cookieMap.get(SESSION_VERIFIED_COOKIE) === "true",
   });
 }
 
@@ -103,6 +108,7 @@ export function readServerSessionCookieSnapshot(
     isAuthenticated: cookieStore.get(SESSION_STATUS_COOKIE)?.value === "authenticated",
     name: readCookieValue(cookieStore.get(SESSION_NAME_COOKIE)?.value),
     role: readCookieValue(cookieStore.get(SESSION_ROLE_COOKIE)?.value),
+    emailVerified: cookieStore.get(SESSION_VERIFIED_COOKIE)?.value === "true",
   });
 }
 
@@ -119,6 +125,7 @@ export function writeClientSessionCookies(user: SessionUser) {
   writeCookie(SESSION_STATUS_COOKIE, "authenticated", SESSION_COOKIE_TTL_SECONDS);
   writeCookie(SESSION_ROLE_COOKIE, user.role, SESSION_COOKIE_TTL_SECONDS);
   writeCookie(SESSION_NAME_COOKIE, user.name, SESSION_COOKIE_TTL_SECONDS);
+  writeCookie(SESSION_VERIFIED_COOKIE, user.emailVerified ? "true" : "false", SESSION_COOKIE_TTL_SECONDS);
 
   if (user.avatarUrl) {
     writeCookie(SESSION_AVATAR_COOKIE, user.avatarUrl, SESSION_COOKIE_TTL_SECONDS);

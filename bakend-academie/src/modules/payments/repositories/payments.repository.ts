@@ -39,7 +39,9 @@ export class PaymentsRepository {
     });
   }
 
-  async findPaymentByReference(reference: string): Promise<PaymentEntity | null> {
+  async findPaymentByReference(
+    reference: string,
+  ): Promise<PaymentEntity | null> {
     return this.paymentsRepository.findOne({
       where: { reference, deletedAt: IsNull() },
       relations: { user: true, course: true },
@@ -55,7 +57,10 @@ export class PaymentsRepository {
     });
   }
 
-  async findPaymentByMetadataValue(key: string, value: string): Promise<PaymentEntity | null> {
+  async findPaymentByMetadataValue(
+    key: string,
+    value: string,
+  ): Promise<PaymentEntity | null> {
     const allowedKeys = new Set([
       'stripeCheckoutSessionId',
       'stripePaymentIntentId',
@@ -87,10 +92,14 @@ export class PaymentsRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findCourseById(courseId: string): Promise<CourseEntity | null> {
-    return this.coursesRepository.findOne({ where: { id: courseId, deletedAt: IsNull() } });
+    return this.coursesRepository.findOne({
+      where: { id: courseId, deletedAt: IsNull() },
+    });
   }
 }

@@ -8,6 +8,7 @@ export interface SessionUser {
   name: string;
   role: UserRole;
   avatarUrl: string | null;
+  emailVerified: boolean;
 }
 
 export interface SessionSnapshot {

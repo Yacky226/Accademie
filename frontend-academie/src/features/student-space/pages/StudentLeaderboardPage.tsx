@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import {
   leaderboardMembers,
   leaderboardPodium,
   leaderboardStats,
-} from "../student-space.data";
+} from "../model/student-workspace.catalog";
 import styles from "../student-space.module.css";
 import { StudentShell } from "../components/StudentShell";
 
@@ -62,15 +63,18 @@ export function StudentLeaderboardPage() {
                 ? styles.leaderboardPodiumFirst
                 : styles.leaderboardPodiumCard
             }
-          >
-            <span className={styles.leaderboardRank}>
-              {String(member.rank).padStart(2, "0")}
-            </span>
-            <img
-              src={member.avatarUrl}
-              alt={member.name}
-              className={styles.leaderboardAvatar}
-            />
+            >
+              <span className={styles.leaderboardRank}>
+                {String(member.rank).padStart(2, "0")}
+              </span>
+              <Image
+                alt={member.name}
+                className={styles.leaderboardAvatar}
+                height={120}
+                sizes="76px"
+                src={member.avatarUrl}
+                width={120}
+              />
             <h3>{member.name}</h3>
             <p>{member.specialty}</p>
             <strong>{member.xp}</strong>
@@ -109,7 +113,13 @@ export function StudentLeaderboardPage() {
                   <td>{String(member.rank).padStart(2, "0")}</td>
                   <td>
                     <div className={styles.leaderboardUserCell}>
-                      <img src={member.avatarUrl} alt={member.name} />
+                      <Image
+                        alt={member.name}
+                        height={64}
+                        sizes="40px"
+                        src={member.avatarUrl}
+                        width={64}
+                      />
                       <div>
                         <strong>{member.name}</strong>
                         <p>{member.role}</p>

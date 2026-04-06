@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { WorkspaceLogoutButton } from "@/features/shared/components/WorkspaceLogoutButton";
-import { WorkspaceSidebarToggle } from "@/features/shared/components/WorkspaceSidebarToggle";
+import { WorkspaceLogoutButton } from "@/features/workspace-shell/components/WorkspaceLogoutButton";
+import { WorkspaceSidebarToggle } from "@/features/workspace-shell/components/WorkspaceSidebarToggle";
 import { teacherNavItems } from "../teacher-space.data";
 import styles from "../teacher-space.module.css";
 

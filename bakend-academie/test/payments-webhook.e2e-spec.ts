@@ -11,10 +11,12 @@ import { PermissionsGuard } from '../src/core/guards/permissions.guard';
 import { InvoicesService } from '../src/modules/invoices/invoices.service';
 import { PaymentsController } from '../src/modules/payments/payments.controller';
 import { PaymentsService } from '../src/modules/payments/payments.service';
+import { PaymentEntity } from '../src/modules/payments/entities/payment.entity';
 import { PaymentsRepository } from '../src/modules/payments/repositories/payments.repository';
 
 describe('Payments webhook (e2e)', () => {
   let app: INestApplication<App>;
+  let lastSavedPayment: PaymentEntity | null;
 
   const payment = {
     id: 'payment-1',
@@ -33,7 +35,7 @@ describe('Payments webhook (e2e)', () => {
       lastName: 'Curie',
       email: 'marie@example.com',
     },
-  };
+  } as PaymentEntity;
 
   const paymentsRepositoryMock = {
     findPaymentByReference: jest.fn(),
@@ -48,14 +50,24 @@ describe('Payments webhook (e2e)', () => {
   };
 
   beforeEach(async () => {
+    lastSavedPayment = null;
     process.env.PAYMENT_WEBHOOK_SECRET = 'test-webhook-secret';
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test-webhook-secret';
     process.env.PAYMENT_WEBHOOK_TOLERANCE_SECONDS = '300';
 
-    paymentsRepositoryMock.findPaymentByReference.mockResolvedValue({ ...payment });
-    paymentsRepositoryMock.findPaymentByProviderTransactionId.mockResolvedValue(null);
+    paymentsRepositoryMock.findPaymentByReference.mockResolvedValue({
+      ...payment,
+    });
+    paymentsRepositoryMock.findPaymentByProviderTransactionId.mockResolvedValue(
+      null,
+    );
     paymentsRepositoryMock.findPaymentByMetadataValue.mockResolvedValue(null);
-    paymentsRepositoryMock.savePayment.mockImplementation(async (input) => input);
+    paymentsRepositoryMock.savePayment.mockImplementation(
+      (input: PaymentEntity) => {
+        lastSavedPayment = input;
+        return Promise.resolve(input);
+      },
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
@@ -147,21 +159,33 @@ describe('Payments webhook (e2e)', () => {
 
     expect(response.body).toEqual({ processed: true });
     expect(paymentsRepositoryMock.savePayment).toHaveBeenCalledTimes(1);
-    expect(invoicesServiceMock.ensureInvoiceForPayment).toHaveBeenCalledWith('payment-1', 'user-1');
-    expect(invoicesServiceMock.syncInvoiceFromPayment).toHaveBeenCalledWith('payment-1');
+    expect(invoicesServiceMock.ensureInvoiceForPayment).toHaveBeenCalledWith(
+      'payment-1',
+      'user-1',
+    );
+    expect(invoicesServiceMock.syncInvoiceFromPayment).toHaveBeenCalledWith(
+      'payment-1',
+    );
 
-    const savedPayment = paymentsRepositoryMock.savePayment.mock.calls[0][0];
-    expect(savedPayment.status).toBe('PAID');
-    expect(savedPayment.provider).toBe('stripe');
-    expect(savedPayment.providerTransactionId).toBe('pi_123');
-    expect(savedPayment.paidAt).toBeInstanceOf(Date);
-    expect(savedPayment.metadata.stripeCheckoutSessionId).toBe('cs_test_123');
-    expect(savedPayment.metadata.stripePaymentIntentId).toBe('pi_123');
+    expect(lastSavedPayment).toBeDefined();
+    if (!lastSavedPayment) {
+      throw new Error('Expected a payment to be persisted');
+    }
+    expect(lastSavedPayment.status).toBe('PAID');
+    expect(lastSavedPayment.provider).toBe('stripe');
+    expect(lastSavedPayment.providerTransactionId).toBe('pi_123');
+    expect(lastSavedPayment.paidAt).toBeInstanceOf(Date);
+    expect(lastSavedPayment.metadata?.stripeCheckoutSessionId).toBe(
+      'cs_test_123',
+    );
+    expect(lastSavedPayment.metadata?.stripePaymentIntentId).toBe('pi_123');
   });
 
   it('maps subscription cancellation events to the local subscription state', async () => {
     paymentsRepositoryMock.findPaymentByReference.mockResolvedValue(null);
-    paymentsRepositoryMock.findPaymentByProviderTransactionId.mockResolvedValue(null);
+    paymentsRepositoryMock.findPaymentByProviderTransactionId.mockResolvedValue(
+      null,
+    );
     paymentsRepositoryMock.findPaymentByMetadataValue.mockResolvedValue({
       ...payment,
       isSubscription: true,
@@ -209,11 +233,14 @@ describe('Payments webhook (e2e)', () => {
       .send(rawBody)
       .expect(201);
 
-    const savedPayment = paymentsRepositoryMock.savePayment.mock.calls[0][0];
-    expect(savedPayment.status).toBe('CANCELLED');
-    expect(savedPayment.subscriptionStatus).toBe('CANCELED');
-    expect(savedPayment.billingInterval).toBe('MONTH');
-    expect(savedPayment.canceledAt).toBeInstanceOf(Date);
+    expect(lastSavedPayment).toBeDefined();
+    if (!lastSavedPayment) {
+      throw new Error('Expected a payment to be persisted');
+    }
+    expect(lastSavedPayment.status).toBe('CANCELLED');
+    expect(lastSavedPayment.subscriptionStatus).toBe('CANCELED');
+    expect(lastSavedPayment.billingInterval).toBe('MONTH');
+    expect(lastSavedPayment.canceledAt).toBeInstanceOf(Date);
   });
 
   it('keeps the webhook route public while protected payment routes still require authentication', async () => {
@@ -221,10 +248,7 @@ describe('Payments webhook (e2e)', () => {
   });
 });
 
-function signStripePayload(
-  timestamp: string,
-  rawBody: string,
-): string {
+function signStripePayload(timestamp: string, rawBody: string): string {
   return createHmac('sha256', process.env.STRIPE_WEBHOOK_SECRET ?? '')
     .update(`${timestamp}.${rawBody}`)
     .digest('hex');

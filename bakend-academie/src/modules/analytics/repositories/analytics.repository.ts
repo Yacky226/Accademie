@@ -88,11 +88,15 @@ export class AnalyticsRepository {
   }
 
   async countCalendarEventsTotal(): Promise<number> {
-    return this.calendarEventsRepository.count({ where: { deletedAt: IsNull() } });
+    return this.calendarEventsRepository.count({
+      where: { deletedAt: IsNull() },
+    });
   }
 
   async countNotificationsTotal(): Promise<number> {
-    return this.notificationsRepository.count({ where: { deletedAt: IsNull() } });
+    return this.notificationsRepository.count({
+      where: { deletedAt: IsNull() },
+    });
   }
 
   async countNewUsersSince(since: Date): Promise<number> {

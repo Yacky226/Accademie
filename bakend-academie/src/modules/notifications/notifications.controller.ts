@@ -43,7 +43,11 @@ export class NotificationsController {
     @CurrentUser('sub') userId: string,
     @CurrentUser('roles') roles: string[],
   ): Promise<NotificationResponseDto> {
-    return this.notificationsService.getNotificationById(notificationId, userId, roles ?? []);
+    return this.notificationsService.getNotificationById(
+      notificationId,
+      userId,
+      roles ?? [],
+    );
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -63,7 +67,12 @@ export class NotificationsController {
     @CurrentUser('sub') userId: string,
     @CurrentUser('roles') roles: string[],
   ): Promise<NotificationResponseDto> {
-    return this.notificationsService.updateNotification(notificationId, updateDto, userId, roles ?? []);
+    return this.notificationsService.updateNotification(
+      notificationId,
+      updateDto,
+      userId,
+      roles ?? [],
+    );
   }
 
   @Permissions(NOTIFICATION_PERMISSIONS.NOTIFICATIONS_UPDATE)
@@ -73,7 +82,11 @@ export class NotificationsController {
     @CurrentUser('sub') userId: string,
     @CurrentUser('roles') roles: string[],
   ): Promise<NotificationResponseDto> {
-    return this.notificationsService.markAsRead(notificationId, userId, roles ?? []);
+    return this.notificationsService.markAsRead(
+      notificationId,
+      userId,
+      roles ?? [],
+    );
   }
 
   @Permissions(NOTIFICATION_PERMISSIONS.NOTIFICATIONS_DELETE)
@@ -83,6 +96,10 @@ export class NotificationsController {
     @CurrentUser('sub') userId: string,
     @CurrentUser('roles') roles: string[],
   ): Promise<void> {
-    return this.notificationsService.deleteNotification(notificationId, userId, roles ?? []);
+    return this.notificationsService.deleteNotification(
+      notificationId,
+      userId,
+      roles ?? [],
+    );
   }
 }

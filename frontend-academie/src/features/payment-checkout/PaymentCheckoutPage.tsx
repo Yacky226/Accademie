@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   checkoutBenefits,
   checkoutSummaryLines,
@@ -89,9 +90,12 @@ export default function PaymentCheckoutPage() {
         <aside className={styles.rightCol}>
           <article className={styles.summaryCard}>
             <div className={styles.cover}>
-              <img
+              <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr7vdNh--x4aJwKL9mskrWpCoedUFzcW28h5jQ-OOlitRxv_OgUpENn02YLwXzaUT_TNOlyObRv38lO_PuMU67AzNK13KCvZYJPojm_ScpSQLXcVtkLZdrc4umYUt9Ilr91YGozp19ihsmaxevpqCSjENkVT-eBYw0YgGZnvvfOE2ETYngyD2OfcJLxNBSiJjUdPncGQmK5I0L5MbmjB0YqZXnUsume_RsoDJG7UuQy-DlkZNJnSpSMqhECaZ4aHiFYDTdsTQypH6I"
                 alt="Advanced Microservices Architecture"
+                height={960}
+                sizes="(max-width: 900px) 100vw, 32vw"
+                width={1280}
               />
               <div className={styles.coverOverlay}>
                 <div>
@@ -161,8 +165,8 @@ export default function PaymentCheckoutPage() {
           </article>
 
           <blockquote className={styles.quote}>
-            "La precision des cours d Architect Academy m a permis de refondre
-            notre infrastructure cloud en moins de 3 mois."
+            &quot;La precision des cours d Architect Academy m a permis de refondre
+            notre infrastructure cloud en moins de 3 mois.&quot;
             <strong>Thomas L., Senior Lead Architect</strong>
           </blockquote>
         </aside>

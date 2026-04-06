@@ -27,10 +27,10 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
@@ -42,7 +42,9 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No role found on authenticated user');
     }
 
-    const normalizedUserRoles = userRoles.map((role) => role.trim().toUpperCase());
+    const normalizedUserRoles = userRoles.map((role) =>
+      role.trim().toUpperCase(),
+    );
     const normalizedRequiredRoles = requiredRoles
       .map((role) => role.trim().toUpperCase())
       .filter((role) => role.length > 0);

@@ -16,24 +16,23 @@ import { AnalyticsService } from './analytics.service';
 import { AnalyticsRepository } from './repositories/analytics.repository';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([
-			UserEntity,
-			CourseEntity,
-			EnrollmentEntity,
-			StudentProgramEntity,
-			ProblemEntity,
-			EvaluationEntity,
-			EvaluationAttemptEntity,
-			SubmissionEntity,
-			GradeEntity,
-			CalendarEventEntity,
-			NotificationEntity,
-		]),
-	],
-	controllers: [AnalyticsController],
-	providers: [AnalyticsService, AnalyticsRepository],
-	exports: [AnalyticsService, AnalyticsRepository],
+  imports: [
+    TypeOrmModule.forFeature([
+      UserEntity,
+      CourseEntity,
+      EnrollmentEntity,
+      StudentProgramEntity,
+      ProblemEntity,
+      EvaluationEntity,
+      EvaluationAttemptEntity,
+      SubmissionEntity,
+      GradeEntity,
+      CalendarEventEntity,
+      NotificationEntity,
+    ]),
+  ],
+  controllers: [AnalyticsController],
+  providers: [AnalyticsService, AnalyticsRepository],
+  exports: [AnalyticsService, AnalyticsRepository],
 })
 export class AnalyticsModule {}
-

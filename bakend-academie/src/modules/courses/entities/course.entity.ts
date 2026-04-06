@@ -54,7 +54,9 @@ export class CourseEntity {
   @Column({ type: 'boolean', default: false })
   certificateEnabled!: boolean;
 
-  @ManyToOne(() => UserEntity, (user) => user.createdCourses, { onDelete: 'SET NULL' })
+  @ManyToOne(() => UserEntity, (user) => user.createdCourses, {
+    onDelete: 'SET NULL',
+  })
   creator!: UserEntity;
 
   @OneToMany(() => CourseModuleEntity, (courseModule) => courseModule.course)

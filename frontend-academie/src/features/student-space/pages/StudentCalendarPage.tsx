@@ -1,4 +1,4 @@
-import { calendarEvents } from "../student-space.data";
+import { calendarEvents } from "../model/student-workspace.catalog";
 import styles from "../student-space.module.css";
 import { StudentShell } from "../components/StudentShell";
 

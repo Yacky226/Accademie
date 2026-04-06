@@ -18,7 +18,11 @@ import { JwtRefreshGuard } from '../../core/guards/jwt-refresh.guard';
 import { RateLimitGuard } from '../../core/guards/rate-limit.guard';
 import { AuthResponse, AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RequestEmailVerificationDto } from './dto/request-email-verification.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { PublicAuthUser } from './interfaces/auth-user.interface';
 import type { TokenPayload } from './services/token.service';
 
@@ -61,7 +65,11 @@ export class AuthController {
       userAgent: request.headers['user-agent'],
       ipAddress: request.ip,
     });
-    this.attachRefreshCookie(response, result.tokens.refreshToken);
+    this.attachRefreshCookie(
+      response,
+      result.tokens.refreshToken,
+      dto.rememberSession !== false,
+    );
     return result;
   }
 
@@ -105,15 +113,68 @@ export class AuthController {
     response.clearCookie(REFRESH_COOKIE_NAME, this.getRefreshCookieOptions());
   }
 
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 8 })
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  async requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(dto);
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 8 })
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponse> {
+    const result = await this.authService.resetPassword(dto, {
+      userAgent: request.headers['user-agent'],
+      ipAddress: request.ip,
+    });
+    this.attachRefreshCookie(
+      response,
+      result.tokens.refreshToken,
+      dto.rememberSession !== false,
+    );
+    return result;
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 8 })
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email/request')
+  async requestEmailVerification(@Body() dto: RequestEmailVerificationDto) {
+    return this.authService.requestEmailVerification(dto);
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 8 })
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
   @Get('me')
   async me(@CurrentUser() user: TokenPayload): Promise<PublicAuthUser> {
     return this.authService.getProfileFromUserId(user.sub);
   }
 
-  private attachRefreshCookie(response: Response, refreshToken: string): void {
+  private attachRefreshCookie(
+    response: Response,
+    refreshToken: string,
+    rememberSession = true,
+  ): void {
     response.cookie(REFRESH_COOKIE_NAME, refreshToken, {
       ...this.getRefreshCookieOptions(),
-      maxAge: this.resolveRefreshCookieMaxAge(),
+      ...(rememberSession ? { maxAge: this.resolveRefreshCookieMaxAge() } : {}),
     });
   }
 

@@ -14,8 +14,14 @@ describe('AuthController', () => {
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: {} },
-        { provide: JwtRefreshGuard, useValue: { canActivate: jest.fn(() => true) } },
-        { provide: RateLimitGuard, useValue: { canActivate: jest.fn(() => true) } },
+        {
+          provide: JwtRefreshGuard,
+          useValue: { canActivate: jest.fn(() => true) },
+        },
+        {
+          provide: RateLimitGuard,
+          useValue: { canActivate: jest.fn(() => true) },
+        },
         { provide: TokenService, useValue: { verifyRefreshToken: jest.fn() } },
         { provide: Reflector, useValue: { getAllAndOverride: jest.fn() } },
       ],

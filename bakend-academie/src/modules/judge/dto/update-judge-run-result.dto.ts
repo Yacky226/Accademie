@@ -1,9 +1,4 @@
-import {
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { SubmissionStatus } from '../../../core/enums';
 
 export class UpdateJudgeRunResultDto {

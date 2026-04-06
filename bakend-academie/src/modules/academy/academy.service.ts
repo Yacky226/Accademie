@@ -18,16 +18,23 @@ export class AcademyService {
   constructor(private readonly academyRepository: AcademyRepository) {}
 
   async listAnnouncements(): Promise<AcademyAnnouncementResponseDto[]> {
-    const announcements = await this.academyRepository.findPublishedAnnouncements();
-    return announcements.map((announcement) => this.toAnnouncementResponse(announcement));
+    const announcements =
+      await this.academyRepository.findPublishedAnnouncements();
+    return announcements.map((announcement) =>
+      this.toAnnouncementResponse(announcement),
+    );
   }
 
   async listAllAnnouncements(): Promise<AcademyAnnouncementResponseDto[]> {
     const announcements = await this.academyRepository.findAllAnnouncements();
-    return announcements.map((announcement) => this.toAnnouncementResponse(announcement));
+    return announcements.map((announcement) =>
+      this.toAnnouncementResponse(announcement),
+    );
   }
 
-  async getAnnouncementById(id: string): Promise<AcademyAnnouncementResponseDto> {
+  async getAnnouncementById(
+    id: string,
+  ): Promise<AcademyAnnouncementResponseDto> {
     const announcement = await this.academyRepository.findAnnouncementById(id);
     if (!announcement) {
       throw new NotFoundException('Announcement not found');
@@ -49,7 +56,9 @@ export class AcademyService {
     announcement.title = dto.title;
     announcement.content = dto.content;
     announcement.isPublished = dto.isPublished ?? false;
-    announcement.publishedAt = announcement.isPublished ? new Date() : undefined;
+    announcement.publishedAt = announcement.isPublished
+      ? new Date()
+      : undefined;
     announcement.createdBy = creator;
 
     const saved = await this.academyRepository.saveAnnouncement(announcement);
@@ -106,7 +115,9 @@ export class AcademyService {
     return settings.map((setting) => this.toSettingResponse(setting));
   }
 
-  async createSetting(dto: CreateAcademySettingDto): Promise<AcademySettingResponseDto> {
+  async createSetting(
+    dto: CreateAcademySettingDto,
+  ): Promise<AcademySettingResponseDto> {
     const existing = await this.academyRepository.findSettingByKey(dto.key);
     if (existing) {
       throw new ConflictException('Setting key already exists');
@@ -178,7 +189,9 @@ export class AcademyService {
     };
   }
 
-  private toSettingResponse(setting: AcademySettingEntity): AcademySettingResponseDto {
+  private toSettingResponse(
+    setting: AcademySettingEntity,
+  ): AcademySettingResponseDto {
     return {
       id: setting.id,
       key: setting.key,

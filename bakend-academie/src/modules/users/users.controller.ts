@@ -61,7 +61,9 @@ export class UsersController {
   }
 
   @Post('me/export')
-  async exportMyData(@CurrentUser('sub') userId: string): Promise<ExportUserDataResponseDto> {
+  async exportMyData(
+    @CurrentUser('sub') userId: string,
+  ): Promise<ExportUserDataResponseDto> {
     return this.usersService.exportMyData(userId);
   }
 
@@ -81,7 +83,10 @@ export class UsersController {
 
   @UseGuards(UserSelfOrAdminGuard)
   @Patch(':id')
-  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UserResponseDto> {
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
     const user = await this.usersService.updateUser(id, dto);
     return this.toResponse(user);
   }
@@ -89,7 +94,10 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @Permissions(USER_PERMISSIONS.USERS_ASSIGN_ROLES)
   @Patch(':id/roles')
-  async assignRoles(@Param('id') id: string, @Body() dto: AssignRolesDto): Promise<UserResponseDto> {
+  async assignRoles(
+    @Param('id') id: string,
+    @Body() dto: AssignRolesDto,
+  ): Promise<UserResponseDto> {
     const user = await this.usersService.assignRoles(id, dto);
     return this.toResponse(user);
   }

@@ -1,8 +1,21 @@
-import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserStatus } from '../../core/enums';
+import { MailService } from '../../integrations/mail';
 import { LoginDto } from './dto/login.dto';
+import { RequestEmailVerificationDto } from './dto/request-email-verification.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { RegisterDto } from './dto/register.dto';
-import { AuthUserIdentity, PublicAuthUser } from './interfaces/auth-user.interface';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import {
+  AuthUserIdentity,
+  PublicAuthUser,
+} from './interfaces/auth-user.interface';
 import { AUTH_USERS_REPOSITORY } from './repositories/auth-users.repository';
 import type { AuthUsersRepository } from './repositories/auth-users.repository';
 import { PasswordHashService } from './services/password-hash.service';
@@ -18,6 +31,12 @@ export interface AuthResponse {
   tokens: AuthTokens;
 }
 
+export interface AuthActionFeedback {
+  message: string;
+  previewToken?: string;
+  previewUrl?: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,10 +44,14 @@ export class AuthService {
     private readonly authUsersRepository: AuthUsersRepository,
     private readonly passwordHashService: PasswordHashService,
     private readonly tokenService: TokenService,
+    private readonly mailService: MailService,
   ) {}
 
   // Orchestrates registration flow while delegating hashing and token concerns.
-  async register(dto: RegisterDto, context?: RefreshContext): Promise<AuthResponse> {
+  async register(
+    dto: RegisterDto,
+    context?: RefreshContext,
+  ): Promise<AuthResponse> {
     await this.authUsersRepository.ensureDefaultRoles();
 
     const existingUser = await this.authUsersRepository.findByEmail(dto.email);
@@ -64,7 +87,10 @@ export class AuthService {
       throw new UnauthorizedException('User account is not active');
     }
 
-    const isPasswordValid = this.passwordHashService.verify(dto.password, user.passwordHash);
+    const isPasswordValid = this.passwordHashService.verify(
+      dto.password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -78,20 +104,158 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string, context?: RefreshContext): Promise<AuthResponse> {
+  async requestEmailVerification(
+    dto: RequestEmailVerificationDto,
+  ): Promise<AuthActionFeedback> {
+    const user = await this.authUsersRepository.findByEmail(dto.email);
+    const genericMessage =
+      'If the account exists, a verification link has been prepared.';
+
+    if (!user) {
+      return { message: genericMessage };
+    }
+
+    const token = await this.tokenService.generateEmailVerificationToken({
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+    const verificationUrl = this.buildFrontendActionUrl('/auth/verify', token, {
+      email: user.email,
+    });
+
+    await this.mailService.sendVerificationEmail({
+      to: user.email,
+      fullName: `${user.firstName} ${user.lastName}`.trim(),
+      verificationUrl,
+    });
+
+    return this.buildActionFeedback(genericMessage, verificationUrl, token);
+  }
+
+  async verifyEmail(dto: VerifyEmailDto): Promise<AuthActionFeedback> {
+    const payload = await this.tokenService.verifyEmailVerificationToken(
+      dto.token,
+    );
+    const user = await this.authUsersRepository.findById(payload.sub);
+
+    if (!user || user.email !== payload.email) {
+      throw new UnauthorizedException(
+        'Verification request is no longer valid',
+      );
+    }
+
+    if (!user.emailVerified) {
+      await this.authUsersRepository.markEmailAsVerified(user.id);
+    }
+
+    return {
+      message: 'Your email address has been verified successfully.',
+    };
+  }
+
+  async requestPasswordReset(
+    dto: RequestPasswordResetDto,
+  ): Promise<AuthActionFeedback> {
+    const user = await this.authUsersRepository.findByEmail(dto.email);
+    const genericMessage =
+      'If the account exists, a password reset link has been prepared.';
+
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      return { message: genericMessage };
+    }
+
+    const token = await this.tokenService.generatePasswordResetToken({
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      passwordHash: user.passwordHash,
+    });
+    const resetUrl = this.buildFrontendActionUrl(
+      '/auth/reset-password',
+      token,
+    );
+
+    await this.mailService.sendPasswordResetEmail({
+      to: user.email,
+      fullName: `${user.firstName} ${user.lastName}`.trim(),
+      resetUrl,
+    });
+
+    return this.buildActionFeedback(genericMessage, resetUrl, token);
+  }
+
+  async resetPassword(
+    dto: ResetPasswordDto,
+    context?: RefreshContext,
+  ): Promise<AuthResponse> {
+    const payload = await this.tokenService.verifyPasswordResetToken(dto.token);
+    const user = await this.authUsersRepository.findById(payload.sub);
+
+    if (
+      !user ||
+      user.email !== payload.email ||
+      user.status !== UserStatus.ACTIVE
+    ) {
+      throw new UnauthorizedException(
+        'Password reset request is no longer valid',
+      );
+    }
+
+    const currentPasswordFingerprint =
+      this.tokenService.createPasswordFingerprint(user.passwordHash);
+
+    if (currentPasswordFingerprint !== payload.passwordFingerprint) {
+      throw new UnauthorizedException(
+        'Password reset request is no longer valid',
+      );
+    }
+
+    const nextPasswordHash = this.passwordHashService.hash(dto.password);
+    await this.authUsersRepository.updatePasswordHash(
+      user.id,
+      nextPasswordHash,
+    );
+    await this.authUsersRepository.revokeAllRefreshSessionsByUserId(
+      user.id,
+      new Date(),
+    );
+
+    const updatedUser = await this.authUsersRepository.findById(user.id);
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const tokens = await this.issueAndStoreTokens(updatedUser, context);
+    return {
+      user: this.toPublicUser(updatedUser),
+      tokens,
+    };
+  }
+
+  async refreshToken(
+    refreshToken: string,
+    context?: RefreshContext,
+  ): Promise<AuthResponse> {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
     const sessionId = payload.sid;
     if (!sessionId) {
       throw new UnauthorizedException('Refresh session identifier is missing');
     }
 
-    const session = await this.authUsersRepository.findRefreshSessionById(sessionId);
+    const session =
+      await this.authUsersRepository.findRefreshSessionById(sessionId);
     if (!session || session.userId !== payload.sub || session.revokedAt) {
       throw new UnauthorizedException('Refresh session not found');
     }
 
     if (session.expiresAt.getTime() <= Date.now()) {
-      await this.authUsersRepository.revokeRefreshSession(session.id, new Date());
+      await this.authUsersRepository.revokeRefreshSession(
+        session.id,
+        new Date(),
+      );
       throw new UnauthorizedException('Refresh token expired');
     }
 
@@ -100,7 +264,10 @@ export class AuthService {
       session.tokenHash,
     );
     if (!isRefreshTokenValid) {
-      await this.authUsersRepository.revokeRefreshSession(session.id, new Date());
+      await this.authUsersRepository.revokeRefreshSession(
+        session.id,
+        new Date(),
+      );
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -127,7 +294,9 @@ export class AuthService {
     return this.toPublicUser(user);
   }
 
-  async getProfileFromAccessToken(accessToken: string): Promise<PublicAuthUser> {
+  async getProfileFromAccessToken(
+    accessToken: string,
+  ): Promise<PublicAuthUser> {
     const payload = await this.tokenService.verifyAccessToken(accessToken);
     return this.getProfileFromUserId(payload.sub);
   }
@@ -135,12 +304,18 @@ export class AuthService {
   async logout(refreshToken: string): Promise<void> {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
     if (payload.sid) {
-      await this.authUsersRepository.revokeRefreshSession(payload.sid, new Date());
+      await this.authUsersRepository.revokeRefreshSession(
+        payload.sid,
+        new Date(),
+      );
     }
   }
 
   async logoutAllSessions(userId: string): Promise<void> {
-    await this.authUsersRepository.revokeAllRefreshSessionsByUserId(userId, new Date());
+    await this.authUsersRepository.revokeAllRefreshSessionsByUserId(
+      userId,
+      new Date(),
+    );
   }
 
   private async issueAndStoreTokens(
@@ -149,7 +324,10 @@ export class AuthService {
   ): Promise<AuthTokens> {
     const refreshExpiryDate = new Date(
       Date.now() +
-        this.resolveDurationInSeconds(process.env.JWT_REFRESH_EXPIRES_IN, 7 * 24 * 60 * 60) *
+        this.resolveDurationInSeconds(
+          process.env.JWT_REFRESH_EXPIRES_IN,
+          7 * 24 * 60 * 60,
+        ) *
           1000,
     );
 
@@ -184,11 +362,50 @@ export class AuthService {
       id: user.id,
       email: user.email,
       fullName: `${user.firstName} ${user.lastName}`.trim(),
+      avatarUrl: user.avatarUrl ?? null,
+      emailVerified: user.emailVerified,
       roles: user.roles,
     };
   }
 
-  private splitFullName(fullName: string): { firstName: string; lastName: string } {
+  private buildActionFeedback(
+    message: string,
+    actionUrl: string,
+    token: string,
+  ): AuthActionFeedback {
+    if (process.env.NODE_ENV === 'production') {
+      return { message };
+    }
+
+    return {
+      message,
+      previewToken: token,
+      previewUrl: actionUrl,
+    };
+  }
+
+  private buildFrontendActionUrl(
+    frontendPath: string,
+    token: string,
+    queryParams?: Record<string, string>,
+  ) {
+    const frontendOrigin = (
+      process.env.FRONTEND_APP_ORIGIN ?? 'http://localhost:3000'
+    ).trim();
+    const actionUrl = new URL(frontendPath, frontendOrigin);
+    actionUrl.searchParams.set('token', token);
+
+    Object.entries(queryParams ?? {}).forEach(([key, value]) => {
+      actionUrl.searchParams.set(key, value);
+    });
+
+    return actionUrl.toString();
+  }
+
+  private splitFullName(fullName: string): {
+    firstName: string;
+    lastName: string;
+  } {
     const cleanedName = fullName.trim().replace(/\s+/g, ' ');
     const [firstName, ...otherParts] = cleanedName.split(' ');
     const lastName = otherParts.join(' ');
@@ -199,7 +416,10 @@ export class AuthService {
     };
   }
 
-  private resolveDurationInSeconds(rawValue: string | undefined, fallbackSeconds: number): number {
+  private resolveDurationInSeconds(
+    rawValue: string | undefined,
+    fallbackSeconds: number,
+  ): number {
     if (!rawValue) {
       return fallbackSeconds;
     }

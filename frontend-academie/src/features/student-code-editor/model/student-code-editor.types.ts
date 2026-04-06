@@ -1,7 +1,7 @@
 import type {
   StudentCodingExercise,
   StudentCodingLanguageId,
-} from "@/features/student-space/student-space.types";
+} from "./student-code-editor.contracts";
 
 export interface BackendProblemResponse {
   id: string;

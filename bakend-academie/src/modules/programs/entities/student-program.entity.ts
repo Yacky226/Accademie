@@ -34,7 +34,9 @@ export class StudentProgramEntity {
   @Column({ type: 'date', nullable: true })
   endDate?: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.studentPrograms, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.studentPrograms, {
+    onDelete: 'CASCADE',
+  })
   student!: UserEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.createdStudentPrograms, {

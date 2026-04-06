@@ -1,4 +1,4 @@
-import { WorkspaceProfileBadge } from "@/features/shared/components/WorkspaceProfileBadge";
+import { WorkspaceProfileBadge } from "@/features/workspace-shell/components/WorkspaceProfileBadge";
 import styles from "../teacher-space.module.css";
 
 interface TeacherTopbarProps {

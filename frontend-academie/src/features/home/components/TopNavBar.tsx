@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
@@ -86,10 +87,13 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
                 title={workspaceLabel ?? "Mon espace"}
               >
                 {userAvatar ? (
-                  <img
+                  <Image
                     className={styles.avatar}
                     src={userAvatar}
                     alt={userName}
+                    height={72}
+                    sizes="40px"
+                    width={72}
                   />
                 ) : (
                   <span className={styles.avatarFallback}>

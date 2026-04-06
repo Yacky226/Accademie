@@ -11,18 +11,18 @@ import { EvaluationsService } from './evaluations.service';
 import { EvaluationsRepository } from './repositories/evaluations.repository';
 
 @Module({
-	imports: [
-		GradesModule,
-		TypeOrmModule.forFeature([
-			EvaluationEntity,
-			EvaluationQuestionEntity,
-			EvaluationAttemptEntity,
-			UserEntity,
-			CourseEntity,
-		]),
-	],
-	controllers: [EvaluationsController],
-	providers: [EvaluationsService, EvaluationsRepository],
-	exports: [EvaluationsService, EvaluationsRepository],
+  imports: [
+    GradesModule,
+    TypeOrmModule.forFeature([
+      EvaluationEntity,
+      EvaluationQuestionEntity,
+      EvaluationAttemptEntity,
+      UserEntity,
+      CourseEntity,
+    ]),
+  ],
+  controllers: [EvaluationsController],
+  providers: [EvaluationsService, EvaluationsRepository],
+  exports: [EvaluationsService, EvaluationsRepository],
 })
 export class EvaluationsModule {}

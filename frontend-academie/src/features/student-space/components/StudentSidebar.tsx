@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { WorkspaceLogoutButton } from "@/features/shared/components/WorkspaceLogoutButton";
-import { WorkspaceSidebarToggle } from "@/features/shared/components/WorkspaceSidebarToggle";
-import { studentNavItems } from "../student-space.data";
+import { WorkspaceLogoutButton } from "@/features/workspace-shell/components/WorkspaceLogoutButton";
+import { WorkspaceSidebarToggle } from "@/features/workspace-shell/components/WorkspaceSidebarToggle";
+import { studentNavItems } from "../model/student-workspace.catalog";
 import styles from "../student-space.module.css";
 
 interface StudentSidebarProps {

@@ -34,7 +34,9 @@ export class SubmissionsController {
 
   @Permissions(SUBMISSION_PERMISSIONS.SUBMISSIONS_READ)
   @Get('me')
-  async listMySubmissions(@CurrentUser('sub') userId: string): Promise<SubmissionResponseDto[]> {
+  async listMySubmissions(
+    @CurrentUser('sub') userId: string,
+  ): Promise<SubmissionResponseDto[]> {
     const submissions = await this.submissionsService.listMySubmissions(userId);
     return submissions.map((submission) => this.toResponse(submission));
   }
@@ -45,13 +47,16 @@ export class SubmissionsController {
   async listSubmissionsByProblem(
     @Param('problemId') problemId: string,
   ): Promise<SubmissionResponseDto[]> {
-    const submissions = await this.submissionsService.listSubmissionsByProblem(problemId);
+    const submissions =
+      await this.submissionsService.listSubmissionsByProblem(problemId);
     return submissions.map((submission) => this.toResponse(submission));
   }
 
   @Permissions(SUBMISSION_PERMISSIONS.SUBMISSIONS_READ)
   @Get(':id')
-  async getSubmissionById(@Param('id') id: string): Promise<SubmissionResponseDto> {
+  async getSubmissionById(
+    @Param('id') id: string,
+  ): Promise<SubmissionResponseDto> {
     const submission = await this.submissionsService.getSubmissionById(id);
     return this.toResponse(submission);
   }
@@ -62,7 +67,10 @@ export class SubmissionsController {
     @CurrentUser('sub') userId: string,
     @Body() dto: CreateSubmissionDto,
   ): Promise<SubmissionResponseDto> {
-    const submission = await this.submissionsService.createSubmission(userId, dto);
+    const submission = await this.submissionsService.createSubmission(
+      userId,
+      dto,
+    );
     return this.toResponse(submission);
   }
 
@@ -73,7 +81,10 @@ export class SubmissionsController {
     @Param('id') id: string,
     @Body() dto: UpdateSubmissionResultDto,
   ): Promise<SubmissionResponseDto> {
-    const submission = await this.submissionsService.updateSubmissionResult(id, dto);
+    const submission = await this.submissionsService.updateSubmissionResult(
+      id,
+      dto,
+    );
     return this.toResponse(submission);
   }
 

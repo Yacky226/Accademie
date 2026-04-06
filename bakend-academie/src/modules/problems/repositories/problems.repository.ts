@@ -51,10 +51,14 @@ export class ProblemsRepository {
   }
 
   async findProblemBySlug(slug: string): Promise<ProblemEntity | null> {
-    return this.problemsRepository.findOne({ where: { slug, deletedAt: IsNull() } });
+    return this.problemsRepository.findOne({
+      where: { slug, deletedAt: IsNull() },
+    });
   }
 
-  async findPublishedProblemBySlug(slug: string): Promise<ProblemEntity | null> {
+  async findPublishedProblemBySlug(
+    slug: string,
+  ): Promise<ProblemEntity | null> {
     return this.problemsRepository.findOne({
       where: {
         slug,
@@ -90,14 +94,18 @@ export class ProblemsRepository {
     return this.tagsRepository.find({ order: { name: 'ASC' } });
   }
 
-  async findTestCaseById(testCaseId: string): Promise<ProblemTestCaseEntity | null> {
+  async findTestCaseById(
+    testCaseId: string,
+  ): Promise<ProblemTestCaseEntity | null> {
     return this.testCasesRepository.findOne({
       where: { id: testCaseId },
       relations: { problem: true },
     });
   }
 
-  async saveTestCase(testCase: ProblemTestCaseEntity): Promise<ProblemTestCaseEntity> {
+  async saveTestCase(
+    testCase: ProblemTestCaseEntity,
+  ): Promise<ProblemTestCaseEntity> {
     return this.testCasesRepository.save(testCase);
   }
 
@@ -105,15 +113,21 @@ export class ProblemsRepository {
     await this.testCasesRepository.remove(testCase);
   }
 
-  async findLanguageById(languageId: string): Promise<SupportedLanguageEntity | null> {
+  async findLanguageById(
+    languageId: string,
+  ): Promise<SupportedLanguageEntity | null> {
     return this.languagesRepository.findOne({ where: { id: languageId } });
   }
 
-  async findLanguageBySlug(slug: string): Promise<SupportedLanguageEntity | null> {
+  async findLanguageBySlug(
+    slug: string,
+  ): Promise<SupportedLanguageEntity | null> {
     return this.languagesRepository.findOne({ where: { slug } });
   }
 
-  async saveLanguage(language: SupportedLanguageEntity): Promise<SupportedLanguageEntity> {
+  async saveLanguage(
+    language: SupportedLanguageEntity,
+  ): Promise<SupportedLanguageEntity> {
     return this.languagesRepository.save(language);
   }
 
@@ -122,6 +136,8 @@ export class ProblemsRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 }

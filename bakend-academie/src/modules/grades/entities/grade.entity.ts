@@ -43,16 +43,24 @@ export class GradeEntity {
   @Column({ type: 'timestamptz', nullable: true })
   gradedAt?: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.receivedGrades, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.receivedGrades, {
+    onDelete: 'CASCADE',
+  })
   student!: UserEntity;
 
-  @ManyToOne(() => UserEntity, (user) => user.givenGrades, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => UserEntity, (user) => user.givenGrades, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   gradedBy?: UserEntity;
 
   @ManyToOne(() => CourseEntity, { onDelete: 'SET NULL', nullable: true })
   course?: CourseEntity;
 
-  @ManyToOne(() => EvaluationAttemptEntity, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => EvaluationAttemptEntity, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   evaluationAttempt?: EvaluationAttemptEntity;
 
   @CreateDateColumn({ type: 'timestamptz' })

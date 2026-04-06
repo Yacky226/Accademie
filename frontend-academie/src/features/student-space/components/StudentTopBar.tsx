@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { NotificationCenterPanel } from "@/features/notification-center/NotificationCenterPanel";
+import { useNotificationCenterState } from "@/features/notification-center/model/useNotificationCenterState";
 import {
   type NotificationFilterId,
-} from "@/features/notification-center/notification-center.data";
-import { useNotificationCenterState } from "@/features/notification-center/useNotificationCenterState";
+} from "@/features/notification-center/model/notification-center.catalog";
+import { NotificationCenterPanel } from "@/features/notification-center/ui/components/NotificationCenterPanel";
 import styles from "../student-space.module.css";
 
 interface StudentTopBarProps {
@@ -165,10 +166,13 @@ export function StudentTopBar({ activePath, title }: StudentTopBarProps) {
         )}
 
         <Link className={styles.profileCard} href="/student/profile">
-          <img
+          <Image
             className={styles.avatar}
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYp_cRnI6uN9SeI8mT8dma5U1ZfXO2vKNevApXghbOmz6Q5IIco7qM-iPMSs-P6fYIIOCLoDENFeHSurgFPSOMxVFSTBrb8Pi_H6IAfw6fEds81ec-oLBSNrEabRflH5E4glWzIjtE5EXRD0yrvz4n0G-3HtgG0LHdfU4ORjKjv5cCKvO_-1DCrvaptQBBjbh106ywAke-X9IgsisgtAGwviBeAbIeUOBnd-ImB4lV9pPHRn3cR2S639zq--pOxoZRJluyt_FdV8yF"
             alt="Student avatar"
+            height={88}
+            sizes="48px"
+            width={88}
           />
           <span className={styles.profileMeta}>
             <strong className={styles.profileName}>Alex Rivera</strong>

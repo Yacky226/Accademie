@@ -1,3 +1,9 @@
+:root {
+  --font-manrope: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-space-grotesk: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-geist-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 html {
   height: 100%;
   scroll-behavior: smooth;
@@ -15,7 +21,7 @@ body {
   flex-direction: column;
   color: #0d1c2e;
   background: #f8f9ff;
-  font-family: var(--font-manrope), "Segoe UI", sans-serif;
+  font-family: var(--font-manrope);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

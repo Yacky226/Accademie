@@ -21,7 +21,9 @@ export class AnalyticsController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(ANALYTICS_PERMISSIONS.ANALYTICS_ACTIVITY_READ)
   @Get('activity')
-  async getActivity(@Query('days') days?: string): Promise<AnalyticsActivityResponseDto> {
+  async getActivity(
+    @Query('days') days?: string,
+  ): Promise<AnalyticsActivityResponseDto> {
     const parsedDays = days ? Number(days) : 30;
     return this.analyticsService.getActivity(parsedDays);
   }

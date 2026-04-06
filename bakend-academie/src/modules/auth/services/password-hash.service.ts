@@ -28,7 +28,8 @@ export class PasswordHashService {
   }
 
   verify(rawValue: string, storedHash: string): boolean {
-    const [salt, iterationsText, keyLengthText, digest, hashHex] = storedHash.split(':');
+    const [salt, iterationsText, keyLengthText, digest, hashHex] =
+      storedHash.split(':');
     if (!salt || !iterationsText || !keyLengthText || !digest || !hashHex) {
       return false;
     }
@@ -39,7 +40,13 @@ export class PasswordHashService {
       return false;
     }
 
-    const recalculatedHash = pbkdf2Sync(rawValue, salt, iterations, keyLength, digest).toString('hex');
+    const recalculatedHash = pbkdf2Sync(
+      rawValue,
+      salt,
+      iterations,
+      keyLength,
+      digest,
+    ).toString('hex');
 
     const sourceBuffer = Buffer.from(hashHex, 'hex');
     const targetBuffer = Buffer.from(recalculatedHash, 'hex');

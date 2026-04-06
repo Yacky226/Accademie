@@ -44,7 +44,9 @@ export class ProblemsController {
 
   @Public()
   @Get('library/:slug')
-  async getPublishedProblemBySlug(@Param('slug') slug: string): Promise<ProblemResponseDto> {
+  async getPublishedProblemBySlug(
+    @Param('slug') slug: string,
+  ): Promise<ProblemResponseDto> {
     const problem = await this.problemsService.getPublishedProblemBySlug(slug);
     return this.toResponse(problem);
   }
@@ -70,7 +72,10 @@ export class ProblemsController {
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
   @Permissions(PROBLEM_PERMISSIONS.PROBLEMS_UPDATE)
   @Patch(':id')
-  async updateProblem(@Param('id') id: string, @Body() dto: UpdateProblemDto): Promise<ProblemResponseDto> {
+  async updateProblem(
+    @Param('id') id: string,
+    @Body() dto: UpdateProblemDto,
+  ): Promise<ProblemResponseDto> {
     const problem = await this.problemsService.updateProblem(id, dto);
     return this.toResponse(problem);
   }
@@ -159,7 +164,10 @@ export class ProblemsController {
     @Param('id') languageId: string,
     @Param('isActive') isActive: string,
   ) {
-    return this.problemsService.toggleLanguageActive(languageId, isActive === 'true');
+    return this.problemsService.toggleLanguageActive(
+      languageId,
+      isActive === 'true',
+    );
   }
 
   private toResponse(problem: ProblemEntity): ProblemResponseDto {

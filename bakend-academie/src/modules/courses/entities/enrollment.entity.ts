@@ -27,10 +27,14 @@ export class EnrollmentEntity {
   @Column({ type: 'timestamptz', nullable: true })
   completedAt?: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.enrollments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.enrollments, {
+    onDelete: 'CASCADE',
+  })
   user!: UserEntity;
 
-  @ManyToOne(() => CourseEntity, (course) => course.enrollments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CourseEntity, (course) => course.enrollments, {
+    onDelete: 'CASCADE',
+  })
   course!: CourseEntity;
 
   @CreateDateColumn({ type: 'timestamptz' })

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { notificationItems } from "../notification-center.data";
+import { notificationItems } from "./notification-center.catalog";
 import {
   fetchMyNotifications,
   markNotificationAsRead,

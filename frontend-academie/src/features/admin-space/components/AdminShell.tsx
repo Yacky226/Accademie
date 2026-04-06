@@ -2,10 +2,10 @@
 
 import type { AdminLayoutProps } from "../admin-space.types";
 import { adminNavItems } from "../admin-space.data";
-import { WorkspaceProfileBadge } from "@/features/shared/components/WorkspaceProfileBadge";
-import { WorkspaceLogoutButton } from "@/features/shared/components/WorkspaceLogoutButton";
-import { WorkspaceSidebarToggle } from "@/features/shared/components/WorkspaceSidebarToggle";
-import { useWorkspaceSidebarState } from "@/features/shared/hooks/useWorkspaceSidebarState";
+import { WorkspaceProfileBadge } from "@/features/workspace-shell/components/WorkspaceProfileBadge";
+import { WorkspaceLogoutButton } from "@/features/workspace-shell/components/WorkspaceLogoutButton";
+import { WorkspaceSidebarToggle } from "@/features/workspace-shell/components/WorkspaceSidebarToggle";
+import { useWorkspaceSidebarState } from "@/features/workspace-shell/hooks/useWorkspaceSidebarState";
 import styles from "../admin-space.module.css";
 import Link from "next/link";
 

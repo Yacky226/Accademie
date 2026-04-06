@@ -42,7 +42,9 @@ export class InvoicesRepository {
     });
   }
 
-  async findInvoiceByPaymentId(paymentId: string): Promise<InvoiceEntity | null> {
+  async findInvoiceByPaymentId(
+    paymentId: string,
+  ): Promise<InvoiceEntity | null> {
     return this.invoicesRepository.findOne({
       where: { payment: { id: paymentId }, deletedAt: IsNull() },
       relations: { user: true, payment: true },
@@ -53,32 +55,47 @@ export class InvoicesRepository {
     return this.invoicesRepository.save(invoice);
   }
 
-  async saveFiscalEvent(event: InvoiceFiscalEventEntity): Promise<InvoiceFiscalEventEntity> {
+  async saveFiscalEvent(
+    event: InvoiceFiscalEventEntity,
+  ): Promise<InvoiceFiscalEventEntity> {
     return this.invoiceFiscalEventsRepository.save(event);
   }
 
-  async listFiscalEventsByInvoiceId(invoiceId: string): Promise<InvoiceFiscalEventEntity[]> {
+  async listFiscalEventsByInvoiceId(
+    invoiceId: string,
+  ): Promise<InvoiceFiscalEventEntity[]> {
     return this.invoiceFiscalEventsRepository.find({
       where: { invoice: { id: invoiceId } },
       order: { createdAt: 'ASC' },
     });
   }
 
-  async listInvoicesForAccounting(from?: Date, to?: Date): Promise<InvoiceEntity[]> {
+  async listInvoicesForAccounting(
+    from?: Date,
+    to?: Date,
+  ): Promise<InvoiceEntity[]> {
     const queryBuilder = this.invoicesRepository
       .createQueryBuilder('invoice')
       .leftJoinAndSelect('invoice.user', 'user')
       .leftJoinAndSelect('invoice.payment', 'payment')
       .where('invoice.deletedAt IS NULL')
-      .andWhere('invoice.status IN (:...statuses)', { statuses: ['ISSUED', 'PAID'] })
+      .andWhere('invoice.status IN (:...statuses)', {
+        statuses: ['ISSUED', 'PAID'],
+      })
       .orderBy('invoice.issuedAt', 'ASC')
       .addOrderBy('invoice.createdAt', 'ASC');
 
     if (from) {
-      queryBuilder.andWhere('COALESCE(invoice.issuedAt, invoice.createdAt) >= :from', { from });
+      queryBuilder.andWhere(
+        'COALESCE(invoice.issuedAt, invoice.createdAt) >= :from',
+        { from },
+      );
     }
     if (to) {
-      queryBuilder.andWhere('COALESCE(invoice.issuedAt, invoice.createdAt) <= :to', { to });
+      queryBuilder.andWhere(
+        'COALESCE(invoice.issuedAt, invoice.createdAt) <= :to',
+        { to },
+      );
     }
 
     return queryBuilder.getMany();
@@ -96,7 +113,9 @@ export class InvoicesRepository {
   }
 
   async findUserById(userId: string): Promise<UserEntity | null> {
-    return this.usersRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    return this.usersRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
   }
 
   async findPaymentById(paymentId: string): Promise<PaymentEntity | null> {

@@ -1,4 +1,4 @@
-import type { NotificationItem } from "../notification-center.data";
+import type { NotificationItem } from "./notification-center.catalog";
 
 export interface BackendNotificationResponse {
   id: string;

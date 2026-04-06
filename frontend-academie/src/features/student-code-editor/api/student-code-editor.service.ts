@@ -1,11 +1,11 @@
 import { requestApiJson } from "@/core/api/api-http-client";
 import { requestAuthenticatedApiJson } from "@/features/auth/api/authenticated-api.client";
-import { studentCodeExercise } from "@/features/student-space/student-code-editor.data";
 import type {
   StudentCodingExercise,
   StudentCodingLanguage,
   StudentCodingLanguageId,
-} from "@/features/student-space/student-space.types";
+} from "../model/student-code-editor.contracts";
+import { studentCodeExercise } from "../model/student-code-editor.catalog";
 import type {
   BackendJudgeRunResponse,
   BackendProblemResponse,
