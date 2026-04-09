@@ -1,0 +1,17 @@
+export type WorkspaceNavIconName =
+  | "analytics"
+  | "announcements"
+  | "audit"
+  | "calendar"
+  | "code"
+  | "courses"
+  | "dashboard"
+  | "evaluations"
+  | "leaderboard"
+  | "logout"
+  | "notifications"
+  | "payments"
+  | "settings"
+  | "support"
+  | "systemHealth"
+  | "users";

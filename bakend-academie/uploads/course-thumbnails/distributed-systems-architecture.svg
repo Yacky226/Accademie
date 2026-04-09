@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#081018"/>
+  <rect x="56" y="56" width="1488" height="788" rx="42" fill="url(#bg)"/>
+  <path d="M260 522L456 376L658 458L854 282L1078 414L1306 238" stroke="#9BE6C8" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="260" cy="522" r="24" fill="#FFFFFF"/>
+  <circle cx="456" cy="376" r="24" fill="#FFFFFF"/>
+  <circle cx="658" cy="458" r="24" fill="#FFFFFF"/>
+  <circle cx="854" cy="282" r="24" fill="#FFFFFF"/>
+  <circle cx="1078" cy="414" r="24" fill="#FFFFFF"/>
+  <circle cx="1306" cy="238" r="24" fill="#FFFFFF"/>
+  <rect x="118" y="126" width="338" height="44" rx="22" fill="#9BE6C8" fill-opacity="0.18"/>
+  <rect x="118" y="208" width="694" height="92" rx="30" fill="#FFFFFF"/>
+  <rect x="118" y="338" width="610" height="26" rx="13" fill="#D8FFF0" fill-opacity="0.72"/>
+  <rect x="118" y="386" width="520" height="26" rx="13" fill="#D8FFF0" fill-opacity="0.72"/>
+  <rect x="1118" y="494" width="256" height="164" rx="30" fill="#081018" fill-opacity="0.22"/>
+  <rect x="1148" y="528" width="196" height="22" rx="11" fill="#9BE6C8"/>
+  <rect x="1148" y="572" width="164" height="22" rx="11" fill="#C6FFF0"/>
+  <rect x="1148" y="616" width="182" height="22" rx="11" fill="#C6FFF0"/>
+  <text x="118" y="154" fill="#C6FFF0" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">ARCHITECTURE TRACK</text>
+  <text x="118" y="270" fill="#081018" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="800">Distributed Systems Architecture</text>
+  <text x="118" y="744" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Service boundaries · Messaging · Observability · Resilience</text>
+  <defs>
+    <linearGradient id="bg" x1="56" y1="56" x2="1544" y2="844" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173042"/>
+      <stop offset="1" stop-color="#0F6D74"/>
+    </linearGradient>
+  </defs>
+</svg>

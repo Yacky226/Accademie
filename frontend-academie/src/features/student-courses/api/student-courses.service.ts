@@ -60,7 +60,7 @@ function mapCourseRecommendation(course: BackendCourseResponse): StudentCourseRe
     description: course.shortDescription || course.description,
     imageUrl: course.thumbnailUrl || fallbackImage(course.id),
     mentor: buildMentorName(course.creator),
-    catalogHref: `/formations#${course.slug}`,
+    catalogHref: `/formations/${course.slug}`,
   };
 }
 
@@ -102,6 +102,18 @@ export async function fetchMyStudentEnrollments() {
   );
 
   return response.map(mapEnrollment);
+}
+
+export async function fetchMyRecommendedCourses() {
+  const response = await requestAuthenticatedApiJson<BackendCourseResponse[]>(
+    "/api/courses/recommendations/me",
+    {
+      method: "GET",
+    },
+    "Unable to load personalized course recommendations.",
+  );
+
+  return response.map(mapCourseRecommendation);
 }
 
 export async function enrollInCourse(courseId: string) {

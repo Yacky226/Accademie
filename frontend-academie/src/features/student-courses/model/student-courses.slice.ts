@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { dashboardRecommendations } from "@/features/student-space/model/student-workspace.catalog";
 import {
   enrollInCourse,
+  fetchMyRecommendedCourses,
   fetchMyStudentEnrollments,
   fetchStudentCourseCatalog,
 } from "../api/student-courses.service";
@@ -11,23 +11,9 @@ import type {
   StudentEnrolledCourseCard,
 } from "./student-courses.types";
 
-const fallbackRecommendations: StudentCourseRecommendationCard[] = dashboardRecommendations.map(
-  (course, index) => ({
-    id: `fallback-course-${index + 1}`,
-    slug: `fallback-course-${index + 1}`,
-    title: course.title,
-    level: course.level,
-    hours: course.hours,
-    description: course.description,
-    imageUrl: course.imageUrl,
-    mentor: "Architect Academy Mentor",
-    catalogHref: "/formations",
-  }),
-);
-
 const initialState: StudentCoursesState = {
-  catalog: fallbackRecommendations,
-  recommendations: fallbackRecommendations,
+  catalog: [],
+  recommendations: [],
   enrollments: [],
   errorMessage: null,
   pendingEnrollmentCourseId: null,
@@ -44,15 +30,16 @@ export const fetchStudentCoursesThunk = createAsyncThunk<
   { rejectValue: string }
 >("studentCourses/fetchDashboard", async (_, { rejectWithValue }) => {
   try {
-    const [catalog, enrollments] = await Promise.all([
+    const [catalog, enrollments, recommendations] = await Promise.all([
       fetchStudentCourseCatalog(),
       fetchMyStudentEnrollments(),
+      fetchMyRecommendedCourses(),
     ]);
 
     return {
       catalog,
       enrollments,
-      recommendations: catalog.slice(0, 4),
+      recommendations,
     };
   } catch (error) {
     return rejectWithValue(
@@ -94,7 +81,9 @@ const studentCoursesSlice = createSlice({
       })
       .addCase(fetchStudentCoursesThunk.rejected, (state, action) => {
         state.errorMessage = action.payload ?? "Unable to load student courses.";
-        state.recommendations = fallbackRecommendations;
+        state.catalog = [];
+        state.enrollments = [];
+        state.recommendations = [];
         state.status = "failed";
       })
       .addCase(enrollInCourseThunk.pending, (state, action) => {

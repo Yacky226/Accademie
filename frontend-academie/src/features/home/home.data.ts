@@ -78,7 +78,7 @@ export const pricingPlans: PricingPlan[] = [
     highlighted: true,
     badge: "Recommande",
     cta: "Devenir Pro",
-    ctaHref: "/pricing",
+    ctaHref: "/checkout?mode=pack&plan=PRO",
     features: [
       { label: "Acces illimite a tout le catalogue", included: true },
       { label: "Projets pratiques et code reviews", included: true },
@@ -90,7 +90,7 @@ export const pricingPlans: PricingPlan[] = [
     name: "Enterprise",
     price: "Sur mesure",
     cta: "Contacter l equipe",
-    ctaHref: "/contact",
+    ctaHref: "/checkout?mode=pack&plan=TEAM",
     features: [
       { label: "Tableau de bord d equipe", included: true },
       { label: "Parcours de formation personnalises", included: true },

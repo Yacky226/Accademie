@@ -29,6 +29,7 @@ export class EvaluationResponseDto {
     statement: string;
     questionType: string;
     options?: string[];
+    correctAnswer?: string;
     points: string;
     position: number;
   }>;

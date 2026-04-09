@@ -64,6 +64,8 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
     email: string;
     passwordHash: string;
     roleNames: string[];
+    avatarUrl?: string;
+    emailVerified?: boolean;
   }): Promise<AuthUserIdentity> {
     const normalizedRoleNames = input.roleNames.map((role) =>
       role.trim().toUpperCase(),
@@ -77,8 +79,9 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
       lastName: input.lastName,
       email: input.email.trim().toLowerCase(),
       passwordHash: input.passwordHash,
+      avatarUrl: input.avatarUrl,
       status: UserStatus.ACTIVE,
-      emailVerified: false,
+      emailVerified: input.emailVerified ?? false,
       roles,
     });
 

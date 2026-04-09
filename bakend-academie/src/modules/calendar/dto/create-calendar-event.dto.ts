@@ -39,8 +39,9 @@ export class CreateCalendarEventDto {
   @IsBoolean()
   isAllDay?: boolean;
 
+  @IsOptional()
   @IsString()
-  createdById!: string;
+  createdById?: string;
 
   @IsOptional()
   @IsString()

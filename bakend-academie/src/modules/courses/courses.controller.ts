@@ -39,7 +39,7 @@ export class CoursesController {
   @Get()
   async listCourses(): Promise<CourseResponseDto[]> {
     const courses = await this.coursesService.listCourses();
-    return courses.map((course) => this.toCourseResponse(course));
+    return courses.map((course) => this.toCourseResponse(course, true));
   }
 
   @Permissions(COURSE_PERMISSIONS.COURSES_READ)
@@ -54,11 +54,34 @@ export class CoursesController {
     );
   }
 
+  @Permissions(COURSE_PERMISSIONS.COURSES_READ)
+  @Get('recommendations/me')
+  async listMyRecommendations(
+    @CurrentUser('sub') userId: string,
+  ): Promise<CourseResponseDto[]> {
+    const courses =
+      await this.coursesService.listCurrentUserRecommendations(userId);
+    return courses.map((course) => this.toCourseResponse(course, false));
+  }
+
+  @Permissions(COURSE_PERMISSIONS.COURSES_READ)
+  @Get('enrollments/me/course/:slug')
+  async getMyCourseBySlug(
+    @Param('slug') slug: string,
+    @CurrentUser('sub') userId: string,
+  ): Promise<CourseResponseDto> {
+    const course = await this.coursesService.getCurrentUserEnrolledCourseBySlug(
+      userId,
+      slug,
+    );
+    return this.toCourseResponse(course, true);
+  }
+
   @Public()
   @Get('catalog')
   async listPublishedCourses(): Promise<CourseResponseDto[]> {
     const courses = await this.coursesService.listPublishedCourses();
-    return courses.map((course) => this.toCourseResponse(course));
+    return courses.map((course) => this.toCourseResponse(course, false));
   }
 
   @Public()
@@ -67,14 +90,14 @@ export class CoursesController {
     @Param('slug') slug: string,
   ): Promise<CourseResponseDto> {
     const course = await this.coursesService.getPublishedCourseBySlug(slug);
-    return this.toCourseResponse(course);
+    return this.toCourseResponse(course, false);
   }
 
   @Permissions(COURSE_PERMISSIONS.COURSES_READ)
   @Get(':id')
   async getCourseById(@Param('id') id: string): Promise<CourseResponseDto> {
     const course = await this.coursesService.getCourseById(id);
-    return this.toCourseResponse(course);
+    return this.toCourseResponse(course, true);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -85,7 +108,7 @@ export class CoursesController {
     @CurrentUser('sub') creatorId: string,
   ): Promise<CourseResponseDto> {
     const course = await this.coursesService.createCourse(dto, creatorId);
-    return this.toCourseResponse(course);
+    return this.toCourseResponse(course, true);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -96,7 +119,7 @@ export class CoursesController {
     @Body() dto: UpdateCourseDto,
   ): Promise<CourseResponseDto> {
     const course = await this.coursesService.updateCourse(id, dto);
-    return this.toCourseResponse(course);
+    return this.toCourseResponse(course, true);
   }
 
   @Roles(UserRole.ADMIN)
@@ -202,7 +225,26 @@ export class CoursesController {
     return this.toEnrollmentResponse(enrollment);
   }
 
-  private toCourseResponse(course: CourseEntity): CourseResponseDto {
+  @Permissions(COURSE_PERMISSIONS.COURSES_READ)
+  @Patch('enrollments/me/course/:slug/progress')
+  async updateMyEnrollmentProgress(
+    @Param('slug') slug: string,
+    @CurrentUser('sub') userId: string,
+    @Body() dto: UpdateEnrollmentProgressDto,
+  ): Promise<EnrollmentResponseDto> {
+    const enrollment =
+      await this.coursesService.updateCurrentUserEnrollmentProgressByCourseSlug(
+        userId,
+        slug,
+        dto,
+      );
+    return this.toEnrollmentResponse(enrollment);
+  }
+
+  private toCourseResponse(
+    course: CourseEntity,
+    includeLessonDetails: boolean,
+  ): CourseResponseDto {
     return {
       id: course.id,
       title: course.title,
@@ -233,6 +275,9 @@ export class CoursesController {
           id: lesson.id,
           title: lesson.title,
           slug: lesson.slug,
+          content: includeLessonDetails ? lesson.content : undefined,
+          videoUrl: includeLessonDetails ? lesson.videoUrl : undefined,
+          resourceUrl: includeLessonDetails ? lesson.resourceUrl : undefined,
           durationInMinutes: lesson.durationInMinutes,
           position: lesson.position,
           isFreePreview: lesson.isFreePreview,

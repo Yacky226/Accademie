@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import { AUTH_USERS_REPOSITORY } from './repositories/auth-users.repository';
 import { TypeOrmAuthUsersRepository } from './repositories/typeorm-auth-users.repository';
 import { PasswordHashService } from './services/password-hash.service';
+import { OAuthService } from './services/oauth.service';
 import { TokenService } from './services/token.service';
 
 @Module({
@@ -25,6 +26,7 @@ import { TokenService } from './services/token.service';
   providers: [
     AuthService,
     PasswordHashService,
+    OAuthService,
     TokenService,
     JwtRefreshGuard,
     TypeOrmAuthUsersRepository,

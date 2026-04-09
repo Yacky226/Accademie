@@ -17,11 +17,13 @@ import { Permissions } from '../../core/decorators/permissions.decorator';
 import { Public } from '../../core/decorators/public.decorator';
 import { Roles } from '../../core/decorators/roles.decorator';
 import { UserRole } from '../../core/enums';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 import { ProviderWebhookDto } from './dto/provider-webhook.dto';
 import { RefundPaymentDto } from './dto/refund-payment.dto';
+import { SyncStripeCheckoutSessionDto } from './dto/sync-stripe-checkout-session.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { PaymentsService } from './payments.service';
 
@@ -79,6 +81,36 @@ export class PaymentsController {
   }
 
   @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_UPDATE)
+  @Post(':id/stripe/checkout-session')
+  async createStripeCheckoutSession(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+  ): Promise<{ sessionId: string; checkoutUrl: string }> {
+    return this.paymentsService.createStripeCheckoutSession(
+      id,
+      userId,
+      roles ?? [],
+    );
+  }
+
+  @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_UPDATE)
+  @Post(':id/stripe/sync')
+  async syncStripeCheckoutSession(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+    @Body() dto: SyncStripeCheckoutSessionDto,
+  ): Promise<PaymentResponseDto> {
+    return this.paymentsService.syncStripeCheckoutSession(
+      id,
+      userId,
+      roles ?? [],
+      dto.sessionId,
+    );
+  }
+
+  @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_UPDATE)
   @Patch(':id')
   async updatePayment(
     @Param('id') id: string,
@@ -98,6 +130,17 @@ export class PaymentsController {
     @Body() dto: RefundPaymentDto,
   ): Promise<PaymentResponseDto> {
     return this.paymentsService.refundPayment(id, dto, userId, roles ?? []);
+  }
+
+  @Permissions(PAYMENT_PERMISSIONS.PAYMENTS_UPDATE)
+  @Patch(':id/confirm')
+  async confirmPayment(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+    @Body() dto: ConfirmPaymentDto,
+  ): Promise<PaymentResponseDto> {
+    return this.paymentsService.confirmPayment(id, userId, roles ?? [], dto);
   }
 
   @Public()

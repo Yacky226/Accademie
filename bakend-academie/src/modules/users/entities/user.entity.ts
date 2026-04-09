@@ -15,6 +15,7 @@ import { CourseEntity } from 'src/modules/courses/entities/course.entity';
 import { EnrollmentEntity } from 'src/modules/courses/entities/enrollment.entity';
 import { GradeEntity } from 'src/modules/grades/entities/grade.entity';
 import { ProblemEntity } from 'src/modules/problems/entities/problem.entity';
+import { SupportTicketEntity } from 'src/modules/support/entities/support-ticket.entity';
 import { StudentProgramEntity } from '../../programs/entities/student-program.entity';
 import { RefreshTokenEntity } from './refresh-token.entity';
 import { RoleEntity } from './role.entity';
@@ -60,6 +61,12 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 100, nullable: true })
   city?: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  onboardingProfile?: Record<string, string>;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  onboardingCompletedAt?: Date;
+
   @Column({ type: 'boolean', default: false })
   emailVerified!: boolean;
 
@@ -100,6 +107,9 @@ export class UserEntity {
 
   @OneToMany(() => GradeEntity, (grade) => grade.gradedBy)
   givenGrades!: GradeEntity[];
+
+  @OneToMany(() => SupportTicketEntity, (ticket) => ticket.user)
+  supportTickets!: SupportTicketEntity[];
 
   // Other relations (Enrollment, Submission, Payment, StudentProgram, CalendarEvent,
   // EvaluationAttempt) will be mapped in their dedicated modules to keep SRP boundaries clear.

@@ -1,31 +1,17 @@
 "use client";
 
+import { Fragment } from "react";
 import type { AdminLayoutProps } from "../admin-space.types";
 import { adminNavItems } from "../admin-space.data";
+import { WorkspaceChromeIcon } from "@/features/workspace-shell/components/WorkspaceChromeIcon";
+import { WorkspaceNavIcon } from "@/features/workspace-shell/components/WorkspaceNavIcon";
 import { WorkspaceProfileBadge } from "@/features/workspace-shell/components/WorkspaceProfileBadge";
 import { WorkspaceLogoutButton } from "@/features/workspace-shell/components/WorkspaceLogoutButton";
 import { WorkspaceSidebarToggle } from "@/features/workspace-shell/components/WorkspaceSidebarToggle";
 import { useWorkspaceSidebarState } from "@/features/workspace-shell/hooks/useWorkspaceSidebarState";
+import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
 import styles from "../admin-space.module.css";
 import Link from "next/link";
-
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M16 16L20 20" />
-    </svg>
-  );
-}
 
 export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
   const { isCollapsed, toggleSidebar } = useWorkspaceSidebarState();
@@ -55,7 +41,9 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
                 href="/admin/dashboard"
                 title="Architect Academy"
               >
-                <span className={styles.brandMark}>AA</span>
+                <span className={styles.brandMark}>
+                  <AcademyBrandIcon />
+                </span>
                 <span className={`${styles.brandCopy} ${isCollapsed ? styles.brandCopyHidden : ""}`}>
                   <strong>Architect Academy</strong>
                   <small>Admin command</small>
@@ -63,32 +51,42 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
               </Link>
             </div>
 
-            <div className={`${styles.sidebarIntro} ${isCollapsed ? styles.sidebarIntroCollapsed : ""}`}>
-              <span className={styles.sidebarEyebrow}>Operational core</span>
-              <p className={styles.sidebarLead}>
-                Supervise catalog, finance, users and infrastructure from one decision-ready
-                console.
-              </p>
-            </div>
-
             <nav className={`${styles.navPanel} ${isCollapsed ? styles.navPanelCollapsed : ""}`}>
               <div className={styles.nav}>
                 {adminNavItems.map((item) => {
                   const isActive = item.href === activePath;
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      title={item.label}
-                      className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
-                        isCollapsed ? styles.navItemCollapsed : ""
-                      }`}
-                    >
-                      <span className={styles.navIcon}>{item.icon}</span>
-                      <span className={`${styles.navLabel} ${isCollapsed ? styles.navLabelHidden : ""}`}>
-                        {item.label}
-                      </span>
-                    </Link>
+                    <Fragment key={item.href}>
+                      <Link
+                        href={item.href}
+                        title={item.label}
+                        className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
+                          isCollapsed ? styles.navItemCollapsed : ""
+                        }`}
+                      >
+                        <span className={styles.navIcon}>
+                          <WorkspaceNavIcon name={item.icon} />
+                        </span>
+                        <span
+                          className={`${styles.navLabel} ${isCollapsed ? styles.navLabelHidden : ""}`}
+                        >
+                          {item.label}
+                        </span>
+                      </Link>
+                      {item.href === "/admin/settings" ? (
+                        <WorkspaceLogoutButton
+                          className={`${styles.navItem} ${styles.navLogoutButton} ${
+                            isCollapsed ? styles.navItemCollapsed : ""
+                          }`}
+                          iconClassName={styles.navIcon}
+                          iconName="logout"
+                          label={isCollapsed ? "Exit" : "Logout"}
+                          labelClassName={`${styles.navLabel} ${
+                            isCollapsed ? styles.navLabelHidden : ""
+                          }`}
+                        />
+                      ) : null}
+                    </Fragment>
                   );
                 })}
               </div>
@@ -117,12 +115,6 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
                 Check system health
               </Link>
 
-              <WorkspaceLogoutButton
-                className={`${styles.sideLogoutButton} ${
-                  isCollapsed ? styles.sideLogoutButtonCollapsed : ""
-                }`}
-                label={isCollapsed ? "Exit" : "Logout"}
-              />
             </div>
           </aside>
         </div>
@@ -141,7 +133,7 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
 
             <div className={styles.topbarRight}>
               <label className={styles.searchShell}>
-                <SearchIcon className={styles.searchIcon} />
+                <WorkspaceChromeIcon className={styles.searchIcon} name="search" />
                 <input
                   aria-label="Search admin workspace"
                   className={styles.topSearch}
@@ -149,7 +141,10 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
                 />
               </label>
 
-              <span className={styles.topStatus}>{statusLabel}</span>
+              <span className={styles.topStatus}>
+                <WorkspaceChromeIcon className={styles.topStatusIcon} name="pulse" />
+                {statusLabel}
+              </span>
 
               <WorkspaceProfileBadge
                 avatarFallbackClassName={styles.adminAvatarFallback}

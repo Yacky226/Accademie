@@ -79,6 +79,17 @@ export class SubmissionsRepository {
     });
   }
 
+  async findSubmissionsForLeaderboard(): Promise<SubmissionEntity[]> {
+    return this.submissionsRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: {
+        requester: true,
+        problem: true,
+      },
+      order: { submittedAt: 'DESC', createdAt: 'DESC' },
+    });
+  }
+
   async saveSubmission(
     submission: SubmissionEntity,
   ): Promise<SubmissionEntity> {

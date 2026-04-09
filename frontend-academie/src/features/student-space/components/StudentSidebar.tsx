@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { WorkspaceLogoutButton } from "@/features/workspace-shell/components/WorkspaceLogoutButton";
+import { WorkspaceNavIcon } from "@/features/workspace-shell/components/WorkspaceNavIcon";
 import { WorkspaceSidebarToggle } from "@/features/workspace-shell/components/WorkspaceSidebarToggle";
+import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
 import { studentNavItems } from "../model/student-workspace.catalog";
 import styles from "../student-space.module.css";
 
@@ -29,7 +32,9 @@ export function StudentSidebar({
           href="/student/dashboard"
           title="Architect Academy"
         >
-          <span className={styles.brandMark}>AA</span>
+          <span className={styles.brandMark}>
+            <AcademyBrandIcon />
+          </span>
           <span className={`${styles.brandCopy} ${isCollapsed ? styles.brandCopyHidden : ""}`}>
             <strong>Architect Academy</strong>
             <small>Student workspace</small>
@@ -37,32 +42,40 @@ export function StudentSidebar({
         </Link>
       </div>
 
-      <div className={`${styles.sidebarIntro} ${isCollapsed ? styles.sidebarIntroCollapsed : ""}`}>
-        <span className={styles.sidebarEyebrow}>Learning cockpit</span>
-        <p className={styles.sidebarLead}>
-          Advance through courses, mentor loops and project delivery without losing context.
-        </p>
-        <span className={styles.sidebarHint}>Your weekly momentum is synced across every page.</span>
-      </div>
-
       <nav className={`${styles.navPanel} ${isCollapsed ? styles.navPanelCollapsed : ""}`}>
         <div className={styles.nav}>
           {studentNavItems.map((item) => {
             const isActive = activePath === item.href;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={item.label}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
-                  isCollapsed ? styles.navItemCollapsed : ""
-                }`}
-              >
-                <span className={styles.navIcon}>{item.icon}</span>
-                <span className={`${styles.navLabel} ${isCollapsed ? styles.navLabelHidden : ""}`}>
-                  {item.label}
-                </span>
-              </Link>
+              <Fragment key={item.href}>
+                <Link
+                  href={item.href}
+                  title={item.label}
+                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${
+                    isCollapsed ? styles.navItemCollapsed : ""
+                  }`}
+                >
+                  <span className={styles.navIcon}>
+                    <WorkspaceNavIcon name={item.icon} />
+                  </span>
+                  <span className={`${styles.navLabel} ${isCollapsed ? styles.navLabelHidden : ""}`}>
+                    {item.label}
+                  </span>
+                </Link>
+                {item.href === "/student/settings" ? (
+                  <WorkspaceLogoutButton
+                    className={`${styles.navItem} ${styles.navLogoutButton} ${
+                      isCollapsed ? styles.navItemCollapsed : ""
+                    }`}
+                    iconClassName={styles.navIcon}
+                    iconName="logout"
+                    label={isCollapsed ? "Exit" : "Logout"}
+                    labelClassName={`${styles.navLabel} ${
+                      isCollapsed ? styles.navLabelHidden : ""
+                    }`}
+                  />
+                ) : null}
+              </Fragment>
             );
           })}
         </div>
@@ -77,30 +90,6 @@ export function StudentSidebar({
         </button>
       </div>
 
-      <div
-        className={`${styles.sidebarFootLinks} ${
-          isCollapsed ? styles.sidebarFootLinksCollapsed : ""
-        }`}
-      >
-        <Link
-          className={`${styles.sidebarFootLink} ${isCollapsed ? styles.sidebarFootLinkHidden : ""}`}
-          href="/student/settings"
-        >
-          Preferences
-        </Link>
-        <Link
-          className={`${styles.sidebarFootLink} ${isCollapsed ? styles.sidebarFootLinkHidden : ""}`}
-          href="/student/support"
-        >
-          Help center
-        </Link>
-        <WorkspaceLogoutButton
-          className={`${styles.sidebarLogoutButton} ${
-            isCollapsed ? styles.sidebarLogoutButtonCollapsed : ""
-          }`}
-          label={isCollapsed ? "Exit" : "Logout"}
-        />
-      </div>
     </aside>
   );
 }

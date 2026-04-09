@@ -65,19 +65,26 @@ export function isApiClientError(error: unknown): error is ApiClientError {
   return error instanceof ApiClientError;
 }
 
+function isFormDataPayload(body: RequestInit["body"]) {
+  return typeof FormData !== "undefined" && body instanceof FormData;
+}
+
 export async function requestApiJson<TResponse>(
   path: string,
   options: RequestInit,
   fallbackMessage: string,
 ) {
+  const headers = new Headers(options.headers ?? {});
+
+  if (!isFormDataPayload(options.body) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const response = await fetch(buildApiUrl(path), {
     ...options,
     cache: "no-store",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
+    headers,
   });
 
   const payload = await parseApiResponsePayload(response);

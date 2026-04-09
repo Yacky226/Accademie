@@ -15,6 +15,8 @@ import { Permissions } from '../../core/decorators/permissions.decorator';
 import { Roles } from '../../core/decorators/roles.decorator';
 import { UserRole } from '../../core/enums';
 import { CreateGradeDto } from './dto/create-grade.dto';
+import { GradeGamificationSummaryResponseDto } from './dto/grade-leaderboard-response.dto';
+import { GradeLeaderboardResponseDto } from './dto/grade-leaderboard-response.dto';
 import { GradeResponseDto } from './dto/grade-response.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { GradeEntity } from './entities/grade.entity';
@@ -39,6 +41,20 @@ export class GradesController {
   ): Promise<GradeResponseDto[]> {
     const grades = await this.gradesService.listMyGrades(userId);
     return grades.map((grade) => this.toResponse(grade));
+  }
+
+  @Permissions(GRADE_PERMISSIONS.GRADES_READ)
+  @Get('leaderboard')
+  async listLeaderboard(): Promise<GradeLeaderboardResponseDto[]> {
+    return this.gradesService.listLeaderboard();
+  }
+
+  @Permissions(GRADE_PERMISSIONS.GRADES_READ)
+  @Get('gamification/me')
+  async getMyGamification(
+    @CurrentUser('sub') userId: string,
+  ): Promise<GradeGamificationSummaryResponseDto> {
+    return this.gradesService.getMyGamification(userId);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)

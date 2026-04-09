@@ -16,6 +16,7 @@ export const appEnvironment = {
     registerPath: "/api/auth/register",
     refreshPath: "/api/auth/refresh",
     resetPasswordPath: "/api/auth/reset-password",
+    oauthBasePath: "/api/auth/oauth",
     profilePath: "/api/auth/me",
     logoutPath: "/api/auth/logout",
     verifyEmailPath: "/api/auth/verify-email",
@@ -29,4 +30,25 @@ export function buildApiUrl(path: string) {
   }
 
   return `${appEnvironment.apiBaseUrl}${path}`;
+}
+
+export function resolveApiAssetUrl(path: string | null | undefined) {
+  if (!path) {
+    return null;
+  }
+
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+
+  if (!path.startsWith("/")) {
+    return path;
+  }
+
+  return buildApiUrl(path);
 }

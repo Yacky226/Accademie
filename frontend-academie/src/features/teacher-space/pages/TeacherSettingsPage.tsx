@@ -1,163 +1,276 @@
+"use client";
+
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useAppDispatch } from "@/core/store/app-store-hooks";
+import { fetchCurrentSessionThunk } from "@/features/auth/model/auth.slice";
+import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import { AccountSecurityPanel } from "@/features/auth/ui/components/AccountSecurityPanel";
+import {
+  fetchCurrentUserProfile,
+  updateCurrentUserProfile,
+  uploadCurrentUserAvatar,
+} from "@/features/users/api/user-profile.client";
+import type {
+  UpdateUserProfilePayload,
+  UserProfile,
+} from "@/features/users/model/user-profile.types";
+import {
+  fetchWorkspaceCourses,
+  fetchWorkspaceEvaluations,
+  fetchWorkspaceMyCalendarEvents,
+} from "@/features/workspace-data/api/workspace-api.client";
+import {
+  formatWorkspaceDate,
+  getWorkspaceInitials,
+} from "@/features/workspace-data/model/workspace-ui.utils";
 import styles from "../teacher-space.module.css";
 import { TeacherShell } from "../components/TeacherShell";
 
+const EMPTY_FORM: UpdateUserProfilePayload = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  city: "",
+  country: "",
+  bio: "",
+};
+
+function toForm(profile: UserProfile): UpdateUserProfilePayload {
+  return {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: profile.email,
+    phone: profile.phone,
+    city: profile.city,
+    country: profile.country,
+    bio: profile.bio,
+  };
+}
+
 export function TeacherSettingsPage() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { user } = useCurrentAuthSession();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [courseCount, setCourseCount] = useState(0);
+  const [evaluationCount, setEvaluationCount] = useState(0);
+  const [eventCount, setEventCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const avatarSrc = profile?.avatarUrl ?? user?.avatarUrl ?? null;
+  const fullName = profile?.fullName || user?.name || "Teacher";
+  const hasChanges =
+    profile !== null &&
+    (profile.firstName !== form.firstName ||
+      profile.lastName !== form.lastName ||
+      profile.email !== form.email ||
+      profile.phone !== form.phone ||
+      profile.city !== form.city ||
+      profile.country !== form.country ||
+      profile.bio !== form.bio);
+
+  useEffect(() => {
+    void loadSettings();
+  }, [user?.id]);
+
+  async function loadSettings() {
+    setLoading(true);
+
+    try {
+      const [currentProfile, courses, evaluations, events] = await Promise.all([
+        fetchCurrentUserProfile(),
+        fetchWorkspaceCourses(),
+        fetchWorkspaceEvaluations(),
+        fetchWorkspaceMyCalendarEvents(),
+      ]);
+
+      setProfile(currentProfile);
+      setForm(toForm(currentProfile));
+      setCourseCount(user?.id ? courses.filter((course) => course.creator.id === user.id).length : courses.length);
+      setEvaluationCount(
+        user?.id
+          ? evaluations.filter((evaluation) => evaluation.creator.id === user.id).length
+          : evaluations.length,
+      );
+      setEventCount(user?.id ? events.filter((event) => event.createdBy.id === user.id).length : events.length);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de charger les parametres Teacher.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function syncSessionState() {
+    await dispatch(fetchCurrentSessionThunk()).unwrap();
+    router.refresh();
+  }
+
+  async function handleSave() {
+    if (!profile) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const nextProfile = await updateCurrentUserProfile(form);
+      setProfile(nextProfile);
+      setForm(toForm(nextProfile));
+      setSuccessMessage("Le profil Teacher a ete mis a jour.");
+      setErrorMessage(null);
+      await syncSessionState();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible d enregistrer le profil.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleAvatarSelection(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const nextProfile = await uploadCurrentUserAvatar(file);
+      setProfile(nextProfile);
+      setForm(toForm(nextProfile));
+      setSuccessMessage("La photo Teacher a ete mise a jour.");
+      setErrorMessage(null);
+      await syncSessionState();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible d envoyer la photo.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
-    <TeacherShell activePath="/teacher/settings" title="Settings">
-      <section className={styles.teacherSettingsHero}>
-        <div>
-          <p className={styles.teacherSettingsEyebrow}>Mentor configuration</p>
-          <h2 className={styles.sectionTitle}>Teacher Settings</h2>
-          <p className={styles.sectionSub}>
-            Manage your teaching identity, learner communication and review workflow from one
-            polished workspace.
-          </p>
-        </div>
-
-        <div className={styles.teacherSettingsActions}>
-          <button type="button" className={styles.ghostBtn}>
-            Import Preset
-          </button>
-          <button type="button" className={styles.primaryBtn}>
-            Save Changes
-          </button>
-        </div>
+    <TeacherShell activePath="/teacher/settings" title="Parametres Teacher">
+      <section>
+        <h2 className={styles.sectionTitle}>Profil Teacher</h2>
+        <p className={styles.sectionSub}>
+          Mettez a jour votre identite, votre photo et vos informations de contact avec vos
+          donnees reelles.
+        </p>
       </section>
 
-      <section className={styles.teacherSettingsSummaryGrid}>
-        <article className={styles.teacherSettingsSummaryCard}>
-          <span>Profile completeness</span>
-          <strong>94%</strong>
-          <p>Your mentor profile is almost ready for public program pages and live sessions.</p>
+      {errorMessage ? <p className={`${styles.sectionSub} ${styles.messageError}`}>{errorMessage}</p> : null}
+      {successMessage ? (
+        <p className={`${styles.sectionSub} ${styles.messageSuccess}`}>{successMessage}</p>
+      ) : null}
+
+      <section className={`${styles.gridKpi} ${styles.sectionSpacing}`}>
+        <Stat label="Cours" value={String(courseCount)} note="Cours relies a votre compte" />
+        <Stat label="Evaluations" value={String(evaluationCount)} note="QCM et devoirs crees" />
+        <Stat label="Sessions" value={String(eventCount)} note="Evenements planifies" />
+        <Stat label="Compte" value={profile?.emailVerified ? "Verifie" : "A verifier"} note={`Depuis ${formatWorkspaceDate(profile?.createdAt)}`} />
+      </section>
+
+      <section className={styles.split}>
+        <article className={styles.card}>
+          <h3>Identite</h3>
+          <div className={styles.profileStack}>
+            <div className={styles.rowWrapCenter}>
+              {avatarSrc ? (
+                <Image
+                  alt={fullName}
+                  className={styles.avatarFrame}
+                  height={112}
+                  src={avatarSrc}
+                  width={112}
+                />
+              ) : (
+                <div className={styles.avatarFallback}>
+                  {getWorkspaceInitials(fullName)}
+                </div>
+              )}
+              <div className={styles.avatarActions}>
+                <strong>{fullName}</strong>
+                <label className={`${styles.ghostBtn} ${styles.inlineCenterButton}`}>
+                  {uploading ? "Envoi..." : "Changer la photo"}
+                  <input className={styles.hiddenInput} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleAvatarSelection} />
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.formGrid}>
+              <input className={styles.input} disabled={loading || saving} placeholder="Prenom" value={form.firstName} onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))} />
+              <input className={styles.input} disabled={loading || saving} placeholder="Nom" value={form.lastName} onChange={(event) => setForm((current) => ({ ...current, lastName: event.target.value }))} />
+              <input className={styles.input} disabled={loading || saving} placeholder="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+              <input className={styles.input} disabled={loading || saving} placeholder="Telephone" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
+              <input className={styles.input} disabled={loading || saving} placeholder="Ville" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
+              <input className={styles.input} disabled={loading || saving} placeholder="Pays" value={form.country} onChange={(event) => setForm((current) => ({ ...current, country: event.target.value }))} />
+              <textarea className={styles.textarea} disabled={loading || saving} placeholder="Bio Teacher" value={form.bio} onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))} />
+            </div>
+          </div>
+          <div className={styles.buttonRow}>
+            <button className={styles.primaryBtn} disabled={!hasChanges || saving || uploading} type="button" onClick={() => void handleSave()}>
+              {saving ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </div>
         </article>
-        <article className={styles.teacherSettingsSummaryCard}>
-          <span>Notification channels</span>
-          <strong>4 active</strong>
-          <p>Session alerts, review deadlines and learner mentions are currently enabled.</p>
-        </article>
-        <article className={styles.teacherSettingsSummaryCard}>
-          <span>Review automation</span>
-          <strong>2 rules</strong>
-          <p>Auto reminders and rubric templates are supporting your weekly correction flow.</p>
+
+        <article className={styles.card}>
+          <h3>Compte Teacher</h3>
+          <div className={styles.infoList}>
+            <Info label="Role" value="Teacher" />
+            <Info label="Email verifie" value={profile?.emailVerified ? "Oui" : "Non"} />
+            <Info label="Derniere connexion" value={formatWorkspaceDate(profile?.lastLoginAt)} />
+            <Info label="Membre depuis" value={formatWorkspaceDate(profile?.createdAt)} />
+          </div>
         </article>
       </section>
 
-      <section className={styles.teacherSettingsLayout}>
-        <div className={styles.teacherSettingsStack}>
-          <article className={styles.teacherSettingsPanel}>
-            <div className={styles.teacherSettingsPanelHead}>
-              <div>
-                <span className={styles.teacherSettingsPill}>Public mentor profile</span>
-                <h3>Identity and teaching presence</h3>
-              </div>
-              <button type="button" className={styles.teacherSecondaryBtn}>
-                Preview Card
-              </button>
-            </div>
-
-            <div className={styles.teacherSettingsFieldGrid}>
-              <div className={styles.teacherSettingsFieldCard}>
-                <span>Full name</span>
-                <strong>Sarah Jenkins</strong>
-                <p>Visible on mentor cards, review queues and live classroom sessions.</p>
-              </div>
-              <div className={styles.teacherSettingsFieldCard}>
-                <span>Specialty</span>
-                <strong>Advanced Structural Systems</strong>
-                <p>Displayed on course landing pages and learner recommendations.</p>
-              </div>
-              <div className={styles.teacherSettingsFieldCard}>
-                <span>Timezone</span>
-                <strong>Africa/Casablanca</strong>
-                <p>Used to schedule reviews, office hours and calendar reminders accurately.</p>
-              </div>
-              <div className={styles.teacherSettingsFieldCard}>
-                <span>Office hours</span>
-                <strong>Mon, Wed, Fri · 18:00</strong>
-                <p>Shared with learners when they request mentor guidance and live support.</p>
-              </div>
-            </div>
-          </article>
-
-          <article className={styles.teacherSettingsPanel}>
-            <div className={styles.teacherSettingsPanelHead}>
-              <div>
-                <span className={styles.teacherSettingsPill}>Communication routing</span>
-                <h3>Notifications and learner signals</h3>
-              </div>
-            </div>
-
-            <div className={styles.teacherPreferenceList}>
-              <div className={styles.teacherPreferenceRow}>
-                <div className={styles.teacherPreferenceCopy}>
-                  <strong>Session reminders</strong>
-                  <p>Receive alerts before live classes, office hours and calendar changes.</p>
-                </div>
-                <span className={`${styles.teacherToggle} ${styles.teacherToggleOn}`} />
-              </div>
-              <div className={styles.teacherPreferenceRow}>
-                <div className={styles.teacherPreferenceCopy}>
-                  <strong>Learner mentions</strong>
-                  <p>Be notified when students mention you in comments or project feedback.</p>
-                </div>
-                <span className={`${styles.teacherToggle} ${styles.teacherToggleOn}`} />
-              </div>
-              <div className={styles.teacherPreferenceRow}>
-                <div className={styles.teacherPreferenceCopy}>
-                  <strong>Weekly digest</strong>
-                  <p>Get a summary of cohort progress, at-risk learners and session load.</p>
-                </div>
-                <span className={styles.teacherToggle} />
-              </div>
-            </div>
-          </article>
-
-          <AccountSecurityPanel
-            description="Keep your mentor identity verified and close active sessions across review stations, laptops and classroom devices."
-            eyebrow="Mentor identity security"
-            title="Protect teacher access"
-          />
-        </div>
-
-        <aside className={styles.teacherSettingsAside}>
-          <article className={styles.teacherSettingsAsideCard}>
-            <span className={styles.teacherSettingsPill}>Teaching workflow</span>
-            <h3>Automation that keeps delivery smooth</h3>
-            <div className={styles.teacherPreferenceList}>
-              <div className={styles.teacherPreferenceRow}>
-                <div className={styles.teacherPreferenceCopy}>
-                  <strong>Rubric autofill</strong>
-                  <p>Starts each review with your default grading framework and comments.</p>
-                </div>
-                <span className={`${styles.teacherToggle} ${styles.teacherToggleOn}`} />
-              </div>
-              <div className={styles.teacherPreferenceRow}>
-                <div className={styles.teacherPreferenceCopy}>
-                  <strong>Late submission nudges</strong>
-                  <p>Automatically remind learners before review deadlines expire.</p>
-                </div>
-                <span className={`${styles.teacherToggle} ${styles.teacherToggleOn}`} />
-              </div>
-            </div>
-          </article>
-
-          <article className={styles.teacherSettingsAsideCard}>
-            <span className={styles.teacherSettingsPill}>Support line</span>
-            <h3>Workspace assistance</h3>
-            <div className={styles.teacherSettingsMiniList}>
-              <div>
-                <strong>Priority support</strong>
-                <span>Mentor operations team responds in under 4 business hours.</span>
-              </div>
-              <div>
-                <strong>Content migration help</strong>
-                <span>Move legacy lessons and resource packs into the new course shell.</span>
-              </div>
-            </div>
-          </article>
-        </aside>
-      </section>
+      <AccountSecurityPanel
+        description="Fermez vos sessions actives et gardez le compte Teacher protege sur vos differents appareils."
+        eyebrow="Teacher security"
+        title="Securiser l espace Teacher"
+      />
     </TeacherShell>
+  );
+}
+
+function Stat({
+  label,
+  note,
+  value,
+}: {
+  label: string;
+  note: string;
+  value: string;
+}) {
+  return (
+    <article className={styles.card}>
+      <span className={styles.kpiLabel}>{label}</span>
+      <strong className={styles.kpiValue}>{value}</strong>
+      <p className={styles.kpiTrend}>{note}</p>
+    </article>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className={styles.kpiLabel}>{label}</span>
+      <strong className={styles.metricValueCompact}>{value}</strong>
+    </div>
   );
 }

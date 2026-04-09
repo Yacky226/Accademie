@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { resolveApiAssetUrl } from "@/core/config/application-environment";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
 import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
+import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
 import styles from "../home.module.css";
 import type { NavItem } from "../home.types";
 
@@ -31,7 +33,7 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
   };
   const userName = user?.name ?? "Mon espace";
-  const userAvatar = user?.avatarUrl ?? null;
+  const userAvatar = resolveApiAssetUrl(user?.avatarUrl ?? null);
   const workspaceLabel = user ? formatUserRoleLabel(user.role) : null;
   const notificationsHref = user?.role === "student" ? "/student/notifications" : dashboardHref;
 
@@ -44,7 +46,9 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
             className={styles.brand}
             aria-label="Retour a l accueil"
           >
-            <span className={styles.brandMark}>AA</span>
+            <span className={styles.brandMark}>
+              <AcademyBrandIcon />
+            </span>
             <span className={styles.brandCopy}>
               <strong>Architect Academy</strong>
               <small>Precision learning</small>
@@ -67,8 +71,6 @@ export function TopNavBar({ navItems }: TopNavBarProps) {
         </div>
 
         <div className={styles.navActions}>
-          <span className={styles.statusChip}>42 mentors live</span>
-
           {isAuthenticated ? (
             <>
               <Link

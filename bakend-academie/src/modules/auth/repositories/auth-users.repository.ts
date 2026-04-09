@@ -15,6 +15,8 @@ export interface AuthUsersRepository {
     email: string;
     passwordHash: string;
     roleNames: string[];
+    avatarUrl?: string;
+    emailVerified?: boolean;
   }): Promise<AuthUserIdentity>;
   updateLastLoginAt(userId: string, loginAt: Date): Promise<void>;
   updatePasswordHash(userId: string, passwordHash: string): Promise<void>;

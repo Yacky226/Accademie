@@ -1,4 +1,8 @@
-import { appEnvironment } from "@/core/config/application-environment";
+import {
+  appEnvironment,
+  buildApiUrl,
+  resolveApiAssetUrl,
+} from "@/core/config/application-environment";
 import { getInMemoryAccessToken } from "@/core/auth/in-memory-access-token-store";
 import {
   isUserRole,
@@ -16,6 +20,7 @@ import type {
   LoginCredentials,
   RegisterPayload,
   VerifyEmailPayload,
+  AuthSocialProvider,
 } from "../model/auth.types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -87,10 +92,11 @@ function mapSessionUser(payload: unknown, context: AuthRequestContext = {}): Ses
     context.fallbackRole;
 
   return {
-    avatarUrl:
+    avatarUrl: resolveApiAssetUrl(
       (typeof source.avatarUrl === "string" && source.avatarUrl) ||
-      (typeof source.avatar === "string" && source.avatar) ||
-      null,
+        (typeof source.avatar === "string" && source.avatar) ||
+        null,
+    ),
     email: (typeof source.email === "string" && source.email) || context.email || null,
     id:
       (typeof source.id === "string" && source.id) ||
@@ -136,6 +142,8 @@ function extractAccessToken(payload: unknown) {
 
   return tokenCandidate;
 }
+
+let pendingSessionRefreshPromise: Promise<AuthenticatedSession> | null = null;
 
 function mapAuthenticatedSession(
   payload: unknown,
@@ -218,11 +226,23 @@ export async function requestSessionRefresh(context: AuthRequestContext = {}) {
   return mapAuthenticatedSession(payload, context);
 }
 
+export async function requestSharedSessionRefresh(
+  context: AuthRequestContext = {},
+) {
+  if (!pendingSessionRefreshPromise) {
+    pendingSessionRefreshPromise = requestSessionRefresh(context).finally(() => {
+      pendingSessionRefreshPromise = null;
+    });
+  }
+
+  return pendingSessionRefreshPromise;
+}
+
 export async function requestCurrentSession() {
   const accessToken = getInMemoryAccessToken();
 
   if (!accessToken) {
-    return requestSessionRefresh();
+    return requestSharedSessionRefresh();
   }
 
   try {
@@ -232,7 +252,7 @@ export async function requestCurrentSession() {
       throw error;
     }
 
-    return requestSessionRefresh();
+    return requestSharedSessionRefresh();
   }
 }
 
@@ -270,7 +290,7 @@ export async function requestLogoutAllSessions() {
 
   let accessToken = getInMemoryAccessToken();
   if (!accessToken) {
-    accessToken = (await requestSessionRefresh()).accessToken;
+    accessToken = (await requestSharedSessionRefresh()).accessToken;
   }
 
   try {
@@ -280,7 +300,7 @@ export async function requestLogoutAllSessions() {
       throw error;
     }
 
-    accessToken = (await requestSessionRefresh()).accessToken;
+    accessToken = (await requestSharedSessionRefresh()).accessToken;
     await performRequest(accessToken);
   }
 }
@@ -355,4 +375,44 @@ export async function requestEmailVerificationConfirmation(
   );
 
   return mapActionFeedback(response, "Your email address has been verified successfully.");
+}
+
+function sanitizeRelativeRedirectTarget(candidate: string | null | undefined) {
+  if (!candidate) {
+    return null;
+  }
+
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) {
+    return null;
+  }
+
+  return candidate;
+}
+
+export function buildSocialAuthAuthorizationUrl(
+  provider: AuthSocialProvider,
+  options: {
+    mode: "login" | "register";
+    redirect?: string | null;
+    role?: "student" | "teacher";
+  },
+) {
+  const params = new URLSearchParams();
+
+  params.set("mode", options.mode);
+
+  const redirect = sanitizeRelativeRedirectTarget(options.redirect);
+  if (redirect) {
+    params.set("redirect", redirect);
+  }
+
+  if (options.role) {
+    params.set("role", options.role);
+  }
+
+  if (typeof window !== "undefined" && /^https?:$/.test(window.location.protocol)) {
+    params.set("frontend", window.location.origin);
+  }
+
+  return buildApiUrl(`${appEnvironment.auth.oauthBasePath}/${provider}?${params.toString()}`);
 }

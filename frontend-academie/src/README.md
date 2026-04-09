@@ -1,5 +1,9 @@
 # Frontend Architecture
 
+Documentation detaillee complementaire :
+
+- `../docs/frontend-architecture.md`
+
 ## Goal
 
 This frontend uses a vertical, responsibility-first architecture:

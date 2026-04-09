@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#0D1C2E"/>
+  <rect x="64" y="64" width="1472" height="772" rx="40" fill="url(#bg)"/>
+  <rect x="116" y="128" width="320" height="44" rx="22" fill="#DCE9FF"/>
+  <rect x="116" y="214" width="544" height="88" rx="28" fill="#FFFFFF"/>
+  <rect x="116" y="334" width="628" height="28" rx="14" fill="#C4D8FF"/>
+  <rect x="116" y="382" width="520" height="28" rx="14" fill="#C4D8FF"/>
+  <rect x="116" y="462" width="256" height="220" rx="28" fill="#0D1C2E" fill-opacity="0.28"/>
+  <rect x="400" y="462" width="256" height="220" rx="28" fill="#0D1C2E" fill-opacity="0.18"/>
+  <rect x="684" y="462" width="256" height="220" rx="28" fill="#0D1C2E" fill-opacity="0.12"/>
+  <rect x="1020" y="168" width="420" height="520" rx="40" fill="#07111D" fill-opacity="0.5"/>
+  <path d="M1148 290H1312" stroke="#8BB6FF" stroke-width="28" stroke-linecap="round"/>
+  <path d="M1148 358H1368" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round"/>
+  <path d="M1148 438H1336" stroke="#C4D8FF" stroke-width="24" stroke-linecap="round"/>
+  <path d="M1148 492H1260" stroke="#C4D8FF" stroke-width="24" stroke-linecap="round"/>
+  <rect x="1148" y="560" width="188" height="92" rx="28" fill="#2563EB"/>
+  <text x="116" y="152" fill="#0D1C2E" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">BACKEND TRACK</text>
+  <text x="116" y="272" fill="#0D1C2E" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">Node API Foundations</text>
+  <text x="116" y="742" fill="#0D1C2E" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">NestJS · Postgres · Auth · Clean Architecture</text>
+  <defs>
+    <linearGradient id="bg" x1="64" y1="64" x2="1536" y2="836" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF2FF"/>
+      <stop offset="1" stop-color="#8BB6FF"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -144,6 +144,14 @@
   color: #5c687f;
 }
 
+.messageError {
+  color: #ba1a1a;
+}
+
+.messageSuccess {
+  color: #1b7f4d;
+}
+
 .actionRow {
   display: flex;
   gap: 9px;
@@ -151,7 +159,9 @@
 }
 
 .primaryBtn,
-.ghostBtn {
+.ghostBtn,
+.secondaryBtn,
+.dangerBtn {
   border: 0;
   border-radius: 10px;
   padding: 10px 14px;
@@ -166,6 +176,16 @@
 .ghostBtn {
   color: #004ac6;
   background: #dce9ff;
+}
+
+.secondaryBtn {
+  color: #8a4f12;
+  background: #fff2df;
+}
+
+.dangerBtn {
+  color: #b3261e;
+  background: #ffe8e5;
 }
 
 .grid4 {
@@ -356,6 +376,13 @@
   display: flex;
   align-items: center;
   gap: 9px;
+  min-width: 0;
+}
+
+.userCell strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .avatar {
@@ -407,6 +434,47 @@
 .statusSuspended {
   background: #ffe7e5;
   color: #b3261e;
+}
+
+.badgeWrap {
+  margin-top: 6px;
+}
+
+.metricLead {
+  margin: 8px 0 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.metricCaption {
+  margin-top: 8px;
+  opacity: 0.75;
+  font-size: 0.75rem;
+}
+
+.tableMeta {
+  margin-top: 4px;
+  color: #6f7d95;
+  font-size: 0.72rem;
+}
+
+.tableActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panelBody {
+  padding: 14px;
+}
+
+.panelForm {
+  display: grid;
+  gap: 16px;
+}
+
+.chartCaption {
+  margin-top: 14px;
 }
 
 .footerRow {
@@ -599,6 +667,7 @@
     radial-gradient(circle at 90% 12%, rgba(255, 181, 150, 0.12), transparent 22%),
     linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
   color: #0d1c2e;
+  overflow-x: clip;
 }
 
 .workspaceLayout {
@@ -632,6 +701,7 @@
   width: min(100%, 1500px);
   margin: 0 auto;
   padding: 24px 6px 0;
+  overflow-x: clip;
 }
 
 .sidebarPanel {
@@ -725,6 +795,12 @@
   font-size: 0.86rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.brandMark svg {
+  width: 58%;
+  height: 58%;
+  flex-shrink: 0;
 }
 
 .brandCopy {
@@ -843,12 +919,38 @@
   box-shadow: inset 0 0 0 1px rgba(207, 222, 248, 0.9);
 }
 
+.navIcon svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .navLabel {
   white-space: nowrap;
 }
 
 .navLabelHidden {
   display: none;
+}
+
+.navLogoutButton {
+  width: 100%;
+  justify-content: flex-start;
+  border: 1px solid rgba(239, 68, 68, 0.16);
+  background: rgba(255, 241, 242, 0.92);
+  color: #b42318;
+  cursor: pointer;
+  appearance: none;
+  font-family: inherit;
+}
+
+.navLogoutButton:hover {
+  background: rgba(254, 226, 226, 0.96);
+  box-shadow: 0 14px 24px rgba(180, 35, 24, 0.08);
+}
+
+.navLogoutButton .navIcon {
+  color: #b42318;
 }
 
 .sideFooter {
@@ -1009,6 +1111,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .searchShell {
@@ -1047,8 +1150,17 @@
 }
 
 .topStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(15, 118, 110, 0.1);
   color: #0f766e;
+}
+
+.topStatusIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .topProfile {
@@ -1064,6 +1176,8 @@
   flex-shrink: 0;
   color: inherit;
   text-decoration: none;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .adminAvatarShell {
@@ -1103,12 +1217,14 @@
 .topProfileMeta {
   display: grid;
   gap: 2px;
-  min-width: max-content;
+  min-width: 0;
 }
 
 .topProfileName {
   font-size: 0.88rem;
   line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1116,6 +1232,8 @@
   color: #6d7b92;
   font-size: 0.72rem;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1464,8 +1582,19 @@
   resize: vertical;
 }
 
+.inlineTextarea {
+  width: 100%;
+  min-height: 104px;
+  border: 1px solid rgba(208, 219, 241, 0.92);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  padding: 12px 14px;
+  resize: vertical;
+}
+
 .settingsInput:focus,
-.settingsTextarea:focus {
+.settingsTextarea:focus,
+.inlineTextarea:focus {
   outline: none;
   border-color: rgba(0, 74, 198, 0.3);
   box-shadow:
@@ -1620,6 +1749,7 @@
   }
 
   .topbarRight {
+    width: 100%;
     flex-wrap: wrap;
   }
 
@@ -1630,7 +1760,20 @@
 
   .topProfile {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+
+  .heroRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actionRow {
+    width: 100%;
+  }
+
+  .actionRow > * {
+    flex: 1 1 220px;
   }
 }
 
@@ -1641,5 +1784,20 @@
 
   .workspacePage {
     padding-top: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .actionRow > * {
+    width: 100%;
+  }
+
+  .workspaceFooter {
+    align-items: flex-start;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

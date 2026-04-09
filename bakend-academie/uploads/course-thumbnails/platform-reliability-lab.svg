@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#111827"/>
+  <rect x="60" y="60" width="1480" height="780" rx="42" fill="url(#bg)"/>
+  <rect x="118" y="132" width="342" height="44" rx="22" fill="#FDE68A" fill-opacity="0.18"/>
+  <rect x="118" y="214" width="636" height="92" rx="30" fill="#FFFFFF"/>
+  <rect x="118" y="338" width="594" height="26" rx="13" fill="#FEF3C7" fill-opacity="0.72"/>
+  <rect x="118" y="386" width="490" height="26" rx="13" fill="#FEF3C7" fill-opacity="0.72"/>
+  <rect x="1108" y="176" width="300" height="492" rx="34" fill="#111827" fill-opacity="0.24"/>
+  <rect x="1152" y="232" width="212" height="212" rx="36" fill="#FFFFFF" fill-opacity="0.16"/>
+  <path d="M1258 278V398" stroke="#FDE68A" stroke-width="24" stroke-linecap="round"/>
+  <path d="M1198 338H1318" stroke="#FDE68A" stroke-width="24" stroke-linecap="round"/>
+  <rect x="1152" y="492" width="212" height="24" rx="12" fill="#FDE68A"/>
+  <rect x="1152" y="536" width="172" height="24" rx="12" fill="#FDE68A" fill-opacity="0.8"/>
+  <rect x="1152" y="580" width="188" height="24" rx="12" fill="#FDE68A" fill-opacity="0.8"/>
+  <text x="118" y="160" fill="#FEF3C7" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">DRAFT TEACHER LAB</text>
+  <text x="118" y="274" fill="#111827" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">Platform Reliability Lab</text>
+  <text x="118" y="744" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Incident drills · SRE practice · Reliability reviews</text>
+  <defs>
+    <linearGradient id="bg" x1="60" y1="60" x2="1540" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#374151"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+</svg>

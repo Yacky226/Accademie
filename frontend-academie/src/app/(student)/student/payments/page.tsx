@@ -1,5 +1,5 @@
-import PaymentCheckoutPage from "@/features/payment-checkout/PaymentCheckoutPage";
+import { StudentPaymentsPage } from "@/features/student-space/pages/StudentPaymentsPage";
 
 export default function Page() {
-  return <PaymentCheckoutPage />;
+  return <StudentPaymentsPage />;
 }

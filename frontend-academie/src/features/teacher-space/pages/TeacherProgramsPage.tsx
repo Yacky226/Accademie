@@ -1,183 +1,372 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import {
-  teacherCourseLessons,
-  teacherCourseMetrics,
-  teacherCourseProgressMetrics,
-  teacherModuleInsightSeries,
-} from "../teacher-space.data";
+  createWorkspaceCourse,
+  createWorkspaceCourseLesson,
+  createWorkspaceCourseModule,
+  fetchWorkspaceCourses,
+} from "@/features/workspace-data/api/workspace-api.client";
+import type {
+  CreateWorkspaceCoursePayload,
+  CreateWorkspaceLessonPayload,
+  CreateWorkspaceModulePayload,
+  WorkspaceCourseRecord,
+} from "@/features/workspace-data/model/workspace-api.types";
+import {
+  formatWorkspaceDate,
+  formatWorkspacePercent,
+  slugifyWorkspaceValue,
+} from "@/features/workspace-data/model/workspace-ui.utils";
 import styles from "../teacher-space.module.css";
 import { TeacherShell } from "../components/TeacherShell";
 
-function toStatusKey(status: string) {
-  return status.replace(/[^a-zA-Z0-9]+/g, "");
-}
+const EMPTY_COURSE: CreateWorkspaceCoursePayload = {
+  title: "",
+  slug: "",
+  shortDescription: "",
+  description: "",
+  thumbnailUrl: "",
+  price: 0,
+  currency: "MAD",
+  level: "BEGINNER",
+  status: "DRAFT",
+  isPublished: false,
+  durationInHours: 8,
+  certificateEnabled: false,
+};
+
+const EMPTY_MODULE: CreateWorkspaceModulePayload = {
+  title: "",
+  description: "",
+  position: 1,
+  isPublished: false,
+};
+
+const EMPTY_LESSON: CreateWorkspaceLessonPayload = {
+  title: "",
+  slug: "",
+  content: "",
+  videoUrl: "",
+  resourceUrl: "",
+  durationInMinutes: 15,
+  position: 1,
+  isFreePreview: false,
+  isPublished: false,
+};
 
 export function TeacherProgramsPage() {
+  const { user } = useCurrentAuthSession();
+  const [courses, setCourses] = useState<WorkspaceCourseRecord[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [courseForm, setCourseForm] = useState(EMPTY_COURSE);
+  const [moduleForm, setModuleForm] = useState(EMPTY_MODULE);
+  const [lessonForm, setLessonForm] = useState(EMPTY_LESSON);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState<"course" | "module" | "lesson" | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const selectedCourse = useMemo(
+    () => courses.find((course) => course.id === selectedCourseId) ?? courses[0] ?? null,
+    [courses, selectedCourseId],
+  );
+  const selectedModule = useMemo(
+    () =>
+      selectedCourse?.modules.find((module) => module.id === selectedModuleId) ??
+      selectedCourse?.modules[0] ??
+      null,
+    [selectedCourse, selectedModuleId],
+  );
+
+  const totals = useMemo(() => {
+    const moduleCount = courses.reduce((sum, course) => sum + course.modules.length, 0);
+    const lessonCount = courses.reduce(
+      (sum, course) =>
+        sum + course.modules.reduce((moduleSum, module) => moduleSum + module.lessons.length, 0),
+      0,
+    );
+    const learnerCount = courses.reduce((sum, course) => sum + course.enrollmentsCount, 0);
+
+    return { learnerCount, lessonCount, moduleCount };
+  }, [courses]);
+
+  useEffect(() => {
+    void loadCourses();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (selectedCourse && selectedCourse.id !== selectedCourseId) {
+      setSelectedCourseId(selectedCourse.id);
+    }
+
+    if (selectedModule && selectedModule.id !== selectedModuleId) {
+      setSelectedModuleId(selectedModule.id);
+    }
+  }, [selectedCourse, selectedCourseId, selectedModule, selectedModuleId]);
+
+  async function loadCourses() {
+    setLoading(true);
+
+    try {
+      const allCourses = await fetchWorkspaceCourses();
+      setCourses(user?.id ? allCourses.filter((course) => course.creator.id === user.id) : allCourses);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Impossible de charger les cours.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreateCourse() {
+    if (!courseForm.title.trim() || !courseForm.shortDescription.trim() || !courseForm.description.trim()) {
+      setErrorMessage("Le titre, le resume et la description sont obligatoires.");
+      return;
+    }
+
+    setSubmitting("course");
+    try {
+      const createdCourse = await createWorkspaceCourse({
+        ...courseForm,
+        slug: slugifyWorkspaceValue(courseForm.slug || courseForm.title),
+      });
+      setCourseForm(EMPTY_COURSE);
+      setSelectedCourseId(createdCourse.id);
+      setSuccessMessage("Le cours a ete cree.");
+      setErrorMessage(null);
+      await loadCourses();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Impossible de creer le cours.");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleCreateModule() {
+    if (!selectedCourse || !moduleForm.title.trim()) {
+      setErrorMessage("Selectionnez un cours et renseignez le titre du module.");
+      return;
+    }
+
+    setSubmitting("module");
+    try {
+      await createWorkspaceCourseModule(selectedCourse.id, moduleForm);
+      setModuleForm({ ...EMPTY_MODULE, position: selectedCourse.modules.length + 2 });
+      setSuccessMessage("Le module a ete ajoute.");
+      setErrorMessage(null);
+      await loadCourses();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Impossible d ajouter le module.");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleCreateLesson() {
+    if (!selectedCourse || !selectedModule || !lessonForm.title.trim() || !lessonForm.content.trim()) {
+      setErrorMessage("Selectionnez un module et renseignez le titre et le contenu de la lecon.");
+      return;
+    }
+
+    setSubmitting("lesson");
+    try {
+      await createWorkspaceCourseLesson(selectedCourse.id, selectedModule.id, {
+        ...lessonForm,
+        slug: slugifyWorkspaceValue(lessonForm.slug || lessonForm.title),
+      });
+      setLessonForm({ ...EMPTY_LESSON, position: selectedModule.lessons.length + 2 });
+      setSuccessMessage("La lecon a ete ajoutee.");
+      setErrorMessage(null);
+      await loadCourses();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Impossible d ajouter la lecon.");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
   return (
-    <TeacherShell activePath="/teacher/programs" title="Course Management">
-      <section className={styles.courseMgmtHeader}>
-        <div>
-          <p className={styles.courseMgmtBreadcrumbs}>
-            Academy / Management / Structural Engineering Masterclass
-          </p>
-          <h2 className={styles.sectionTitle}>Course Management</h2>
-          <p className={styles.sectionSub}>
-            Manage modules, lessons, and content for the professional structural
-            certification track.
-          </p>
-        </div>
-        <div className={styles.courseMgmtActions}>
-          <button type="button" className={styles.ghostBtn}>
-            Preview Course
-          </button>
-          <button type="button" className={styles.primaryBtn}>
-            New Lesson
-          </button>
-        </div>
+    <TeacherShell activePath="/teacher/programs" title="Gestion des cours">
+      <section>
+        <h2 className={styles.sectionTitle}>Creation de cours</h2>
+        <p className={styles.sectionSub}>
+          Ajoutez vos cours, vos modules et vos lecons video a partir des vraies routes Teacher.
+        </p>
       </section>
 
-      <section className={styles.courseMgmtStatsGrid}>
-        {teacherCourseMetrics.map((metric) => (
-          <article
-            key={metric.label}
-            className={`${styles.courseMetricCard} ${
-              metric.tone === "secondary"
-                ? styles.courseMetricCardSecondary
-                : ""
-            }`}
-          >
-            <p>{metric.label}</p>
-            <strong>{metric.value}</strong>
-            <span>{metric.note}</span>
-          </article>
-        ))}
+      {errorMessage ? <p className={`${styles.sectionSub} ${styles.messageError}`}>{errorMessage}</p> : null}
+      {successMessage ? (
+        <p className={`${styles.sectionSub} ${styles.messageSuccess}`}>{successMessage}</p>
+      ) : null}
+
+      <section className={`${styles.gridKpi} ${styles.sectionSpacing}`}>
+        <MetricCard label="Cours" value={String(courses.length)} note="Catalogue personnel" />
+        <MetricCard label="Modules" value={String(totals.moduleCount)} note="Structure en place" />
+        <MetricCard label="Lecons" value={String(totals.lessonCount)} note="Videos et supports" />
+        <MetricCard label="Inscriptions" value={String(totals.learnerCount)} note="Etudiants actifs" />
       </section>
 
-      <section className={styles.courseLedgerCard}>
-        <header className={styles.courseLedgerHead}>
-          <h3>Curriculum Structure</h3>
-          <div className={styles.courseLedgerTools}>
-            <button type="button">Filter</button>
-            <button type="button">More</button>
-          </div>
-        </header>
-
-        <div className={styles.courseLedgerScroller}>
-          <table className={styles.courseLedgerTable}>
-            <thead>
-              <tr>
-                <th>Index</th>
-                <th>Lesson Title and Module</th>
-                <th>Type</th>
-                <th>Duration</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teacherCourseLessons.map((lesson) => (
-                <tr key={lesson.index}>
-                  <td>{lesson.index}</td>
-                  <td>
-                    <div className={styles.courseLessonCell}>
-                      <div className={styles.courseLessonIcon}>
-                        {lesson.type.slice(0, 1)}
-                      </div>
-                      <div>
-                        <strong>{lesson.title}</strong>
-                        <p>Module: {lesson.module}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={styles.courseTypePill}>{lesson.type}</span>
-                  </td>
-                  <td>{lesson.duration}</td>
-                  <td>
-                    <span
-                      className={`${styles.courseStatusPill} ${styles[`courseStatus_${toStatusKey(lesson.status)}`]}`}
-                    >
-                      {lesson.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.courseRowActions}>
-                      <button type="button">Edit</button>
-                      <button type="button">Duplicate</button>
-                      <button type="button">Preview</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <footer className={styles.courseLedgerFooter}>
-          <p>Showing 1-4 of 24 lessons</p>
-          <div>
-            <button type="button">1</button>
-            <button type="button">2</button>
-            <button type="button">3</button>
-          </div>
-        </footer>
-      </section>
-
-      <section className={styles.courseLowerGrid}>
-        <article className={styles.courseInsightCard}>
-          <div className={styles.courseInsightHead}>
-            <div>
-              <h4>Active Module Insight</h4>
-              <p>Performance and engagement for Fundamentals of Statics.</p>
+      <section className={styles.split}>
+        <article className={styles.card}>
+          <h3>Nouveau cours</h3>
+          <div className={styles.formGrid}>
+            <input className={styles.input} placeholder="Titre du cours" value={courseForm.title} onChange={(event) => setCourseForm((current) => ({ ...current, title: event.target.value, slug: current.slug && current.slug !== slugifyWorkspaceValue(current.title) ? current.slug : slugifyWorkspaceValue(event.target.value) }))} />
+            <input className={styles.input} placeholder="Slug" value={courseForm.slug} onChange={(event) => setCourseForm((current) => ({ ...current, slug: slugifyWorkspaceValue(event.target.value) }))} />
+            <input className={styles.input} placeholder="Resume court" value={courseForm.shortDescription} onChange={(event) => setCourseForm((current) => ({ ...current, shortDescription: event.target.value }))} />
+            <textarea className={styles.textarea} placeholder="Description detaillee" value={courseForm.description} onChange={(event) => setCourseForm((current) => ({ ...current, description: event.target.value }))} />
+            <div className={styles.buttonRow}>
+              <select className={styles.select} value={courseForm.level} onChange={(event) => setCourseForm((current) => ({ ...current, level: event.target.value as CreateWorkspaceCoursePayload["level"] }))}>
+                <option value="BEGINNER">Debutant</option>
+                <option value="INTERMEDIATE">Intermediaire</option>
+                <option value="ADVANCED">Avance</option>
+              </select>
+              <select className={styles.select} value={courseForm.status} onChange={(event) => setCourseForm((current) => ({ ...current, status: event.target.value as CreateWorkspaceCoursePayload["status"], isPublished: event.target.value === "PUBLISHED" }))}>
+                <option value="DRAFT">Brouillon</option>
+                <option value="PUBLISHED">Publie</option>
+                <option value="ARCHIVED">Archive</option>
+              </select>
             </div>
-            <button type="button" className={styles.teacherLinkButton}>
-              View Full Report
+            <div className={styles.buttonRow}>
+              <input className={styles.input} min={0} type="number" value={courseForm.price} onChange={(event) => setCourseForm((current) => ({ ...current, price: Number(event.target.value) || 0 }))} placeholder="Prix" />
+              <input className={styles.input} min={1} type="number" value={courseForm.durationInHours} onChange={(event) => setCourseForm((current) => ({ ...current, durationInHours: Number(event.target.value) || 1 }))} placeholder="Duree" />
+            </div>
+          </div>
+          <div className={styles.buttonRow}>
+            <button className={styles.primaryBtn} type="button" onClick={() => void handleCreateCourse()}>
+              {submitting === "course" ? "Creation..." : "Creer le cours"}
             </button>
-          </div>
-          <div className={styles.courseInsightBars}>
-            {teacherModuleInsightSeries.map((value, index) => (
-              <span
-                key={`${index + 1}-${value}`}
-                style={{ height: `${value}%` }}
-              />
-            ))}
-          </div>
-          <div className={styles.courseInsightLegend}>
-            <span>Lesson 01.1</span>
-            <span>Daily Completion Rate</span>
-            <span>Lesson 01.7</span>
           </div>
         </article>
 
-        <article className={styles.courseProgressCard}>
-          <h4>Course Progress</h4>
-          <div className={styles.courseProgressList}>
-            {teacherCourseProgressMetrics.map((item) => (
-              <div key={item.label}>
-                <div className={styles.courseProgressRow}>
-                  <span>{item.label}</span>
-                  <strong>{item.valueLabel}</strong>
+        <article className={styles.card}>
+          <h3>Modules et lecons</h3>
+          <div className={styles.formGrid}>
+            <select className={styles.select} value={selectedCourse?.id ?? ""} onChange={(event) => setSelectedCourseId(event.target.value)}>
+              <option value="">Choisir un cours</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>{course.title}</option>
+              ))}
+            </select>
+            <input className={styles.input} disabled={!selectedCourse} placeholder="Titre du module" value={moduleForm.title} onChange={(event) => setModuleForm((current) => ({ ...current, title: event.target.value }))} />
+            <textarea className={styles.textarea} disabled={!selectedCourse} placeholder="Description du module" value={moduleForm.description} onChange={(event) => setModuleForm((current) => ({ ...current, description: event.target.value }))} />
+            <button className={styles.ghostBtn} disabled={!selectedCourse} type="button" onClick={() => void handleCreateModule()}>
+              {submitting === "module" ? "Ajout..." : "Ajouter le module"}
+            </button>
+
+            <select className={styles.select} disabled={!selectedCourse || selectedCourse.modules.length === 0} value={selectedModule?.id ?? ""} onChange={(event) => setSelectedModuleId(event.target.value)}>
+              <option value="">Choisir un module</option>
+              {(selectedCourse?.modules ?? []).map((module) => (
+                <option key={module.id} value={module.id}>{module.title}</option>
+              ))}
+            </select>
+            <input className={styles.input} disabled={!selectedModule} placeholder="Titre de la lecon" value={lessonForm.title} onChange={(event) => setLessonForm((current) => ({ ...current, title: event.target.value, slug: current.slug && current.slug !== slugifyWorkspaceValue(current.title) ? current.slug : slugifyWorkspaceValue(event.target.value) }))} />
+            <textarea className={styles.textarea} disabled={!selectedModule} placeholder="Contenu de la lecon" value={lessonForm.content} onChange={(event) => setLessonForm((current) => ({ ...current, content: event.target.value }))} />
+            <input className={styles.input} disabled={!selectedModule} placeholder="URL video" value={lessonForm.videoUrl} onChange={(event) => setLessonForm((current) => ({ ...current, videoUrl: event.target.value }))} />
+            <input className={styles.input} disabled={!selectedModule} placeholder="URL ressource" value={lessonForm.resourceUrl} onChange={(event) => setLessonForm((current) => ({ ...current, resourceUrl: event.target.value }))} />
+            <button className={styles.primaryBtn} disabled={!selectedModule} type="button" onClick={() => void handleCreateLesson()}>
+              {submitting === "lesson" ? "Ajout..." : "Ajouter la lecon"}
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section className={`${styles.card} ${styles.sectionSpacing}`}>
+        <h3 className={styles.sectionTitleReset}>Curriculum courant</h3>
+        {loading ? <p className={styles.sectionSub}>Chargement du catalogue...</p> : null}
+        {!loading && !selectedCourse ? (
+          <p className={styles.sectionSub}>Aucun cours pour le moment. Creez-en un pour commencer.</p>
+        ) : null}
+        {selectedCourse ? (
+          <div className={styles.stackGridMd}>
+            <div className={styles.rowWrapBetween}>
+              <div>
+                <strong>{selectedCourse.title}</strong>
+                <p className={styles.sectionSub}>{selectedCourse.shortDescription}</p>
+              </div>
+              <span className={styles.chip}>
+                {selectedCourse.modules.length} modules · {selectedCourse.enrollmentsCount} inscrits
+              </span>
+            </div>
+
+            {selectedCourse.modules.map((module) => (
+              <div key={module.id} className={styles.outlineCard}>
+                <div className={styles.rowWrapBetween}>
+                  <strong>{module.title}</strong>
+                  <span className={styles.chip}>{module.isPublished ? "Publie" : "Brouillon"}</span>
                 </div>
-                <div className={styles.courseProgressTrack}>
-                  <span
-                    className={
-                      item.tone === "secondary"
-                        ? styles.courseProgressSecondary
-                        : ""
-                    }
-                    style={{ width: `${item.progress}%` }}
-                  />
+                <p className={styles.sectionSub}>{module.description || "Aucune description."}</p>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Lecon</th>
+                        <th>Type</th>
+                        <th>Duree</th>
+                        <th>Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {module.lessons.map((lesson) => (
+                        <tr key={lesson.id}>
+                          <td>{lesson.title}</td>
+                          <td>{lesson.videoUrl ? "Video" : lesson.resourceUrl ? "Support" : "Texte"}</td>
+                          <td>{lesson.durationInMinutes ? `${lesson.durationInMinutes} min` : "Non renseigne"}</td>
+                          <td>{lesson.isPublished ? "Publiee" : "Brouillon"}</td>
+                        </tr>
+                      ))}
+                      {module.lessons.length === 0 ? (
+                        <tr>
+                          <td colSpan={4}>Aucune lecon pour ce module.</td>
+                        </tr>
+                      ) : null}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             ))}
-          </div>
 
-          <button type="button" className={styles.courseProgressAction}>
-            Manage Course Assets
-          </button>
-        </article>
+            <div className={styles.split}>
+              <article className={styles.card}>
+                <span className={styles.kpiLabel}>Derniere mise a jour</span>
+                <strong className={styles.kpiValue}>{formatWorkspaceDate(selectedCourse.updatedAt)}</strong>
+                <p className={styles.kpiTrend}>Etat: {selectedCourse.status}</p>
+              </article>
+              <article className={styles.card}>
+                <span className={styles.kpiLabel}>Modules publies</span>
+                <strong className={styles.kpiValue}>
+                  {formatWorkspacePercent(
+                    (selectedCourse.modules.filter((module) => module.isPublished).length /
+                      Math.max(selectedCourse.modules.length, 1)) *
+                      100,
+                  )}
+                </strong>
+                <p className={styles.kpiTrend}>Couverture de publication</p>
+              </article>
+            </div>
+          </div>
+        ) : null}
       </section>
     </TeacherShell>
+  );
+}
+
+function MetricCard({
+  label,
+  note,
+  value,
+}: {
+  label: string;
+  note: string;
+  value: string;
+}) {
+  return (
+    <article className={styles.card}>
+      <span className={styles.kpiLabel}>{label}</span>
+      <strong className={styles.kpiValue}>{value}</strong>
+      <p className={styles.kpiTrend}>{note}</p>
+    </article>
   );
 }

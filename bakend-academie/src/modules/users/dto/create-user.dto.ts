@@ -3,6 +3,7 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
@@ -64,6 +65,14 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(100)
   city?: string;
+
+  @IsOptional()
+  @IsObject()
+  onboardingProfile?: Record<string, string>;
+
+  @IsOptional()
+  @IsDateString()
+  onboardingCompletedAt?: string;
 
   @IsOptional()
   @IsArray()

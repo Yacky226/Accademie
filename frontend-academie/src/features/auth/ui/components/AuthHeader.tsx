@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
 import styles from "../auth-ui.module.css";
 
 interface AuthHeaderProps {
@@ -11,7 +12,9 @@ export function AuthHeader({ actionLabel, actionHref }: AuthHeaderProps) {
     <header className={styles.authHeader}>
       <div className={styles.authHeaderInner}>
         <Link className={styles.authBrand} href="/">
-          <span className={styles.brandMark}>AA</span>
+          <span className={styles.brandMark}>
+            <AcademyBrandIcon />
+          </span>
           <span className={styles.brandStack}>
             <strong>Architect Academy</strong>
             <small>Precision learning</small>

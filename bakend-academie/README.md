@@ -44,6 +44,55 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Demo seed
+
+The backend now includes an idempotent demo seed that creates:
+
+- admin, teacher and student test accounts
+- published and draft courses with modules and lessons
+- enrollments, evaluations, grades and notifications
+- calendar events, support tickets, payments and invoices
+- onboarding data, recommendations inputs, coding problems and admin signals
+
+Run it from the backend folder after your local database is available:
+
+```bash
+$ npm run seed:demo
+```
+
+Demo logins created by the seed all use the same password:
+
+```text
+Academie123!
+```
+
+Useful demo accounts:
+
+- `admin@academie.local`
+- `teacher@academie.local`
+- `student.backend@academie.local`
+- `student.frontend@academie.local`
+- `student.checkout@academie.local`
+
+The seed is non-destructive for the records it manages: it reuses the same demo emails, slugs,
+references and titles when they already exist.
+By default, the seed does not synchronize the schema. This avoids the current TypeORM + `pg`
+deprecation warning during `DataSource.synchronize()`.
+
+If you are seeding a fresh local database with no tables yet, run the seed once with explicit schema
+sync enabled:
+
+```powershell
+$env:SEED_SYNC_SCHEMA='true'
+npm run seed:demo
+```
+
+Then you can go back to the normal command:
+
+```bash
+$ npm run seed:demo
+```
+
 ## Run tests
 
 ```bash

@@ -28,6 +28,15 @@ interface PasswordResetTokenPayload {
   type: 'password-reset';
 }
 
+export interface OAuthStateTokenPayload {
+  provider: 'google' | 'github';
+  mode: 'login' | 'register';
+  frontendOrigin?: string;
+  redirectTo?: string;
+  role: 'STUDENT' | 'TEACHER';
+  type: 'oauth-state';
+}
+
 @Injectable()
 export class TokenService {
   constructor(private readonly jwtService: JwtService) {}
@@ -124,6 +133,35 @@ export class TokenService {
     return this.verifyActionTokenByType(token, 'password-reset');
   }
 
+  async generateOAuthStateToken(input: {
+    provider: OAuthStateTokenPayload['provider'];
+    mode: OAuthStateTokenPayload['mode'];
+    frontendOrigin?: string;
+    redirectTo?: string;
+    role: OAuthStateTokenPayload['role'];
+  }): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        frontendOrigin: input.frontendOrigin,
+        provider: input.provider,
+        mode: input.mode,
+        redirectTo: input.redirectTo,
+        role: input.role,
+        type: 'oauth-state',
+      } satisfies OAuthStateTokenPayload,
+      {
+        expiresIn: this.resolveDurationInSeconds(
+          process.env.JWT_OAUTH_STATE_EXPIRES_IN,
+          10 * 60,
+        ),
+      },
+    );
+  }
+
+  async verifyOAuthStateToken(token: string): Promise<OAuthStateTokenPayload> {
+    return this.verifyActionTokenByType(token, 'oauth-state');
+  }
+
   createPasswordFingerprint(passwordHash: string) {
     return createHash('sha256').update(passwordHash).digest('hex').slice(0, 32);
   }
@@ -151,7 +189,10 @@ export class TokenService {
   }
 
   private async verifyActionTokenByType<
-    TPayload extends EmailVerificationTokenPayload | PasswordResetTokenPayload,
+    TPayload extends
+      | EmailVerificationTokenPayload
+      | PasswordResetTokenPayload
+      | OAuthStateTokenPayload,
   >(token: string, expectedType: TPayload['type']): Promise<TPayload> {
     try {
       const payload = await this.jwtService.verifyAsync<TPayload>(token);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { resolveApiAssetUrl } from "@/core/config/application-environment";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
 import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 
@@ -52,7 +53,9 @@ export function WorkspaceProfileBadge({
   const profileName = isAuthenticated && user ? user.name : defaultName;
   const profileRole =
     isAuthenticated && user ? formatUserRoleLabel(user.role) : defaultRole;
-  const preferredAvatarSrc = isAuthenticated && user ? user.avatarUrl : defaultAvatarSrc;
+  const preferredAvatarSrc = resolveApiAssetUrl(
+    isAuthenticated && user ? user.avatarUrl : defaultAvatarSrc,
+  );
   const avatarSrc =
     preferredAvatarSrc && failedAvatarSrc !== preferredAvatarSrc ? preferredAvatarSrc : null;
   const initials = useMemo(() => getInitials(profileName), [profileName]);

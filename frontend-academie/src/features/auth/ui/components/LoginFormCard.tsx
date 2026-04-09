@@ -7,7 +7,14 @@ import styles from "../auth-ui.module.css";
 import { SocialIcon } from "./SocialIcon";
 
 export function LoginFormCard() {
-  const { errorMessage, handleSubmit, isSubmitting, updateField, values } =
+  const {
+    errorMessage,
+    handleSubmit,
+    isSubmitting,
+    startSocialAuth,
+    updateField,
+    values,
+  } =
     useLoginFormController();
 
   return (
@@ -79,7 +86,12 @@ export function LoginFormCard() {
 
       <div className={styles.socialGrid}>
         {authSocialProviders.map((provider) => (
-          <button key={provider.label} className={styles.socialButton} type="button">
+          <button
+            key={provider.label}
+            className={styles.socialButton}
+            onClick={() => startSocialAuth(provider.provider)}
+            type="button"
+          >
             <span className={styles.socialIcon}>
               <SocialIcon icon={provider.icon} />
             </span>

@@ -1,19 +1,19 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { notificationItems } from "./notification-center.catalog";
 import {
   fetchMyNotifications,
   markNotificationAsRead,
 } from "../api/notification-center.service";
+import type { NotificationItem } from "./notification-center.catalog";
 import type { NotificationCenterState } from "./notification-center.types";
 
 const initialState: NotificationCenterState = {
   errorMessage: null,
-  items: notificationItems,
+  items: [],
   status: "idle",
 };
 
 export const fetchNotificationCenterThunk = createAsyncThunk<
-  typeof notificationItems,
+  NotificationItem[],
   void,
   { rejectValue: string }
 >("notificationCenter/fetchMine", async (_, { rejectWithValue }) => {
@@ -27,7 +27,7 @@ export const fetchNotificationCenterThunk = createAsyncThunk<
 });
 
 export const markNotificationAsReadThunk = createAsyncThunk<
-  (typeof notificationItems)[number],
+  NotificationItem,
   string,
   { rejectValue: string }
 >("notificationCenter/markAsRead", async (notificationId, { rejectWithValue }) => {

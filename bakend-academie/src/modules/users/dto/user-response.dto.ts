@@ -13,6 +13,8 @@ export class UserResponseDto {
   dateOfBirth?: Date;
   country?: string;
   city?: string;
+  onboardingProfile?: Record<string, string>;
+  onboardingCompletedAt?: Date;
   emailVerified!: boolean;
   lastLoginAt?: Date;
   createdAt!: Date;

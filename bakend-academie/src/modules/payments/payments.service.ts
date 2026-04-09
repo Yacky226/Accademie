@@ -8,7 +8,9 @@ import {
 } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { PaymentStatus, UserRole } from '../../core/enums';
+import { CoursesService } from '../courses/courses.service';
 import { InvoicesService } from '../invoices/invoices.service';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CreateSubscriptionPaymentDto } from './dto/create-subscription-payment.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
@@ -29,11 +31,47 @@ interface NormalizedWebhookEvent {
   stripeObject?: Record<string, unknown>;
 }
 
+interface StripeCheckoutSessionRecord {
+  id: string;
+  url?: string;
+  status?: string;
+  payment_status?: string;
+  mode?: string;
+  client_reference_id?: string;
+  payment_intent?: string | null;
+  subscription?: string | null;
+  customer?: string | null;
+  currency?: string | null;
+  amount_total?: number | null;
+  created?: number;
+  metadata?: Record<string, unknown>;
+}
+
+const ZERO_DECIMAL_STRIPE_CURRENCIES = new Set([
+  'BIF',
+  'CLP',
+  'DJF',
+  'GNF',
+  'JPY',
+  'KMF',
+  'KRW',
+  'MGA',
+  'PYG',
+  'RWF',
+  'UGX',
+  'VND',
+  'VUV',
+  'XAF',
+  'XOF',
+  'XPF',
+]);
+
 @Injectable()
 export class PaymentsService {
   constructor(
     private readonly paymentsRepository: PaymentsRepository,
     private readonly invoicesService: InvoicesService,
+    private readonly coursesService: CoursesService,
   ) {}
 
   async listPayments(): Promise<PaymentResponseDto[]> {
@@ -140,6 +178,109 @@ export class PaymentsService {
     };
 
     return this.createPayment(userId, createDto, roles);
+  }
+
+  async createStripeCheckoutSession(
+    id: string,
+    userId: string,
+    roles: string[],
+  ): Promise<{ sessionId: string; checkoutUrl: string }> {
+    const payment = await this.paymentsRepository.findPaymentById(id);
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const isOwner = payment.user?.id === userId;
+    const canAccess = this.hasElevatedRole(roles) || isOwner;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        'You are not allowed to open a checkout session for this payment',
+      );
+    }
+
+    if (payment.status === PaymentStatus.PAID) {
+      throw new ConflictException('This payment has already been completed');
+    }
+
+    if (
+      payment.status === PaymentStatus.REFUNDED ||
+      payment.status === PaymentStatus.CANCELLED
+    ) {
+      throw new ConflictException(
+        'This payment cannot be reopened in Stripe Checkout',
+      );
+    }
+
+    const stripeSession = await this.createStripeCheckoutSessionRecord(payment);
+
+    payment.provider = 'stripe';
+    payment.metadata = {
+      ...(payment.metadata ?? {}),
+      stripeCheckoutSessionId: stripeSession.id,
+    };
+
+    await this.paymentsRepository.savePayment(payment);
+
+    return {
+      sessionId: stripeSession.id,
+      checkoutUrl: stripeSession.url ?? '',
+    };
+  }
+
+  async syncStripeCheckoutSession(
+    id: string,
+    userId: string,
+    roles: string[],
+    sessionId: string,
+  ): Promise<PaymentResponseDto> {
+    const payment = await this.paymentsRepository.findPaymentById(id);
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const isOwner = payment.user?.id === userId;
+    const canAccess = this.hasElevatedRole(roles) || isOwner;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        'You are not allowed to sync this Stripe Checkout session',
+      );
+    }
+
+    const stripeSession = await this.fetchStripeCheckoutSession(sessionId);
+    this.assertStripeSessionMatchesPayment(stripeSession, payment);
+
+    const eventType = this.resolveStripeCheckoutSessionEventType(stripeSession);
+    if (!eventType) {
+      return this.toResponse(payment);
+    }
+
+    const normalizedEvent = this.normalizeWebhookEvent(
+      {
+        created:
+          stripeSession.created ?? Math.floor(Date.now() / 1000),
+        data: {
+          object: stripeSession as unknown as Record<string, unknown>,
+        },
+        id: stripeSession.id,
+        object: 'event',
+        type: eventType,
+      },
+      true,
+    );
+
+    this.applyWebhookEventToPayment(payment, normalizedEvent);
+
+    const savedPayment = await this.paymentsRepository.savePayment(payment);
+    await this.activateCourseAccessForPaidPayment(savedPayment);
+    await this.invoicesService.ensureInvoiceForPayment(
+      savedPayment.id,
+      savedPayment.user?.id,
+    );
+    await this.invoicesService.syncInvoiceFromPayment(savedPayment.id);
+    const hydratedPayment = await this.paymentsRepository.findPaymentById(
+      savedPayment.id,
+    );
+    return this.toResponse(hydratedPayment ?? savedPayment);
   }
 
   async updatePayment(
@@ -281,6 +422,69 @@ export class PaymentsService {
     return this.toResponse(saved);
   }
 
+  async confirmPayment(
+    id: string,
+    userId: string,
+    roles: string[],
+    dto: ConfirmPaymentDto,
+  ): Promise<PaymentResponseDto> {
+    const payment = await this.paymentsRepository.findPaymentById(id);
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const isOwner = payment.user?.id === userId;
+    const canConfirm = this.hasElevatedRole(roles) || isOwner;
+    if (!canConfirm) {
+      throw new ForbiddenException(
+        'You are not allowed to confirm this payment',
+      );
+    }
+
+    if (payment.status === PaymentStatus.PAID) {
+      return this.toResponse(payment);
+    }
+
+    if (payment.status === PaymentStatus.REFUNDED) {
+      throw new ConflictException('Refunded payments cannot be confirmed');
+    }
+
+    payment.status = PaymentStatus.PAID;
+    payment.provider = dto.provider?.trim() || payment.provider || 'SIMULATED_CARD';
+    payment.providerTransactionId =
+      payment.providerTransactionId ??
+      `TX-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    payment.paidAt = new Date();
+
+    if (payment.isSubscription) {
+      payment.subscriptionStatus = 'ACTIVE';
+      if (!payment.nextBillingAt) {
+        const nextBillingAt = new Date();
+        nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+        payment.nextBillingAt = nextBillingAt;
+      }
+    }
+
+    const savedPayment = await this.paymentsRepository.savePayment(payment);
+
+    if (savedPayment.course && savedPayment.user?.id) {
+      await this.coursesService.enrollCurrentUser(
+        savedPayment.course.id,
+        savedPayment.user.id,
+      );
+    }
+
+    await this.invoicesService.ensureInvoiceForPayment(
+      savedPayment.id,
+      savedPayment.user?.id,
+    );
+    await this.invoicesService.syncInvoiceFromPayment(savedPayment.id);
+    const hydratedPayment = await this.paymentsRepository.findPaymentById(
+      savedPayment.id,
+    );
+    return this.toResponse(hydratedPayment ?? savedPayment);
+  }
+
   async processProviderWebhook(
     dto: ProviderWebhookDto,
     signatureHeader?: string,
@@ -307,6 +511,7 @@ export class PaymentsService {
     this.applyWebhookEventToPayment(payment, normalizedEvent);
 
     const savedPayment = await this.paymentsRepository.savePayment(payment);
+    await this.activateCourseAccessForPaidPayment(savedPayment);
     await this.invoicesService.ensureInvoiceForPayment(
       savedPayment.id,
       savedPayment.user?.id,
@@ -326,6 +531,20 @@ export class PaymentsService {
 
   private generateReference(): string {
     return `PAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  }
+
+  private async activateCourseAccessForPaidPayment(
+    payment: PaymentEntity,
+  ): Promise<void> {
+    if (
+      payment.status !== PaymentStatus.PAID ||
+      !payment.course?.id ||
+      !payment.user?.id
+    ) {
+      return;
+    }
+
+    await this.coursesService.enrollCurrentUser(payment.course.id, payment.user.id);
   }
 
   private hasElevatedRole(roles: string[]): boolean {
@@ -956,6 +1175,293 @@ export class PaymentsService {
           .toUpperCase()
           .replace(/[^A-Z0-9]+/g, '_')
       : undefined;
+  }
+
+  private async createStripeCheckoutSessionRecord(
+    payment: PaymentEntity,
+  ): Promise<StripeCheckoutSessionRecord> {
+    const customerEmail = payment.user?.email?.trim();
+    if (!customerEmail) {
+      throw new BadRequestException(
+        'A valid customer email is required for Stripe Checkout',
+      );
+    }
+
+    const params = new URLSearchParams();
+    const mode = payment.isSubscription ? 'subscription' : 'payment';
+    const billingInterval = this.resolveStripeRecurringInterval(
+      payment.billingInterval,
+    );
+    const currency = payment.currency.toLowerCase();
+    const amount = this.toStripeAmount(payment.amount, payment.currency);
+
+    params.set('mode', mode);
+    params.set('allow_promotion_codes', 'true');
+    params.set(
+      'success_url',
+      this.buildStripeReturnUrl(payment, 'success', true),
+    );
+    params.set('cancel_url', this.buildStripeReturnUrl(payment, 'cancel'));
+    params.set('client_reference_id', payment.reference);
+    params.set('customer_email', customerEmail);
+    params.set('metadata[reference]', payment.reference);
+    params.set('metadata[paymentId]', payment.id);
+    params.set('metadata[checkoutType]', payment.isSubscription ? 'pack' : 'course');
+
+    if (payment.course?.id) {
+      params.set('metadata[courseId]', payment.course.id);
+      params.set('metadata[courseSlug]', payment.course.slug);
+    }
+
+    if (payment.subscriptionPlanCode) {
+      params.set('metadata[planCode]', payment.subscriptionPlanCode);
+    }
+
+    if (payment.billingInterval) {
+      params.set('metadata[billingInterval]', payment.billingInterval);
+    }
+
+    params.set('line_items[0][quantity]', '1');
+    params.set('line_items[0][price_data][currency]', currency);
+    params.set('line_items[0][price_data][unit_amount]', amount.toString());
+    params.set(
+      'line_items[0][price_data][product_data][name]',
+      this.buildStripeProductName(payment),
+    );
+
+    if (payment.description?.trim()) {
+      params.set(
+        'line_items[0][price_data][product_data][description]',
+        payment.description.trim(),
+      );
+    }
+
+    if (mode === 'subscription') {
+      params.set(
+        'line_items[0][price_data][recurring][interval]',
+        billingInterval.interval,
+      );
+      if (billingInterval.intervalCount > 1) {
+        params.set(
+          'line_items[0][price_data][recurring][interval_count]',
+          billingInterval.intervalCount.toString(),
+        );
+      }
+      params.set('subscription_data[metadata][reference]', payment.reference);
+      params.set('subscription_data[metadata][paymentId]', payment.id);
+      if (payment.subscriptionPlanCode) {
+        params.set(
+          'subscription_data[metadata][planCode]',
+          payment.subscriptionPlanCode,
+        );
+      }
+      if (payment.billingInterval) {
+        params.set(
+          'subscription_data[metadata][billingInterval]',
+          payment.billingInterval,
+        );
+      }
+    } else {
+      params.set('payment_intent_data[metadata][reference]', payment.reference);
+      params.set('payment_intent_data[metadata][paymentId]', payment.id);
+    }
+
+    const stripeSession = await this.requestStripeApi<StripeCheckoutSessionRecord>(
+      '/checkout/sessions',
+      {
+        body: params,
+        method: 'POST',
+      },
+    );
+
+    if (!stripeSession.url?.trim()) {
+      throw new BadRequestException(
+        'Stripe Checkout did not return a usable redirect URL',
+      );
+    }
+
+    return stripeSession;
+  }
+
+  private async fetchStripeCheckoutSession(
+    sessionId: string,
+  ): Promise<StripeCheckoutSessionRecord> {
+    if (!sessionId.trim()) {
+      throw new BadRequestException('Stripe session id is required');
+    }
+
+    return this.requestStripeApi<StripeCheckoutSessionRecord>(
+      `/checkout/sessions/${encodeURIComponent(sessionId)}`,
+      {
+        method: 'GET',
+      },
+    );
+  }
+
+  private async requestStripeApi<TResponse>(
+    path: string,
+    init: {
+      method: 'GET' | 'POST';
+      body?: URLSearchParams;
+    },
+  ): Promise<TResponse> {
+    const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+    if (!secretKey) {
+      throw new BadRequestException(
+        'Stripe is not configured. Set STRIPE_SECRET_KEY in the backend environment.',
+      );
+    }
+
+    const headers = new Headers({
+      Authorization: `Bearer ${secretKey}`,
+    });
+
+    if (init.body) {
+      headers.set('Content-Type', 'application/x-www-form-urlencoded');
+    }
+
+    const response = await fetch(`https://api.stripe.com/v1${path}`, {
+      body: init.body?.toString(),
+      headers,
+      method: init.method,
+    });
+
+    const payload = (await response.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+
+    if (!response.ok) {
+      const errorPayload =
+        payload &&
+        typeof payload.error === 'object' &&
+        payload.error !== null
+          ? (payload.error as Record<string, unknown>)
+          : null;
+      const message =
+        (typeof errorPayload?.message === 'string' &&
+          errorPayload.message.trim()) ||
+        'Stripe request failed';
+      throw new BadRequestException(message);
+    }
+
+    return payload as TResponse;
+  }
+
+  private buildStripeReturnUrl(
+    payment: PaymentEntity,
+    result: 'success' | 'cancel',
+    includeSessionPlaceholder = false,
+  ): string {
+    const frontendOrigin = (
+      process.env.FRONTEND_APP_ORIGIN?.trim() || 'http://localhost:3000'
+    ).replace(/\/+$/, '');
+    const params = new URLSearchParams();
+
+    if (payment.course?.slug) {
+      params.set('mode', 'course');
+      params.set('slug', payment.course.slug);
+    } else if (payment.isSubscription) {
+      params.set('mode', 'pack');
+      if (payment.subscriptionPlanCode) {
+        params.set('plan', payment.subscriptionPlanCode);
+      }
+    }
+
+    params.set('paymentId', payment.id);
+    params.set('result', result);
+
+    if (includeSessionPlaceholder) {
+      params.set('session_id', '{CHECKOUT_SESSION_ID}');
+    }
+
+    return `${frontendOrigin}/checkout?${params.toString()}`;
+  }
+
+  private buildStripeProductName(payment: PaymentEntity): string {
+    if (payment.course?.title) {
+      return payment.course.title;
+    }
+
+    if (payment.subscriptionPlanCode) {
+      return `Pack ${payment.subscriptionPlanCode}`;
+    }
+
+    return payment.description?.trim() || payment.reference;
+  }
+
+  private resolveStripeRecurringInterval(interval: string | undefined): {
+    interval: 'day' | 'week' | 'month' | 'year';
+    intervalCount: number;
+  } {
+    switch ((interval ?? 'MONTHLY').trim().toUpperCase()) {
+      case 'YEAR':
+      case 'YEARLY':
+        return { interval: 'year', intervalCount: 1 };
+      case 'QUARTER':
+      case 'QUARTERLY':
+        return { interval: 'month', intervalCount: 3 };
+      case 'MONTH':
+      case 'MONTHLY':
+      default:
+        return { interval: 'month', intervalCount: 1 };
+    }
+  }
+
+  private toStripeAmount(amount: string, currency: string): number {
+    const parsedAmount = Number.parseFloat(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+      throw new BadRequestException('Payment amount is invalid for Stripe');
+    }
+
+    const normalizedCurrency = currency.trim().toUpperCase();
+    if (ZERO_DECIMAL_STRIPE_CURRENCIES.has(normalizedCurrency)) {
+      return Math.round(parsedAmount);
+    }
+
+    return Math.round(parsedAmount * 100);
+  }
+
+  private assertStripeSessionMatchesPayment(
+    stripeSession: StripeCheckoutSessionRecord,
+    payment: PaymentEntity,
+  ): void {
+    const sessionPaymentId =
+      this.readStringFromObject(stripeSession.metadata, 'paymentId');
+    if (sessionPaymentId && sessionPaymentId === payment.id) {
+      return;
+    }
+
+    const referenceCandidates = this.compactUnique([
+      stripeSession.client_reference_id,
+      this.readStringFromObject(stripeSession.metadata, 'reference'),
+      this.readStringFromObject(stripeSession.metadata, 'paymentReference'),
+      this.readStringFromObject(stripeSession.metadata, 'payment_reference'),
+    ]);
+
+    if (referenceCandidates.includes(payment.reference)) {
+      return;
+    }
+
+    throw new ForbiddenException(
+      'This Stripe Checkout session does not belong to the requested payment',
+    );
+  }
+
+  private resolveStripeCheckoutSessionEventType(
+    stripeSession: StripeCheckoutSessionRecord,
+  ): string | null {
+    if (
+      stripeSession.status === 'complete' ||
+      stripeSession.payment_status === 'paid'
+    ) {
+      return 'checkout.session.completed';
+    }
+
+    if (stripeSession.status === 'expired') {
+      return 'checkout.session.expired';
+    }
+
+    return null;
   }
 
   private compactUnique(values: Array<string | undefined>): string[] {

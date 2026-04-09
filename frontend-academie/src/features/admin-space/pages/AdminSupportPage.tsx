@@ -1,7 +1,119 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  fetchAdminSupportTickets,
+  updateAdminSupportTicketStatus,
+} from "../admin-space.client";
+import type { AdminWorkspaceSupportTicketRecord } from "../admin-space.types";
 import styles from "../admin-space.module.css";
 import { AdminShell } from "../components/AdminShell";
 
+type TicketDraft = {
+  status: string;
+  resolution: string;
+};
+
+function formatDate(value: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function AdminSupportPage() {
+  const [tickets, setTickets] = useState<AdminWorkspaceSupportTicketRecord[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, TicketDraft>>({});
+  const [savingTicketId, setSavingTicketId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadTickets() {
+      setLoading(true);
+
+      try {
+        const nextTickets = await fetchAdminSupportTickets();
+        if (!isActive) {
+          return;
+        }
+
+        setTickets(nextTickets);
+        setDrafts(
+          Object.fromEntries(
+            nextTickets.map((ticket) => [
+              ticket.id,
+              { resolution: ticket.resolution ?? "", status: ticket.status },
+            ]),
+          ),
+        );
+        setErrorMessage(null);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : "Impossible de charger les tickets support.",
+        );
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadTickets();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const metrics = useMemo(() => {
+    return {
+      critical: tickets.filter((ticket) => ticket.status === "OPEN").length,
+      inProgress: tickets.filter((ticket) => ticket.status === "IN_PROGRESS").length,
+      resolved: tickets.filter(
+        (ticket) => ticket.status === "RESOLVED" || ticket.status === "CLOSED",
+      ).length,
+      total: tickets.length,
+    };
+  }, [tickets]);
+
+  async function handleSave(ticket: AdminWorkspaceSupportTicketRecord) {
+    const draft = drafts[ticket.id];
+    if (!draft) {
+      return;
+    }
+
+    setSavingTicketId(ticket.id);
+    try {
+      const updatedTicket = await updateAdminSupportTicketStatus(
+        ticket.id,
+        draft.status,
+        draft.resolution,
+      );
+
+      setTickets((current) =>
+        current.map((item) => (item.id === ticket.id ? updatedTicket : item)),
+      );
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de mettre a jour le ticket.",
+      );
+    } finally {
+      setSavingTicketId(null);
+    }
+  }
+
   return (
     <AdminShell activePath="/admin/support" title="Support Management">
       <section className={styles.heroRow}>
@@ -9,40 +121,32 @@ export function AdminSupportPage() {
           <p className={styles.pageEyebrow}>Support operations</p>
           <h1 className={styles.heroTitle}>Support Command Center</h1>
           <p className={styles.heroSub}>
-            Supervisez la file de tickets, la qualite de service et les parcours de resolution
-            depuis un seul poste de pilotage.
+            File reelle des tickets support avec suivi de statut et resolution.
           </p>
-        </div>
-        <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            Knowledge Base
-          </button>
-          <button type="button" className={styles.primaryBtn}>
-            Escalate Incident
-          </button>
+          {errorMessage ? <p className={`${styles.heroSub} ${styles.messageError}`}>{errorMessage}</p> : null}
         </div>
       </section>
 
       <section className={styles.commandSummaryGrid}>
         <article className={styles.commandMetricCard}>
-          <span>CSAT</span>
-          <strong>4.82</strong>
-          <p>1,204 reviews on the last 30 days with a stable upward trend.</p>
+          <span>Tickets</span>
+          <strong>{loading ? "..." : metrics.total}</strong>
+          <p>Volume total de la file de support actuellement chargee.</p>
         </article>
         <article className={styles.commandMetricCard}>
-          <span>Live queue</span>
-          <strong>14</strong>
-          <p>3 tickets are waiting and 11 are actively being processed now.</p>
+          <span>Ouverts</span>
+          <strong>{loading ? "..." : metrics.critical}</strong>
+          <p>Demandes encore sans resolution complete.</p>
         </article>
         <article className={styles.commandMetricCard}>
-          <span>Knowledge views</span>
-          <strong>42.8k</strong>
-          <p>Self-service deflection is up 22.4% thanks to the new article flows.</p>
+          <span>En cours</span>
+          <strong>{loading ? "..." : metrics.inProgress}</strong>
+          <p>Tickets en traitement actif par l equipe support.</p>
         </article>
         <article className={styles.commandMetricCard}>
-          <span>Critical tickets</span>
-          <strong>12</strong>
-          <p>4 require platform coordination and 2 need executive visibility.</p>
+          <span>Resolus</span>
+          <strong>{loading ? "..." : metrics.resolved}</strong>
+          <p>Historique recent des cas deja traites ou clotures.</p>
         </article>
       </section>
 
@@ -51,21 +155,8 @@ export function AdminSupportPage() {
           <div className={styles.ticketOpsHeader}>
             <div>
               <span className={styles.ticketOpsPill}>Live triage board</span>
-              <h2>Active tickets by urgency and assignee</h2>
-              <p>
-                Watch response times, rebalance ownership and keep the escalation path visible for
-                the most sensitive cases.
-              </p>
-            </div>
-            <div className={styles.ticketStatusStrip}>
-              <div>
-                <strong>12m</strong>
-                <span>fastest first reply</span>
-              </div>
-              <div>
-                <strong>96.4%</strong>
-                <span>SLA compliance</span>
-              </div>
+              <h2>Tickets actifs et priorites de resolution</h2>
+              <p>Chaque ligne peut etre mise a jour directement depuis cette vue admin.</p>
             </div>
           </div>
 
@@ -74,47 +165,84 @@ export function AdminSupportPage() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Ticket ID</th>
-                    <th>Issue</th>
-                    <th>Priority</th>
+                    <th>Ticket</th>
+                    <th>Demandeur</th>
+                    <th>Categorie</th>
                     <th>Status</th>
-                    <th>Assigned To</th>
-                    <th>Response</th>
+                    <th>Resolution</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>#ARC-2094</td>
-                    <td>SSO Login Failure</td>
-                    <td>Urgent</td>
-                    <td>In Progress</td>
-                    <td>Marc S.</td>
-                    <td>12m</td>
-                  </tr>
-                  <tr>
-                    <td>#ARC-2088</td>
-                    <td>Refund request</td>
-                    <td>Medium</td>
-                    <td>Open</td>
-                    <td>Elena R.</td>
-                    <td>2h</td>
-                  </tr>
-                  <tr>
-                    <td>#ARC-2075</td>
-                    <td>Video stuttering</td>
-                    <td>Low</td>
-                    <td>On Hold</td>
-                    <td>Unassigned</td>
-                    <td>6h</td>
-                  </tr>
-                  <tr>
-                    <td>#ARC-2068</td>
-                    <td>Mentor review not visible</td>
-                    <td>High</td>
-                    <td>Escalated</td>
-                    <td>Ops Team</td>
-                    <td>28m</td>
-                  </tr>
+                  {tickets.map((ticket) => {
+                    const draft = drafts[ticket.id] ?? {
+                      resolution: ticket.resolution ?? "",
+                      status: ticket.status,
+                    };
+
+                    return (
+                      <tr key={ticket.id}>
+                        <td>
+                          <strong>{ticket.subject}</strong>
+                          <p className={styles.tableMeta}>
+                            Cree le {formatDate(ticket.createdAt)}
+                          </p>
+                        </td>
+                        <td>
+                          {ticket.userName}
+                          <p className={styles.tableMeta}>
+                            {ticket.userEmail}
+                          </p>
+                        </td>
+                        <td>{ticket.category}</td>
+                        <td>
+                          <select
+                            className={styles.settingsInput}
+                            value={draft.status}
+                            onChange={(event) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [ticket.id]: { ...draft, status: event.target.value },
+                              }))
+                            }
+                          >
+                            <option value="OPEN">OPEN</option>
+                            <option value="IN_PROGRESS">IN_PROGRESS</option>
+                            <option value="RESOLVED">RESOLVED</option>
+                            <option value="CLOSED">CLOSED</option>
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            className={styles.settingsInput}
+                            placeholder="Resolution ou note interne"
+                            value={draft.resolution}
+                            onChange={(event) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [ticket.id]: { ...draft, resolution: event.target.value },
+                              }))
+                            }
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.ghostBtn}
+                            disabled={savingTicketId === ticket.id}
+                            onClick={() => void handleSave(ticket)}
+                          >
+                            {savingTicketId === ticket.id ? "Saving..." : "Save"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!loading && tickets.length === 0 ? (
+                    <tr>
+                      <td colSpan={6}>Aucun ticket support disponible.</td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
@@ -123,35 +251,16 @@ export function AdminSupportPage() {
 
         <aside className={styles.ticketQueue}>
           <article className={styles.ticketQueueCard}>
-            <span className={styles.ticketOpsPill}>Escalation lane</span>
-            <h3>Cases that need immediate attention</h3>
+            <span className={styles.ticketOpsPill}>Resolution lane</span>
+            <h3>Points de focus</h3>
             <div className={styles.ticketQueueMeta}>
               <div>
-                <strong>Billing outage</strong>
-                <span>7 affected accounts · 18m ago</span>
+                <strong>{metrics.critical} ticket(s) ouverts</strong>
+                <span>Priorite aux demandes non encore prises en charge.</span>
               </div>
               <div>
-                <strong>SSO degradation</strong>
-                <span>Authentication team engaged · 24m ago</span>
-              </div>
-              <div>
-                <strong>Content CDN lag</strong>
-                <span>Video streaming variance detected · 39m ago</span>
-              </div>
-            </div>
-          </article>
-
-          <article className={styles.ticketQueueCard}>
-            <span className={styles.ticketOpsPill}>Playbooks</span>
-            <h3>Response templates currently recommended</h3>
-            <div className={styles.ticketQueueMeta}>
-              <div>
-                <strong>Critical login issue</strong>
-                <span>Use the security verification flow before reset.</span>
-              </div>
-              <div>
-                <strong>Refund + billing complaint</strong>
-                <span>Route through finance with premium retention note.</span>
+                <strong>{metrics.inProgress} ticket(s) en cours</strong>
+                <span>Verification des resolutions avant cloture.</span>
               </div>
             </div>
           </article>

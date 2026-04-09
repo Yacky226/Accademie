@@ -136,6 +136,12 @@
   box-shadow: 0 16px 28px rgba(0, 74, 198, 0.26);
 }
 
+.brandMark svg {
+  width: 58%;
+  height: 58%;
+  flex-shrink: 0;
+}
+
 .brandCopy {
   display: grid;
   gap: 3px;

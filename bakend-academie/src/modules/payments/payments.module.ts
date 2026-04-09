@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CourseEntity } from '../courses/entities/course.entity';
+import { CoursesModule } from '../courses/courses.module';
 import { InvoicesModule } from '../invoices/invoices.module';
 import { UserEntity } from '../users/entities/user.entity';
 import { PaymentEntity } from './entities/payment.entity';
@@ -10,6 +11,7 @@ import { PaymentsRepository } from './repositories/payments.repository';
 
 @Module({
   imports: [
+    CoursesModule,
     InvoicesModule,
     TypeOrmModule.forFeature([PaymentEntity, UserEntity, CourseEntity]),
   ],

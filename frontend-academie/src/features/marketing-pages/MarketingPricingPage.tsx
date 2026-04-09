@@ -21,8 +21,8 @@ export function MarketingPricingPage() {
                 progression suivie, mentorat et espace etudiant une fois connecte.
               </p>
               <div className={styles.heroActions}>
-                <Link className={styles.primaryLink} href="/auth/register">
-                  Commencer
+                <Link className={styles.primaryLink} href="/checkout?mode=pack&plan=PRO">
+                  Souscrire au pack Pro
                 </Link>
                 <Link className={styles.secondaryLink} href="/contact">
                   Parler a l equipe

@@ -17,6 +17,7 @@
     var(--pay-bg);
   color: var(--pay-text);
   font-family: "Inter", "Segoe UI", sans-serif;
+  overflow-x: clip;
 }
 
 .topbar {
@@ -50,7 +51,7 @@
 }
 
 .shell {
-  max-width: 1180px;
+  width: min(1180px, calc(100vw - 24px));
   margin: 0 auto;
   padding: 1.2rem 1rem 2.4rem;
   display: grid;
@@ -173,6 +174,63 @@
 .form {
   display: grid;
   gap: 12px;
+}
+
+.messageError,
+.messageInfo,
+.messageSuccess {
+  margin: 12px 0 0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+}
+
+.messageError {
+  background: #fff0f0;
+  border: 1px solid #f0c5c5;
+  color: #9f1d1d;
+}
+
+.messageInfo {
+  background: #edf5ff;
+  border: 1px solid #d7e6ff;
+  color: #1c4a8a;
+}
+
+.messageSuccess {
+  background: #eefaf1;
+  border: 1px solid #cce9d2;
+  color: #116337;
+}
+
+.hostedNotice {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #d7e6ff;
+  background: linear-gradient(180deg, #f6f9ff 0%, #eef4ff 100%);
+}
+
+.hostedTitle,
+.hostedText {
+  margin: 0;
+}
+
+.hostedTitle {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #16345f;
+}
+
+.hostedText {
+  color: #4f6180;
+  font-size: 0.85rem;
+}
+
+.checkoutActions {
+  display: grid;
+  gap: 10px;
 }
 
 .field {
@@ -494,5 +552,53 @@
 
   .brand {
     font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    height: auto;
+    padding: 12px;
+    gap: 10px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shell {
+    width: min(1180px, calc(100vw - 20px));
+    padding: 1rem 0 2rem;
+  }
+
+  .trustBanner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .summaryRow,
+  .total,
+  .promoField {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summaryAmount {
+    font-size: 0.92rem;
+  }
+
+  .promoField,
+  .promoField input,
+  .promoField button,
+  .expressBtn,
+  .expressBtnLight,
+  .payButton {
+    width: 100%;
+  }
+
+  .summaryBody {
+    padding: 14px;
+  }
+
+  .coverTitle {
+    font-size: 1rem;
   }
 }

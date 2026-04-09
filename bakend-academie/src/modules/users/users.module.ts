@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { StorageModule } from '../../integrations/storage';
 import { PasswordHashService } from '../auth/services/password-hash.service';
 import { RefreshTokenEntity } from './entities/refresh-token.entity';
 import { RoleEntity } from './entities/role.entity';
@@ -12,6 +13,7 @@ import { UsersService } from './users.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity, RoleEntity, RefreshTokenEntity]),
+    StorageModule,
   ],
   controllers: [UsersController],
   providers: [

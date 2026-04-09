@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
+import { buildSocialAuthAuthorizationUrl } from "../api/auth-api.client";
 import { getDashboardPathForRole } from "@/core/router/route-access-control";
 import { clearAuthFeedback, registerThunk } from "./auth.slice";
 import { useCurrentAuthSession } from "./useCurrentAuthSession";
-import type { RegisterFormValues } from "./auth.types";
+import type { AuthSocialProvider, RegisterFormValues } from "./auth.types";
 
 type PasswordStrength = {
   activeBars: number;
@@ -96,6 +97,12 @@ export function useRegisterFormController() {
   const isSubmitting = pendingAction === "register";
   const passwordStrength = evaluatePasswordStrength(values.password);
 
+  function resolvePostRegistrationRedirect() {
+    return values.role === "student"
+      ? "/onboarding/step-1"
+      : getDashboardPathForRole(values.role);
+  }
+
   function updateField<Key extends keyof RegisterFormValues>(
     field: Key,
     value: RegisterFormValues[Key],
@@ -150,11 +157,27 @@ export function useRegisterFormController() {
     }
   }
 
+  function startSocialAuth(provider: AuthSocialProvider) {
+    if (!values.acceptTerms) {
+      setValidationMessage("You need to accept the platform terms before continuing with Google or GitHub.");
+      return;
+    }
+
+    const authorizationUrl = buildSocialAuthAuthorizationUrl(provider, {
+      mode: "register",
+      redirect: resolvePostRegistrationRedirect(),
+      role: values.role,
+    });
+
+    window.location.assign(authorizationUrl);
+  }
+
   return {
     errorMessage: validationMessage ?? errorMessage,
     handleSubmit,
     isSubmitting,
     passwordStrength,
+    startSocialAuth,
     updateField,
     values,
   };

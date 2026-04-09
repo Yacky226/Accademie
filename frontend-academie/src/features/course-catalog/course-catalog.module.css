@@ -17,6 +17,7 @@
   min-height: 100vh;
   background: var(--catalog-bg);
   color: var(--catalog-text);
+  overflow-x: clip;
 }
 
 .topNav {
@@ -189,6 +190,146 @@
   margin-bottom: 48px;
 }
 
+.detailStack {
+  display: grid;
+  gap: 24px;
+}
+
+.detailHero {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
+  align-items: start;
+}
+
+.detailPrimaryCard,
+.detailAsideCard,
+.detailProgramSection,
+.detailProgramCard {
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #d5e3fc;
+  box-shadow: 0 20px 40px rgba(13, 28, 46, 0.08);
+}
+
+.detailPrimaryCard {
+  overflow: hidden;
+}
+
+.detailHeroImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.detailHeroPlaceholder {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #dbe7ff, #eef4ff);
+}
+
+.detailBody,
+.detailAsideCard,
+.detailProgramSection {
+  padding: 24px;
+}
+
+.detailBody {
+  display: grid;
+  gap: 14px;
+}
+
+.detailAsideCard {
+  display: grid;
+  gap: 16px;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.detailLead {
+  color: #434655;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.detailMetaRow {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.detailAsideTitle {
+  margin: 10px 0 0;
+  font-size: 1.4rem;
+}
+
+.detailAsideCopy {
+  color: #434655;
+  margin-top: 8px;
+}
+
+.detailActionLink,
+.detailActionSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+}
+
+.detailActionLink {
+  background: var(--catalog-primary);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(0, 74, 198, 0.18);
+}
+
+.detailActionSecondary {
+  background: var(--catalog-surface-low);
+  color: var(--catalog-primary);
+  border: 1px solid rgba(195, 198, 215, 0.5);
+}
+
+.detailProgramTitle {
+  margin-top: 0;
+}
+
+.detailProgramList {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.detailProgramCard {
+  padding: 18px;
+  box-shadow: none;
+}
+
+.detailProgramHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detailProgramCopy {
+  color: #434655;
+  margin-top: 8px;
+}
+
+.detailLessonList {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
 .pageEyebrow {
   display: inline-flex;
   margin-bottom: 10px;
@@ -239,6 +380,17 @@
   margin-top: 24px;
 }
 
+.statusNoticeError {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(186, 26, 26, 0.16);
+  background: rgba(255, 239, 239, 0.95);
+  color: #9c221c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .contentSearchShell {
   display: inline-flex;
   align-items: center;
@@ -273,6 +425,9 @@
 
 .categoryFilter,
 .categoryFilterActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 18px;
   border-radius: 999px;
   font-size: 0.9rem;
@@ -459,6 +614,11 @@
   padding: 24px;
 }
 
+.cardDescription {
+  margin-top: 12px;
+  color: #434655;
+}
+
 .cardHeading {
   display: flex;
   align-items: flex-start;
@@ -574,11 +734,11 @@
 }
 
 .emptyState {
-  grid-column: 1 / -1;
   padding: 32px;
   border: 1px dashed var(--catalog-outline-soft);
   border-radius: 18px;
   background: var(--catalog-surface);
+  max-width: 760px;
 }
 
 .emptyState h2 {
@@ -589,6 +749,18 @@
 .emptyState p {
   margin-top: 8px;
   color: var(--catalog-muted);
+}
+
+.emptyStateWrap {
+  display: flex;
+  align-items: flex-start;
+}
+
+.emptyStateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .pagination {
@@ -722,6 +894,14 @@
   .footerLinks {
     justify-content: flex-start;
   }
+
+  .detailHero {
+    grid-template-columns: 1fr;
+  }
+
+  .detailAsideCard {
+    max-width: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -733,6 +913,10 @@
 
   .headingRow {
     flex-direction: column;
+  }
+
+  .headingSection {
+    margin-bottom: 32px;
   }
 
   .catalogCount {
@@ -751,6 +935,61 @@
 
   .cardMeta {
     justify-items: start;
+  }
+
+  .detailBody,
+  .detailAsideCard,
+  .detailProgramSection {
+    padding: 18px;
+  }
+
+  .detailProgramCard {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pageTitle {
+    font-size: clamp(1.8rem, 9vw, 2.4rem);
+  }
+
+  .categoryFilters {
+    gap: 10px;
+  }
+
+  .categoryFilter,
+  .categoryFilterActive {
+    width: 100%;
+  }
+
+  .detailMetaRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .detailProgramHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .footerNote,
+  .footerLinks a {
+    font-size: 0.88rem;
+  }
+
+  .emptyState {
+    padding: 24px 18px;
+  }
+
+  .emptyStateActions > * {
+    width: 100%;
   }
 }
 

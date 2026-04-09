@@ -13,6 +13,7 @@
 .page {
   background: var(--home-bg);
   color: var(--home-text);
+  overflow-x: clip;
 }
 
 @keyframes homeFadeUp {
@@ -46,7 +47,7 @@
 }
 
 .container {
-  width: min(1120px, 92vw);
+  width: min(1120px, calc(100vw - 32px));
   margin-inline: auto;
 }
 
@@ -87,6 +88,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -129,6 +131,12 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   box-shadow: 0 10px 20px rgba(0, 74, 198, 0.24);
+}
+
+.brandMark svg {
+  width: 58%;
+  height: 58%;
+  flex-shrink: 0;
 }
 
 .brandCopy {
@@ -211,21 +219,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.statusChip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(195, 198, 215, 0.38);
-  color: #49607f;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .navLoginButton,
@@ -501,6 +495,10 @@
   align-items: center;
 }
 
+.heroGrid > * {
+  min-width: 0;
+}
+
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -641,6 +639,7 @@
   grid-template-columns: 1.15fr 0.85fr;
   gap: 16px;
   min-height: 460px;
+  min-width: 0;
   animation: homeFadeUp 0.76s ease both;
   animation-delay: 0.2s;
 }
@@ -649,6 +648,7 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
+  min-height: 100%;
   box-shadow: 0 28px 48px rgba(13, 28, 46, 0.1);
 }
 
@@ -1278,6 +1278,10 @@
   align-items: start;
 }
 
+.footerGrid > * {
+  min-width: 0;
+}
+
 .footerLead {
   max-width: 380px;
 }
@@ -1338,6 +1342,11 @@
 }
 
 @media (max-width: 1080px) {
+  .hero {
+    min-height: auto;
+    padding: 44px 0 56px;
+  }
+
   .heroGrid {
     grid-template-columns: 1fr;
   }
@@ -1357,10 +1366,25 @@
   }
 }
 
+@media (max-width: 920px) {
+  .heroVisual {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .visualStack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+
+  .visualPhoto {
+    min-height: 360px;
+  }
+}
+
 @media (max-width: 820px) {
   .navLinks,
   .navSurface,
-  .statusChip,
   .navNotification,
   .avatarLink,
   .navLoginButton,
@@ -1371,6 +1395,10 @@
   .topNavInner {
     gap: 8px;
     min-height: 64px;
+  }
+
+  .main {
+    padding-top: 64px;
   }
 
   .brand {
@@ -1399,6 +1427,27 @@
     justify-content: center;
   }
 
+  .mobileMenuBody > * {
+    width: 100%;
+  }
+
+  .hero {
+    padding: 32px 0 44px;
+  }
+
+  .heroTitle {
+    margin-top: 18px;
+  }
+
+  .heroLead {
+    font-size: 1rem;
+    line-height: 1.66;
+  }
+
+  .ctaRow > * {
+    flex: 1 1 220px;
+  }
+
   .sectionHeader {
     align-items: start;
     flex-direction: column;
@@ -1414,7 +1463,195 @@
     grid-template-columns: 1fr;
   }
 
+  .heroVisual {
+    grid-template-columns: 1fr;
+  }
+
+  .visualStack {
+    grid-template-columns: 1fr;
+  }
+
+  .visualPhoto {
+    min-height: 320px;
+  }
+
+  .visualTop,
+  .visualBottom {
+    padding: 18px;
+  }
+
+  .floatingReviewCard {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    padding: 14px 16px;
+  }
+
+  .proof,
+  .featured,
+  .pricing,
+  .ctaSection {
+    padding: 64px 0;
+  }
+
+  .sectionHeader {
+    margin-bottom: 34px;
+  }
+
+  .footer {
+    padding: 34px 0;
+  }
+
   .planCardHighlighted {
     transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(1120px, calc(100vw - 24px));
+  }
+
+  .hero {
+    padding: 24px 0 36px;
+  }
+
+  .eyebrow {
+    font-size: 0.64rem;
+    padding: 6px 10px;
+  }
+
+  .heroTitle {
+    font-size: clamp(2rem, 9.5vw, 3rem);
+    line-height: 1.02;
+  }
+
+  .heroLead {
+    margin-top: 16px;
+    font-size: 0.96rem;
+    line-height: 1.62;
+  }
+
+  .ctaRow {
+    gap: 10px;
+  }
+
+  .ctaRow > * {
+    width: 100%;
+  }
+
+  .buttonPrimary,
+  .buttonSecondary,
+  .planButton,
+  .ctaButton,
+  .mobileLink,
+  .mobileActionGhost,
+  .mobileActionPrimary {
+    width: 100%;
+  }
+
+  .heroMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .heroMetricCard {
+    padding: 14px;
+  }
+
+  .visualPhoto {
+    min-height: 260px;
+  }
+
+  .visualTop,
+  .visualBottom {
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .visualHeadline {
+    font-size: 1.24rem;
+  }
+
+  .visualBottomHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .floatingReviewCard {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    border-radius: 16px;
+    padding: 12px 14px;
+  }
+
+  .floatingReviewCard strong {
+    font-size: 0.94rem;
+  }
+
+  .floatingReviewCard p {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .sectionHeader h2 {
+    font-size: clamp(1.6rem, 7.5vw, 2.1rem);
+  }
+
+  .courseCard {
+    padding: 8px;
+  }
+
+  .planCard {
+    padding: 20px;
+  }
+
+  .ctaBox {
+    border-radius: 24px;
+    padding: 40px 18px;
+  }
+
+  .ctaButton {
+    border-radius: 14px;
+  }
+
+  .proofLogo {
+    font-size: 1.18rem;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .footerNote,
+  .footerMeta,
+  .footerLinks a {
+    font-size: 0.88rem;
+  }
+
+  .heroBlur,
+  .heroBlurSecondary {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand {
+    padding: 8px;
+  }
+
+  .brandCopy strong {
+    font-size: 0.86rem;
+  }
+
+  .brandCopy small {
+    display: none;
+  }
+
+  .mobileToggle {
+    min-height: 34px;
+    padding: 0 10px;
   }
 }

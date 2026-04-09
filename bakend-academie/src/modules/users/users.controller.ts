@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,13 +9,23 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
+import { diskStorage } from 'multer';
 import { CurrentUser } from '../../core/decorators/current-user.decorator';
 import { Permissions } from '../../core/decorators/permissions.decorator';
 import { Roles } from '../../core/decorators/roles.decorator';
 import { USER_PERMISSIONS } from '../../core/constants';
 import { UserRole } from '../../core/enums';
+import {
+  AVATAR_UPLOADS_DIRECTORY_PATH,
+  ensureStorageDirectories,
+} from '../../integrations/storage';
 import { AssignRolesDto } from './dto/assign-roles.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ExportUserDataResponseDto } from './dto/export-user-data-response.dto';
@@ -24,6 +35,36 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UserEntity } from './entities/user.entity';
 import { UserSelfOrAdminGuard } from './guards/user-self-or-admin.guard';
 import { UsersService } from './users.service';
+
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
+
+interface UploadedAvatarFile {
+  filename: string;
+  mimetype: string;
+  originalname: string;
+}
+
+function resolveAvatarExtension(file: UploadedAvatarFile) {
+  const originalExtension = extname(file.originalname).toLowerCase();
+
+  if (originalExtension) {
+    return originalExtension;
+  }
+
+  if (file.mimetype === 'image/png') {
+    return '.png';
+  }
+
+  if (file.mimetype === 'image/webp') {
+    return '.webp';
+  }
+
+  if (file.mimetype === 'image/gif') {
+    return '.gif';
+  }
+
+  return '.jpg';
+}
 
 @Controller('users')
 export class UsersController {
@@ -57,6 +98,49 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     const user = await this.usersService.updateUser(userId, dto);
+    return this.toResponse(user);
+  }
+
+  @Post('me/avatar')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (_request, _file, callback) => {
+          ensureStorageDirectories();
+          callback(null, AVATAR_UPLOADS_DIRECTORY_PATH);
+        },
+        filename: (_request, file: UploadedAvatarFile, callback) => {
+          callback(
+            null,
+            `${Date.now()}-${randomUUID()}${resolveAvatarExtension(file)}`,
+          );
+        },
+      }),
+      fileFilter: (_request, file: UploadedAvatarFile, callback) => {
+        if (!file.mimetype.startsWith('image/')) {
+          callback(
+            new BadRequestException('Only image files can be uploaded.'),
+            false,
+          );
+          return;
+        }
+
+        callback(null, true);
+      },
+      limits: {
+        fileSize: MAX_AVATAR_SIZE_BYTES,
+      },
+    }),
+  )
+  async uploadMyAvatar(
+    @CurrentUser('sub') userId: string,
+    @UploadedFile() file?: UploadedAvatarFile,
+  ): Promise<UserResponseDto> {
+    if (!file?.filename) {
+      throw new BadRequestException('A profile image file is required.');
+    }
+
+    const user = await this.usersService.updateUserAvatar(userId, file.filename);
     return this.toResponse(user);
   }
 
@@ -124,6 +208,8 @@ export class UsersController {
       dateOfBirth: user.dateOfBirth,
       country: user.country,
       city: user.city,
+      onboardingProfile: user.onboardingProfile,
+      onboardingCompletedAt: user.onboardingCompletedAt,
       emailVerified: user.emailVerified,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,

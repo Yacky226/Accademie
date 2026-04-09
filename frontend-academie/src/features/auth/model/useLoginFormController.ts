@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
+import { buildSocialAuthAuthorizationUrl } from "../api/auth-api.client";
 import {
   getDashboardPathForRole,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
 import { clearAuthFeedback, loginThunk } from "./auth.slice";
 import { useCurrentAuthSession } from "./useCurrentAuthSession";
-import type { LoginFormValues } from "./auth.types";
+import type { AuthSocialProvider, LoginFormValues } from "./auth.types";
 
 const initialValues: LoginFormValues = {
   email: "",
@@ -25,6 +26,16 @@ export function useLoginFormController() {
   const [values, setValues] = useState<LoginFormValues>(initialValues);
 
   const isSubmitting = pendingAction === "login";
+
+  function getRequestedRedirectTarget() {
+    const candidate = searchParams.get("redirect");
+
+    if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
+      return null;
+    }
+
+    return candidate;
+  }
 
   function updateField<Key extends keyof LoginFormValues>(
     field: Key,
@@ -67,10 +78,20 @@ export function useLoginFormController() {
     }
   }
 
+  function startSocialAuth(provider: AuthSocialProvider) {
+    const authorizationUrl = buildSocialAuthAuthorizationUrl(provider, {
+      mode: "login",
+      redirect: getRequestedRedirectTarget(),
+    });
+
+    window.location.assign(authorizationUrl);
+  }
+
   return {
     errorMessage,
     handleSubmit,
     isSubmitting,
+    startSocialAuth,
     updateField,
     values,
   };

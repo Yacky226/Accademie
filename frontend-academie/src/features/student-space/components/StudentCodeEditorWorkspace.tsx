@@ -571,7 +571,9 @@ export function StudentCodeEditorWorkspace() {
             languages instantly and iterate against a live console before
             submission.
           </p>
-          {editorErrorMessage ? <p>{editorErrorMessage}</p> : null}
+          {editorErrorMessage ? (
+            <p className={`${styles.heroSub} ${styles.messageError}`}>{editorErrorMessage}</p>
+          ) : null}
         </div>
 
         <div className={styles.codeStudioTopbarActions}>

@@ -32,10 +32,12 @@ export class EvaluationsController {
 
   @Permissions(EVALUATION_PERMISSIONS.EVALUATIONS_READ)
   @Get()
-  async listEvaluations(): Promise<EvaluationResponseDto[]> {
+  async listEvaluations(
+    @CurrentUser('roles') roles: string[],
+  ): Promise<EvaluationResponseDto[]> {
     const evaluations = await this.evaluationsService.listEvaluations();
     return evaluations.map((evaluation) =>
-      this.toEvaluationResponse(evaluation),
+      this.toEvaluationResponse(evaluation, this.canReadCorrectAnswers(roles)),
     );
   }
 
@@ -52,9 +54,13 @@ export class EvaluationsController {
   @Get(':id')
   async getEvaluationById(
     @Param('id') id: string,
+    @CurrentUser('roles') roles: string[],
   ): Promise<EvaluationResponseDto> {
     const evaluation = await this.evaluationsService.getEvaluationById(id);
-    return this.toEvaluationResponse(evaluation);
+    return this.toEvaluationResponse(
+      evaluation,
+      this.canReadCorrectAnswers(roles),
+    );
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -68,7 +74,7 @@ export class EvaluationsController {
       dto,
       creatorId,
     );
-    return this.toEvaluationResponse(evaluation);
+    return this.toEvaluationResponse(evaluation, true);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -79,7 +85,7 @@ export class EvaluationsController {
     @Body() dto: UpdateEvaluationDto,
   ): Promise<EvaluationResponseDto> {
     const evaluation = await this.evaluationsService.updateEvaluation(id, dto);
-    return this.toEvaluationResponse(evaluation);
+    return this.toEvaluationResponse(evaluation, true);
   }
 
   @Roles(UserRole.ADMIN)
@@ -169,6 +175,7 @@ export class EvaluationsController {
 
   private toEvaluationResponse(
     evaluation: EvaluationEntity,
+    includeCorrectAnswers = false,
   ): EvaluationResponseDto {
     return {
       id: evaluation.id,
@@ -201,6 +208,9 @@ export class EvaluationsController {
         statement: question.statement,
         questionType: question.questionType,
         options: question.options,
+        correctAnswer: includeCorrectAnswers
+          ? question.correctAnswer
+          : undefined,
         points: question.points,
         position: question.position,
       })),
@@ -208,6 +218,12 @@ export class EvaluationsController {
       createdAt: evaluation.createdAt,
       updatedAt: evaluation.updatedAt,
     };
+  }
+
+  private canReadCorrectAnswers(roles: string[] | undefined): boolean {
+    return (roles ?? []).some(
+      (role) => role === UserRole.ADMIN || role === UserRole.TEACHER,
+    );
   }
 
   private toAttemptResponse(

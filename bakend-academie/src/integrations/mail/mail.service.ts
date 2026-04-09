@@ -20,6 +20,14 @@ interface SendPasswordResetEmailInput {
   to: string;
 }
 
+interface SendContactRequestNotificationInput {
+  fullName: string;
+  message: string;
+  replyTo: string;
+  subject: string;
+  to: string;
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, '&amp;')
@@ -126,6 +134,43 @@ export class MailService {
           <p>If the button does not work, open this link:</p>
           <p><a href="${safeUrl}">${safeUrl}</a></p>
           <p>If you did not request this email, you can ignore it.</p>
+        </div>
+      `.trim(),
+    });
+  }
+
+  async sendContactRequestNotification({
+    fullName,
+    message,
+    replyTo,
+    subject,
+    to,
+  }: SendContactRequestNotificationInput) {
+    const safeFullName = escapeHtml(fullName.trim() || 'Unknown sender');
+    const safeReplyTo = escapeHtml(replyTo.trim());
+    const safeSubject = escapeHtml(subject.trim());
+    const safeMessage = escapeHtml(message.trim()).replace(/\r?\n/g, '<br />');
+
+    return this.sendMail({
+      to,
+      subject: `New contact request: ${subject.trim()}`,
+      text: [
+        'A new public contact request was submitted.',
+        '',
+        `Name: ${fullName.trim()}`,
+        `Email: ${replyTo.trim()}`,
+        `Subject: ${subject.trim()}`,
+        '',
+        message.trim(),
+      ].join('\n'),
+      html: `
+        <div style="font-family: Segoe UI, Arial, sans-serif; color: #0d1c2e; line-height: 1.6;">
+          <h2 style="margin-bottom: 16px;">New contact request</h2>
+          <p><strong>Name:</strong> ${safeFullName}</p>
+          <p><strong>Email:</strong> <a href="mailto:${safeReplyTo}">${safeReplyTo}</a></p>
+          <p><strong>Subject:</strong> ${safeSubject}</p>
+          <p><strong>Message:</strong></p>
+          <p>${safeMessage}</p>
         </div>
       `.trim(),
     });

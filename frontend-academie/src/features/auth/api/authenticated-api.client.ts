@@ -9,11 +9,11 @@ import {
 } from "@/core/auth/session-cookie-store";
 import { isApiClientError, requestApiJson } from "@/core/api/api-http-client";
 import type { AuthRequestContext } from "../model/auth.types";
-import { requestSessionRefresh } from "./auth-api.client";
+import { requestSharedSessionRefresh } from "./auth-api.client";
 
 async function refreshAuthenticatedSession(context: AuthRequestContext = {}) {
   try {
-    const session = await requestSessionRefresh(context);
+    const session = await requestSharedSessionRefresh(context);
     setInMemoryAccessToken(session.accessToken);
     writeClientSessionCookies(session.user);
     return session.accessToken;

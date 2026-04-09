@@ -1,7 +1,9 @@
+import type { WorkspaceNavIconName } from "@/features/workspace-shell/model/workspace-nav.types";
+
 export interface TeacherNavItem {
   label: string;
   href: string;
-  icon: string;
+  icon: WorkspaceNavIconName;
 }
 
 export interface TeacherKpi {

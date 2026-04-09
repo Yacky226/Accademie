@@ -7,6 +7,6 @@ export const authFooterLinks: FooterLink[] = [
 ];
 
 export const authSocialProviders: SocialProvider[] = [
-  { label: "Google", icon: "google" },
-  { label: "GitHub", icon: "github" },
+  { label: "Google", icon: "google", provider: "google" },
+  { label: "GitHub", icon: "github", provider: "github" },
 ];

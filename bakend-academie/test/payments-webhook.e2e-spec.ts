@@ -8,6 +8,7 @@ import { TokenService } from '../src/modules/auth/services/token.service';
 import { JwtAuthGuard } from '../src/core/guards/jwt-auth.guard';
 import { RolesGuard } from '../src/core/guards/roles.guard';
 import { PermissionsGuard } from '../src/core/guards/permissions.guard';
+import { CoursesService } from '../src/modules/courses/courses.service';
 import { InvoicesService } from '../src/modules/invoices/invoices.service';
 import { PaymentsController } from '../src/modules/payments/payments.controller';
 import { PaymentsService } from '../src/modules/payments/payments.service';
@@ -35,6 +36,11 @@ describe('Payments webhook (e2e)', () => {
       lastName: 'Curie',
       email: 'marie@example.com',
     },
+    course: {
+      id: 'course-1',
+      title: 'Algo Expert',
+      slug: 'algo-expert',
+    },
   } as PaymentEntity;
 
   const paymentsRepositoryMock = {
@@ -47,6 +53,10 @@ describe('Payments webhook (e2e)', () => {
   const invoicesServiceMock = {
     ensureInvoiceForPayment: jest.fn().mockResolvedValue(null),
     syncInvoiceFromPayment: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const coursesServiceMock = {
+    enrollCurrentUser: jest.fn().mockResolvedValue(null),
   };
 
   beforeEach(async () => {
@@ -75,6 +85,7 @@ describe('Payments webhook (e2e)', () => {
         PaymentsService,
         { provide: PaymentsRepository, useValue: paymentsRepositoryMock },
         { provide: InvoicesService, useValue: invoicesServiceMock },
+        { provide: CoursesService, useValue: coursesServiceMock },
         {
           provide: TokenService,
           useValue: {
@@ -166,6 +177,10 @@ describe('Payments webhook (e2e)', () => {
     expect(invoicesServiceMock.syncInvoiceFromPayment).toHaveBeenCalledWith(
       'payment-1',
     );
+    expect(coursesServiceMock.enrollCurrentUser).toHaveBeenCalledWith(
+      'course-1',
+      'user-1',
+    );
 
     expect(lastSavedPayment).toBeDefined();
     if (!lastSavedPayment) {
@@ -241,6 +256,7 @@ describe('Payments webhook (e2e)', () => {
     expect(lastSavedPayment.subscriptionStatus).toBe('CANCELED');
     expect(lastSavedPayment.billingInterval).toBe('MONTH');
     expect(lastSavedPayment.canceledAt).toBeInstanceOf(Date);
+    expect(coursesServiceMock.enrollCurrentUser).not.toHaveBeenCalled();
   });
 
   it('keeps the webhook route public while protected payment routes still require authentication', async () => {

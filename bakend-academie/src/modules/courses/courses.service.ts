@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CourseLevel, CourseStatus, EnrollmentStatus } from '../../core/enums';
+import { UserEntity } from '../users/entities/user.entity';
 import { CreateCourseModuleDto } from './dto/create-course-module.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
@@ -17,6 +18,32 @@ import { CourseEntity } from './entities/course.entity';
 import { EnrollmentEntity } from './entities/enrollment.entity';
 import { LessonEntity } from './entities/lesson.entity';
 import { CoursesRepository } from './repositories/courses.repository';
+
+function readNumberFromText(value: string | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.match(/(\d+(?:[.,]\d+)?)/);
+  if (!match) {
+    return null;
+  }
+
+  const normalized = Number.parseFloat(match[1].replace(',', '.'));
+  return Number.isFinite(normalized) ? normalized : null;
+}
+
+function tokenizeText(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3);
+}
 
 @Injectable()
 export class CoursesService {
@@ -40,6 +67,18 @@ export class CoursesService {
     return course;
   }
 
+  async getCourseBySlug(slug: string): Promise<CourseEntity> {
+    const normalizedSlug = this.normalizeSlug(slug);
+    const course = await this.coursesRepository.findCourseBySlug(
+      normalizedSlug,
+    );
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    return course;
+  }
+
   async getPublishedCourseBySlug(slug: string): Promise<CourseEntity> {
     const normalizedSlug = this.normalizeSlug(slug);
     const course =
@@ -49,6 +88,55 @@ export class CoursesService {
     }
 
     return this.filterPublishedContent(course);
+  }
+
+  async listCurrentUserRecommendations(
+    userId: string,
+    limit = 6,
+  ): Promise<CourseEntity[]> {
+    const user = await this.coursesRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [courses, enrollments] = await Promise.all([
+      this.coursesRepository.findPublishedCourses(),
+      this.coursesRepository.findEnrollmentsByUserId(userId),
+    ]);
+
+    const enrolledCourseIds = new Set(
+      enrollments.map((enrollment) => enrollment.course.id),
+    );
+    const normalizedLimit =
+      Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 6;
+
+    return courses
+      .filter((course) => !enrolledCourseIds.has(course.id))
+      .map((course) => ({
+        course,
+        score: this.computeRecommendationScore(course, user),
+      }))
+      .sort((left, right) => {
+        if (right.score !== left.score) {
+          return right.score - left.score;
+        }
+
+        if (
+          (right.course.enrollments?.length ?? 0) !==
+          (left.course.enrollments?.length ?? 0)
+        ) {
+          return (
+            (right.course.enrollments?.length ?? 0) -
+            (left.course.enrollments?.length ?? 0)
+          );
+        }
+
+        return (
+          right.course.createdAt.getTime() - left.course.createdAt.getTime()
+        );
+      })
+      .slice(0, normalizedLimit)
+      .map(({ course }) => this.filterPublishedContent(course));
   }
 
   async createCourse(
@@ -302,6 +390,43 @@ export class CoursesService {
     return this.coursesRepository.findEnrollmentsByUserId(userId);
   }
 
+  async getCurrentUserEnrolledCourseBySlug(
+    userId: string,
+    slug: string,
+  ): Promise<CourseEntity> {
+    const course = await this.getCourseBySlug(slug);
+    const enrollment =
+      await this.coursesRepository.findEnrollmentByUserAndCourse(
+        userId,
+        course.id,
+      );
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found for this course');
+    }
+
+    return course;
+  }
+
+  async updateCurrentUserEnrollmentProgressByCourseSlug(
+    userId: string,
+    slug: string,
+    dto: UpdateEnrollmentProgressDto,
+  ): Promise<EnrollmentEntity> {
+    const course = await this.getCourseBySlug(slug);
+    const enrollment =
+      await this.coursesRepository.findEnrollmentByUserAndCourse(
+        userId,
+        course.id,
+      );
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found for this course');
+    }
+
+    return this.updateEnrollmentProgress(enrollment.id, dto);
+  }
+
   private normalizeSlug(slug: string): string {
     return slug
       .trim()
@@ -309,6 +434,125 @@ export class CoursesService {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
+  }
+
+  private computeRecommendationScore(
+    course: CourseEntity,
+    user: UserEntity,
+  ): number {
+    const onboarding = user.onboardingProfile ?? {};
+    const searchableCourseText = [
+      course.title,
+      course.shortDescription,
+      course.description,
+      course.slug,
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    const interestTokens = [
+      ...tokenizeText(onboarding.primaryGoal),
+      ...tokenizeText(onboarding.targetStack),
+      ...tokenizeText(onboarding.currentRole),
+      ...tokenizeText(onboarding.primaryLanguage),
+      ...tokenizeText(onboarding.preferredCohortPace),
+    ];
+    const uniqueTokens = [...new Set(interestTokens)];
+
+    let score = 0;
+    for (const token of uniqueTokens) {
+      if (searchableCourseText.includes(token)) {
+        score += 14;
+      }
+    }
+
+    const experienceYears = readNumberFromText(onboarding.yearsOfExperience);
+    const weeklyCommitment = readNumberFromText(onboarding.weeklyCommitment);
+    const dailyCodingTime = readNumberFromText(onboarding.dailyCodingTime);
+    const preferredLevel = this.resolvePreferredCourseLevel(
+      experienceYears,
+      onboarding.primaryGoal,
+      onboarding.currentRole,
+    );
+
+    if (preferredLevel === course.level) {
+      score += 22;
+    } else if (
+      preferredLevel === CourseLevel.INTERMEDIATE &&
+      (course.level === CourseLevel.BEGINNER ||
+        course.level === CourseLevel.ADVANCED)
+    ) {
+      score += 10;
+    } else if (
+      preferredLevel === CourseLevel.BEGINNER &&
+      course.level === CourseLevel.INTERMEDIATE
+    ) {
+      score += 8;
+    } else if (
+      preferredLevel === CourseLevel.ADVANCED &&
+      course.level === CourseLevel.INTERMEDIATE
+    ) {
+      score += 12;
+    }
+
+    if (
+      weeklyCommitment !== null &&
+      course.durationInHours !== undefined &&
+      course.durationInHours !== null
+    ) {
+      if (weeklyCommitment <= 4 && course.durationInHours <= 12) {
+        score += 12;
+      } else if (weeklyCommitment >= 6 && course.durationInHours >= 10) {
+        score += 10;
+      } else if (weeklyCommitment >= 8 && course.durationInHours >= 20) {
+        score += 14;
+      }
+    }
+
+    if (dailyCodingTime !== null) {
+      if (dailyCodingTime >= 3 && course.level !== CourseLevel.BEGINNER) {
+        score += 8;
+      } else if (dailyCodingTime < 2 && course.level === CourseLevel.BEGINNER) {
+        score += 8;
+      }
+    }
+
+    if (onboarding.mentorInteractionMode) {
+      score += 4;
+    }
+
+    score += Math.min(course.enrollments?.length ?? 0, 20);
+    return score;
+  }
+
+  private resolvePreferredCourseLevel(
+    experienceYears: number | null,
+    primaryGoal?: string,
+    currentRole?: string,
+  ): CourseLevel {
+    const normalizedGoal = `${primaryGoal ?? ''} ${currentRole ?? ''}`.toLowerCase();
+
+    if (
+      normalizedGoal.includes('lead') ||
+      normalizedGoal.includes('senior') ||
+      normalizedGoal.includes('architect')
+    ) {
+      return CourseLevel.ADVANCED;
+    }
+
+    if (experienceYears === null) {
+      return CourseLevel.BEGINNER;
+    }
+
+    if (experienceYears >= 5) {
+      return CourseLevel.ADVANCED;
+    }
+
+    if (experienceYears >= 2) {
+      return CourseLevel.INTERMEDIATE;
+    }
+
+    return CourseLevel.BEGINNER;
   }
 
   private filterPublishedContent(course: CourseEntity): CourseEntity {

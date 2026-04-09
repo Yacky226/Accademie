@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SubmissionsModule } from '../submissions/submissions.module';
 import { CourseEntity } from '../courses/entities/course.entity';
 import { EvaluationAttemptEntity } from '../evaluations/entities/evaluation-attempt.entity';
 import { UserEntity } from '../users/entities/user.entity';
@@ -10,6 +11,7 @@ import { GradesService } from './grades.service';
 
 @Module({
   imports: [
+    SubmissionsModule,
     TypeOrmModule.forFeature([
       GradeEntity,
       UserEntity,

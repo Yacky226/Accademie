@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { UserStatus } from '../../core/enums';
 import { MailService } from '../../integrations/mail';
 import { LoginDto } from './dto/login.dto';
@@ -18,6 +19,7 @@ import {
 } from './interfaces/auth-user.interface';
 import { AUTH_USERS_REPOSITORY } from './repositories/auth-users.repository';
 import type { AuthUsersRepository } from './repositories/auth-users.repository';
+import { OAuthIdentity } from './services/oauth.service';
 import { PasswordHashService } from './services/password-hash.service';
 import { AuthTokens, TokenService } from './services/token.service';
 
@@ -100,6 +102,56 @@ export class AuthService {
     const tokens = await this.issueAndStoreTokens(user, context);
     return {
       user: this.toPublicUser(user),
+      tokens,
+    };
+  }
+
+  async authenticateOAuthIdentity(
+    identity: OAuthIdentity,
+    input: {
+      role?: 'STUDENT' | 'TEACHER';
+    },
+    context?: RefreshContext,
+  ): Promise<AuthResponse> {
+    await this.authUsersRepository.ensureDefaultRoles();
+
+    let user = await this.authUsersRepository.findByEmail(identity.email);
+
+    if (user) {
+      if (user.status !== UserStatus.ACTIVE) {
+        throw new UnauthorizedException('User account is not active');
+      }
+
+      if (!user.emailVerified && identity.emailVerified) {
+        await this.authUsersRepository.markEmailAsVerified(user.id);
+        user = await this.authUsersRepository.findById(user.id);
+      }
+    }
+
+    if (!user) {
+      user = await this.authUsersRepository.createUser({
+        firstName: identity.firstName,
+        lastName: identity.lastName,
+        email: identity.email,
+        passwordHash: this.passwordHashService.hash(
+          randomBytes(32).toString('hex'),
+        ),
+        roleNames: [input.role ?? 'STUDENT'],
+        avatarUrl: identity.avatarUrl ?? undefined,
+        emailVerified: identity.emailVerified,
+      });
+    }
+
+    await this.authUsersRepository.updateLastLoginAt(user.id, new Date());
+
+    const currentUser = await this.authUsersRepository.findById(user.id);
+    if (!currentUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const tokens = await this.issueAndStoreTokens(currentUser, context);
+    return {
+      user: this.toPublicUser(currentUser),
       tokens,
     };
   }

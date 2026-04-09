@@ -37,10 +37,11 @@ export class CalendarService {
     return event;
   }
 
-  async createEvent(dto: CreateCalendarEventDto): Promise<CalendarEventEntity> {
-    const createdBy = await this.calendarRepository.findUserById(
-      dto.createdById,
-    );
+  async createEvent(
+    dto: CreateCalendarEventDto,
+    createdById: string,
+  ): Promise<CalendarEventEntity> {
+    const createdBy = await this.calendarRepository.findUserById(createdById);
     if (!createdBy) {
       throw new NotFoundException('Creator user not found');
     }

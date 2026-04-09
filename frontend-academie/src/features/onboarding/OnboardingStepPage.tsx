@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
+import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
+import {
+  fetchCurrentUserProfile,
+  syncCurrentUserOnboarding,
+} from "@/features/users/api/user-profile.client";
+import type { OnboardingProfile } from "@/features/users/model/user-profile.types";
 import { onboardingSteps, type OnboardingStep } from "./onboarding.data";
 import styles from "./onboarding.module.css";
 
@@ -70,7 +78,7 @@ const stepNarratives: Record<OnboardingStepPageProps["slug"], StepNarrative> = {
     eyebrow: "Workspace activation",
     title: "Nous finalisons votre environnement et votre rythme de suivi.",
     description:
-      "Une fois ces preferences completees, votre espace peut etre active avec des repères plus coherents pour le mentoring et les notifications.",
+      "Une fois ces preferences completees, votre espace peut etre active avec des reperes plus coherents pour le mentoring et les notifications.",
     bullets: [
       "Le rythme de cohorte influence la cadence de vos modules.",
       "Le mode mentor ajuste les points de contact proposes.",
@@ -82,19 +90,13 @@ const stepNarratives: Record<OnboardingStepPageProps["slug"], StepNarrative> = {
   },
 };
 
-function toFieldKey(label: string) {
-  return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
-
-function getInputType(label: string) {
-  return label.toLowerCase().includes("email") ? "email" : "text";
+function getInputType(fieldKey: string) {
+  return fieldKey === "email" ? "email" : "text";
 }
 
 function getStepCompletion(step: OnboardingStep, values: OnboardingValues) {
-  const completed = step.fields.filter((field) => {
-    const key = `${step.slug}:${toFieldKey(field.label)}`;
-    return (values[key] ?? "").trim().length > 0;
-  }).length;
+  const completed = step.fields.filter((field) => (values[field.key] ?? "").trim().length > 0)
+    .length;
 
   const total = step.fields.length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
@@ -102,28 +104,123 @@ function getStepCompletion(step: OnboardingStep, values: OnboardingValues) {
   return { completed, percent, total };
 }
 
+function buildOnboardingProfile(values: OnboardingValues): OnboardingProfile {
+  return {
+    currentRole: values.currentRole?.trim() || undefined,
+    dailyCodingTime: values.dailyCodingTime?.trim() || undefined,
+    email: values.email?.trim() || undefined,
+    fullName: values.fullName?.trim() || undefined,
+    mentorInteractionMode: values.mentorInteractionMode?.trim() || undefined,
+    preferredCohortPace: values.preferredCohortPace?.trim() || undefined,
+    primaryGoal: values.primaryGoal?.trim() || undefined,
+    primaryLanguage: values.primaryLanguage?.trim() || undefined,
+    targetStack: values.targetStack?.trim() || undefined,
+    timezone: values.timezone?.trim() || undefined,
+    weeklyCommitment: values.weeklyCommitment?.trim() || undefined,
+    yearsOfExperience: values.yearsOfExperience?.trim() || undefined,
+  };
+}
+
+function splitFullName(value: string | undefined) {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return { firstName: undefined, lastName: undefined };
+  }
+
+  const parts = normalized.split(/\s+/);
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: parts[0] };
+  }
+
+  return {
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts.at(-1),
+  };
+}
+
+function mapProfileToValues(input: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  onboardingProfile: OnboardingProfile | null;
+}) {
+  const onboarding = input.onboardingProfile ?? {};
+  const fullName =
+    onboarding.fullName?.trim() ||
+    `${input.firstName} ${input.lastName}`.trim() ||
+    "";
+
+  return {
+    currentRole: onboarding.currentRole ?? "",
+    dailyCodingTime: onboarding.dailyCodingTime ?? "",
+    email: onboarding.email ?? input.email ?? "",
+    fullName,
+    mentorInteractionMode: onboarding.mentorInteractionMode ?? "",
+    preferredCohortPace: onboarding.preferredCohortPace ?? "",
+    primaryGoal: onboarding.primaryGoal ?? "",
+    primaryLanguage: onboarding.primaryLanguage ?? "",
+    targetStack: onboarding.targetStack ?? "",
+    timezone: onboarding.timezone ?? "",
+    weeklyCommitment: onboarding.weeklyCommitment ?? "",
+    yearsOfExperience: onboarding.yearsOfExperience ?? "",
+  } satisfies OnboardingValues;
+}
+
 export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
+  const router = useRouter();
+  const { dashboardHref, isAuthenticated } = useCurrentAuthSession();
   const currentStep = onboardingSteps.find((step) => step.slug === slug);
   const [values, setValues] = useState<OnboardingValues>({});
   const [hasHydrated, setHasHydrated] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
-    const rawValue = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    let isActive = true;
 
-    if (!rawValue) {
+    async function hydrate() {
+      let nextValues: OnboardingValues = {};
+
+      const rawValue = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (rawValue) {
+        try {
+          nextValues = JSON.parse(rawValue) as OnboardingValues;
+        } catch {
+          nextValues = {};
+        }
+      }
+
+      if (isAuthenticated) {
+        try {
+          const profile = await fetchCurrentUserProfile();
+          if (!isActive) {
+            return;
+          }
+
+          nextValues = {
+            ...mapProfileToValues(profile),
+            ...nextValues,
+          };
+        } catch {
+          // Local onboarding can still continue even if profile sync is temporarily unavailable.
+        }
+      }
+
+      if (!isActive) {
+        return;
+      }
+
+      setValues(nextValues);
       setHasHydrated(true);
-      return;
     }
 
-    try {
-      const parsed = JSON.parse(rawValue) as OnboardingValues;
-      setValues(parsed);
-    } catch {
-      setValues({});
-    } finally {
-      setHasHydrated(true);
-    }
-  }, []);
+    void hydrate();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -142,6 +239,64 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
     [values],
   );
 
+  const allFieldsCompleted = useMemo(
+    () =>
+      onboardingSteps.every((step) =>
+        step.fields.every((field) => (values[field.key] ?? "").trim().length > 0),
+      ),
+    [values],
+  );
+
+  async function persistOnboarding(showSavedMessage: boolean) {
+    if (!isAuthenticated) {
+      return true;
+    }
+
+    const onboardingProfile = buildOnboardingProfile(values);
+    const identity = splitFullName(onboardingProfile.fullName);
+
+    setIsSyncing(true);
+    try {
+      await syncCurrentUserOnboarding({
+        email: onboardingProfile.email,
+        firstName: identity.firstName,
+        lastName: identity.lastName,
+        onboardingCompletedAt: allFieldsCompleted ? new Date().toISOString() : null,
+        onboardingProfile,
+      });
+      setSyncError(null);
+      if (showSavedMessage) {
+        setSyncMessage(
+          allFieldsCompleted
+            ? "Onboarding synchronise et pret pour votre espace."
+            : "Brouillon d onboarding synchronise.",
+        );
+      }
+      return true;
+    } catch (error) {
+      setSyncError(
+        error instanceof Error ? error.message : "Impossible de synchroniser l onboarding.",
+      );
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void persistOnboarding(false);
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [allFieldsCompleted, hasHydrated, isAuthenticated, values]);
+
   if (!currentStep) {
     return null;
   }
@@ -155,15 +310,32 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
   const completedSteps = stepProgress.filter((step) => step.percent === 100).length;
   const totalFields = stepProgress.reduce((sum, step) => sum + step.total, 0);
   const completedFields = stepProgress.reduce((sum, step) => sum + step.completed, 0);
-  const overallCompletion = totalFields === 0 ? 0 : Math.round((completedFields / totalFields) * 100);
+  const overallCompletion =
+    totalFields === 0 ? 0 : Math.round((completedFields / totalFields) * 100);
   const remainingFields = Math.max(currentProgress.total - currentProgress.completed, 0);
+
+  async function handleNavigate(href: string) {
+    await persistOnboarding(true);
+    router.push(href);
+  }
+
+  async function handleFinish() {
+    const didPersist = await persistOnboarding(true);
+    if (!didPersist && isAuthenticated) {
+      return;
+    }
+
+    router.push(isAuthenticated ? dashboardHref : "/auth/login");
+  }
 
   return (
     <main className={styles.page}>
       <section className={styles.shell}>
         <header className={styles.shellHeader}>
           <Link aria-label="Retour a l accueil" className={styles.brand} href="/">
-            <span className={styles.brandMark}>AA</span>
+            <span className={styles.brandMark}>
+              <AcademyBrandIcon />
+            </span>
             <span className={styles.brandCopy}>
               <strong>Architect Academy</strong>
               <small>Onboarding flow</small>
@@ -171,7 +343,13 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
           </Link>
 
           <div className={styles.headerActions}>
-            <span className={styles.savePill}>Sauvegarde locale active</span>
+            <span className={styles.savePill}>
+              {isAuthenticated
+                ? isSyncing
+                  ? "Synchronisation..."
+                  : "Profil connecte"
+                : "Sauvegarde locale active"}
+            </span>
             <Link className={styles.headerLink} href="/auth/login">
               Se connecter
             </Link>
@@ -209,16 +387,23 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                 const isActive = step.slug === currentStep.slug;
                 const isComplete = step.percent === 100;
                 const isPast = step.id < currentStep.id;
-                const status = isComplete ? "Complete" : isActive ? "Active" : isPast ? "Started" : "Upcoming";
+                const status = isComplete
+                  ? "Complete"
+                  : isActive
+                    ? "Active"
+                    : isPast
+                      ? "Started"
+                      : "Upcoming";
 
                 return (
-                  <Link
+                  <button
                     aria-current={isActive ? "step" : undefined}
                     className={`${styles.stepLink} ${
                       isActive ? styles.stepLinkActive : isComplete ? styles.stepLinkDone : ""
                     }`}
-                    href={`/onboarding/${step.slug}`}
                     key={step.slug}
+                    onClick={() => void handleNavigate(`/onboarding/${step.slug}`)}
+                    type="button"
                   >
                     <span
                       className={`${styles.stepIndex} ${
@@ -234,7 +419,7 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                     </span>
 
                     <span className={styles.stepState}>{status}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </nav>
@@ -287,30 +472,37 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
 
             <div className={styles.panelNotice}>
               <span>{currentNarrative.eyebrow}</span>
-              <p>Vos reponses sont sauvegardees automatiquement dans ce navigateur.</p>
+              <p>
+                {isAuthenticated
+                  ? "Vos reponses sont sauvegardees localement et synchronisees avec votre profil."
+                  : "Vos reponses sont sauvegardees automatiquement dans ce navigateur."}
+              </p>
             </div>
+
+            {syncMessage ? <p className={styles.panelNotice}>{syncMessage}</p> : null}
+            {syncError ? <p className={styles.panelNotice}>{syncError}</p> : null}
 
             <form className={styles.form}>
               {currentStep.fields.map((field, index) => {
-                const fieldKey = `${currentStep.slug}:${toFieldKey(field.label)}`;
-                const inputId = `field-${fieldKey}`;
-                const fieldValue = values[fieldKey] ?? "";
+                const inputId = `field-${field.key}`;
+                const fieldValue = values[field.key] ?? "";
 
                 return (
-                  <label className={styles.fieldCard} htmlFor={inputId} key={field.label}>
+                  <label className={styles.fieldCard} htmlFor={inputId} key={field.key}>
                     <span className={styles.fieldOrder}>Field 0{index + 1}</span>
                     <span className={styles.fieldLabel}>{field.label}</span>
                     <span className={styles.fieldHint}>Exemple: {field.placeholder}</span>
                     <input
-                      autoComplete={getInputType(field.label) === "email" ? "email" : "off"}
+                      autoComplete={getInputType(field.key) === "email" ? "email" : "off"}
                       id={inputId}
-                      name={fieldKey}
+                      name={field.key}
                       onChange={(event) => {
                         const nextValue = event.target.value;
-                        setValues((current) => ({ ...current, [fieldKey]: nextValue }));
+                        setValues((current) => ({ ...current, [field.key]: nextValue }));
+                        setSyncMessage(null);
                       }}
                       placeholder={field.placeholder}
-                      type={getInputType(field.label)}
+                      type={getInputType(field.key)}
                       value={fieldValue}
                     />
                     <span className={styles.fieldStatus}>
@@ -335,9 +527,13 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
 
               <div className={styles.footerActions}>
                 {previousStep ? (
-                  <Link className={styles.secondaryButton} href={`/onboarding/${previousStep.slug}`}>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => void handleNavigate(`/onboarding/${previousStep.slug}`)}
+                    type="button"
+                  >
                     Back
-                  </Link>
+                  </button>
                 ) : (
                   <Link className={styles.secondaryButton} href="/auth/register">
                     Cancel
@@ -345,13 +541,17 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                 )}
 
                 {nextStep ? (
-                  <Link className={styles.primaryButton} href={`/onboarding/${nextStep.slug}`}>
+                  <button
+                    className={styles.primaryButton}
+                    onClick={() => void handleNavigate(`/onboarding/${nextStep.slug}`)}
+                    type="button"
+                  >
                     Continue
-                  </Link>
+                  </button>
                 ) : (
-                  <Link className={styles.primaryButton} href="/student/dashboard">
+                  <button className={styles.primaryButton} onClick={() => void handleFinish()} type="button">
                     Activer mon espace
-                  </Link>
+                  </button>
                 )}
               </div>
             </div>

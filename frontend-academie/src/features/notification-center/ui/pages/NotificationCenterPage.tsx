@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { StudentShell } from "@/features/student-space/components/StudentShell";
 import {
-  notificationToasts,
   type NotificationFilterId,
-  type NotificationToast,
+  type NotificationItem,
   type NotificationTone,
 } from "../../model/notification-center.catalog";
 import { useNotificationCenterState } from "../../model/useNotificationCenterState";
@@ -88,34 +88,48 @@ function getToastToneClassName(tone: NotificationTone) {
   return styles.toastInfo;
 }
 
-function ToastCard({ toast }: { toast: NotificationToast }) {
+function ToastCard({
+  item,
+  onMarkAsRead,
+}: {
+  item: NotificationItem;
+  onMarkAsRead: (notificationId: string) => void;
+}) {
   return (
     <article className={styles.toastCard}>
-      <div className={`${styles.toastIconWrap} ${getToastToneClassName(toast.tone)}`}>
-        <ToastGlyph tone={toast.tone} />
+      <div className={`${styles.toastIconWrap} ${getToastToneClassName(item.tone)}`}>
+        <ToastGlyph tone={item.tone} />
       </div>
 
       <div className={styles.toastBody}>
-        <p className={styles.toastTitle}>{toast.title}</p>
-        <p className={styles.toastText}>{toast.description}</p>
+        <p className={styles.toastTitle}>{item.title}</p>
+        <p className={styles.toastText}>
+          {item.description}
+          {item.time ? ` · ${item.time}` : ""}
+        </p>
       </div>
 
-      {toast.actionLabel ? (
-        <button className={styles.toastActionPrimary} type="button">
-          {toast.actionLabel}
+      {item.actionLabel && item.actionHref ? (
+        <Link className={styles.toastActionPrimary} href={item.actionHref}>
+          {item.actionLabel}
+        </Link>
+      ) : item.unread ? (
+        <button
+          className={styles.toastActionPrimary}
+          onClick={() => onMarkAsRead(item.id)}
+          type="button"
+        >
+          Mark as read
         </button>
-      ) : (
-        <button aria-label={`Close ${toast.title}`} className={styles.toastClose} type="button">
-          ×
-        </button>
-      )}
+      ) : null}
     </article>
   );
 }
 
 export function NotificationCenterPage() {
   const [activeFilter, setActiveFilter] = useState<NotificationFilterId>("all");
-  const { isUnread, items, markAllAsRead, markAsRead, unreadCount } = useNotificationCenterState();
+  const { isUnread, items, markAllAsRead, markAsRead, unreadCount } =
+    useNotificationCenterState();
 
   const visibleItems =
     activeFilter === "all"
@@ -131,6 +145,10 @@ export function NotificationCenterPage() {
   const systemUnreadCount = items.filter(
     (item) => item.kind === "system" && isUnread(item.id),
   ).length;
+  const highlightedItems = useMemo(() => {
+    const unreadItems = items.filter((item) => item.unread);
+    return (unreadItems.length > 0 ? unreadItems : items).slice(0, 4);
+  }, [items]);
 
   return (
     <StudentShell activePath="/student/notifications" topbarTitle="Notifications">
@@ -139,11 +157,12 @@ export function NotificationCenterPage() {
           <div className={styles.heroCopy}>
             <p className={styles.heroEyebrow}>Notifications & System Alerts</p>
             <h1 className={styles.heroTitle}>
-              Stay in sync with mentor notes, course releases and critical platform updates.
+              Stay in sync with mentor notes, course releases and critical platform
+              updates.
             </h1>
             <p className={styles.heroLead}>
-              Review what changed, clear unread activity, and jump back into the right learning
-              context without losing momentum.
+              Review what changed, clear unread activity, and jump back into the right
+              learning context without losing momentum.
             </p>
           </div>
 
@@ -176,55 +195,65 @@ export function NotificationCenterPage() {
             <section className={styles.dashboardMock}>
               <div className={styles.dashboardHeader}>
                 <div>
-                  <h2>Student Dashboard</h2>
-                  <p>Welcome back, Architect. Your next milestone is 4 hours away.</p>
+                  <h2>Notification command center</h2>
+                  <p>
+                    {unreadCount > 0
+                      ? "Vos alertes prioritaires sont synchronisees en temps reel avec le backend."
+                      : "Toutes les alertes actuelles sont lues et votre boite est a jour."}
+                  </p>
                 </div>
-                <div className={styles.dashboardPill}>Live focus mode</div>
+                <div className={styles.dashboardPill}>
+                  {unreadCount > 0 ? `${unreadCount} unread` : "Inbox clean"}
+                </div>
               </div>
 
-              <div className={styles.mockCardGrid}>
-                <div className={styles.mockCardLarge}>
-                  <div className={styles.mockBarShort} />
-                  <div className={styles.mockRing}>
-                    <span>78%</span>
-                  </div>
-                  <div className={styles.mockBarLong} />
-                </div>
-
-                <div className={styles.mockColumn}>
-                  <div className={styles.mockCardSmall}>
-                    <div className={styles.mockBarMedium} />
-                    <div className={styles.mockTimeline}>
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                  </div>
-
-                  <div className={styles.mockCardSmall}>
-                    <div className={styles.mockBarShort} />
-                    <div className={styles.mockCourseGrid}>
-                      <span />
-                      <span />
-                    </div>
-                  </div>
-                </div>
+              <div className={styles.heroStats}>
+                <article className={styles.statCard}>
+                  <span>Visible</span>
+                  <strong>{items.length}</strong>
+                  <p>Total notifications currently available in your feed.</p>
+                </article>
+                <article className={styles.statCard}>
+                  <span>Mentor</span>
+                  <strong>{items.filter((item) => item.kind === "mentor").length}</strong>
+                  <p>Feedback loops and review requests waiting in your inbox.</p>
+                </article>
+                <article className={styles.statCard}>
+                  <span>Course</span>
+                  <strong>{items.filter((item) => item.kind === "course").length}</strong>
+                  <p>Course drops, curriculum sync and lesson release events.</p>
+                </article>
+                <article className={styles.statCard}>
+                  <span>System</span>
+                  <strong>{items.filter((item) => item.kind === "system").length}</strong>
+                  <p>Operational alerts coming from billing, support and the platform.</p>
+                </article>
               </div>
             </section>
 
             <section className={styles.toastSection}>
               <div className={styles.sectionHeading}>
                 <div>
-                  <p className={styles.sectionEyebrow}>Toast Messages</p>
-                  <h2>Real-time feedback states</h2>
+                  <p className={styles.sectionEyebrow}>Recent Highlights</p>
+                  <h2>Live backend notifications</h2>
                 </div>
-                <p>Success, info, warning and failure feedback aligned with the same visual system.</p>
+                <p>
+                  This summary now uses your real notifications instead of static demo
+                  examples.
+                </p>
               </div>
 
               <div className={styles.toastStack}>
-                {notificationToasts.map((toast) => (
-                  <ToastCard key={toast.id} toast={toast} />
-                ))}
+                {highlightedItems.length > 0 ? (
+                  highlightedItems.map((item) => (
+                    <ToastCard key={item.id} item={item} onMarkAsRead={markAsRead} />
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>
+                    <h3>No notification available</h3>
+                    <p>New mentor feedback and course updates will appear here.</p>
+                  </div>
+                )}
               </div>
             </section>
           </div>

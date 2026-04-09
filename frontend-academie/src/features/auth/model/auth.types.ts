@@ -5,6 +5,7 @@ import type {
 } from "@/entities/user/model/user-session.types";
 
 export type RegisterRole = Exclude<UserRole, "admin">;
+export type AuthSocialProvider = "google" | "github";
 
 export interface LoginCredentials {
   email: string;

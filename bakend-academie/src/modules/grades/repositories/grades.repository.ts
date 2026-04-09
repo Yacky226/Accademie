@@ -57,6 +57,17 @@ export class GradesRepository {
     });
   }
 
+  async findPublishedGradesForLeaderboard(): Promise<GradeEntity[]> {
+    return this.gradesRepository.find({
+      where: { deletedAt: IsNull(), status: 'PUBLISHED' },
+      relations: {
+        student: true,
+        course: true,
+      },
+      order: { gradedAt: 'DESC', createdAt: 'DESC' },
+    });
+  }
+
   async findGradeByEvaluationAttemptId(
     evaluationAttemptId: string,
   ): Promise<GradeEntity | null> {

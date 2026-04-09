@@ -2,7 +2,12 @@ import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
+import {
+  ensureStorageDirectories,
+  UPLOADS_DIRECTORY_PATH,
+} from './integrations/storage';
 
 const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:3000',
@@ -24,11 +29,17 @@ function resolveAllowedOrigins() {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
   const allowedOrigins = resolveAllowedOrigins();
 
+  ensureStorageDirectories();
   app.setGlobalPrefix(process.env.API_PREFIX ?? 'api');
   app.use(cookieParser());
+  app.useStaticAssets(UPLOADS_DIRECTORY_PATH, {
+    prefix: '/uploads',
+  });
   app.enableCors({
     origin: allowedOrigins,
     credentials: true,

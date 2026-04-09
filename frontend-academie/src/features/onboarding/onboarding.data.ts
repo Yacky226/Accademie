@@ -3,7 +3,7 @@ export interface OnboardingStep {
   slug: "step-1" | "step-2" | "step-3" | "step-4";
   title: string;
   subtitle: string;
-  fields: { label: string; placeholder: string }[];
+  fields: { key: string; label: string; placeholder: string }[];
 }
 
 export const onboardingSteps: OnboardingStep[] = [
@@ -14,9 +14,9 @@ export const onboardingSteps: OnboardingStep[] = [
     subtitle:
       "Donnez-nous les informations de base pour personnaliser votre experience des le premier module.",
     fields: [
-      { label: "Nom complet", placeholder: "Jane Doe" },
-      { label: "Adresse email", placeholder: "jane@studio.fr" },
-      { label: "Langue principale", placeholder: "Francais / English" },
+      { key: "fullName", label: "Nom complet", placeholder: "Jane Doe" },
+      { key: "email", label: "Adresse email", placeholder: "jane@studio.fr" },
+      { key: "primaryLanguage", label: "Langue principale", placeholder: "Francais / English" },
     ],
   },
   {
@@ -25,9 +25,9 @@ export const onboardingSteps: OnboardingStep[] = [
     title: "Niveau actuel",
     subtitle: "Aidez-nous a estimer votre point de depart et votre rythme de progression.",
     fields: [
-      { label: "Role actuel", placeholder: "Developpeur frontend" },
-      { label: "Annees d experience", placeholder: "3 ans" },
-      { label: "Temps de code quotidien", placeholder: "2 a 4 heures" },
+      { key: "currentRole", label: "Role actuel", placeholder: "Developpeur frontend" },
+      { key: "yearsOfExperience", label: "Annees d experience", placeholder: "3 ans" },
+      { key: "dailyCodingTime", label: "Temps de code quotidien", placeholder: "2 a 4 heures" },
     ],
   },
   {
@@ -36,9 +36,9 @@ export const onboardingSteps: OnboardingStep[] = [
     title: "Objectifs d apprentissage",
     subtitle: "Definissez les resultats que vous voulez atteindre dans les 90 prochains jours.",
     fields: [
-      { label: "Objectif principal", placeholder: "Devenir lead backend" },
-      { label: "Stack cible", placeholder: "Node.js, Postgres, Kubernetes" },
-      { label: "Engagement hebdomadaire", placeholder: "6 heures par semaine" },
+      { key: "primaryGoal", label: "Objectif principal", placeholder: "Devenir lead backend" },
+      { key: "targetStack", label: "Stack cible", placeholder: "Node.js, Postgres, Kubernetes" },
+      { key: "weeklyCommitment", label: "Engagement hebdomadaire", placeholder: "6 heures par semaine" },
     ],
   },
   {
@@ -47,9 +47,9 @@ export const onboardingSteps: OnboardingStep[] = [
     title: "Activation finale",
     subtitle: "Verifiez vos preferences et activez votre espace Architect Academy.",
     fields: [
-      { label: "Rythme de cohorte prefere", placeholder: "Week-end" },
-      { label: "Mode d interaction mentor", placeholder: "Sessions live + async" },
-      { label: "Fuseau horaire", placeholder: "UTC+1" },
+      { key: "preferredCohortPace", label: "Rythme de cohorte prefere", placeholder: "Week-end" },
+      { key: "mentorInteractionMode", label: "Mode d interaction mentor", placeholder: "Sessions live + async" },
+      { key: "timezone", label: "Fuseau horaire", placeholder: "UTC+1" },
     ],
   },
 ];

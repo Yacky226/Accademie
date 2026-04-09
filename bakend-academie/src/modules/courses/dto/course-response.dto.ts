@@ -34,6 +34,9 @@ export class CourseResponseDto {
       id: string;
       title: string;
       slug: string;
+      content?: string;
+      videoUrl?: string;
+      resourceUrl?: string;
       durationInMinutes?: number;
       position: number;
       isFreePreview: boolean;

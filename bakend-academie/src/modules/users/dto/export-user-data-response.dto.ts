@@ -11,6 +11,8 @@ export class ExportUserDataResponseDto {
     country?: string;
     city?: string;
     roles: string[];
+    onboardingProfile?: Record<string, string>;
+    onboardingCompletedAt?: Date;
     createdAt: Date;
     updatedAt: Date;
   };

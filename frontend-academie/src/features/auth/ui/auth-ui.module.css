@@ -13,6 +13,7 @@
     radial-gradient(circle at top left, rgba(180, 197, 255, 0.28), transparent 32%),
     radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.12), transparent 30%),
     linear-gradient(180deg, #f7f9ff 0%, #edf3ff 100%);
+  overflow-x: clip;
 }
 
 .authHeader {
@@ -23,7 +24,7 @@
 }
 
 .authHeaderInner {
-  width: min(1180px, 92vw);
+  width: min(1180px, calc(100vw - 32px));
   margin-inline: auto;
   min-height: 74px;
   padding: 14px 18px;
@@ -62,6 +63,12 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   box-shadow: 0 16px 28px rgba(13, 28, 46, 0.16);
+}
+
+.brandMark svg {
+  width: 58%;
+  height: 58%;
+  flex-shrink: 0;
 }
 
 .brandStack {
@@ -180,7 +187,7 @@
 .authStage {
   position: relative;
   z-index: 2;
-  width: min(1180px, 92vw);
+  width: min(1180px, calc(100vw - 32px));
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
@@ -321,7 +328,7 @@
 }
 
 .passwordInputWrap .input {
-  padding-right: 140px;
+  padding-right: 16px;
 }
 
 .checkRow {
@@ -810,7 +817,7 @@
 }
 
 .authFooterInner {
-  width: min(1180px, 92vw);
+  width: min(1180px, calc(100vw - 32px));
   margin-inline: auto;
   padding: 18px 22px;
   border-radius: 26px;
@@ -943,6 +950,7 @@
   .headerGhostLink,
   .headerPrimaryLink {
     flex: 1 1 auto;
+    width: 100%;
   }
 
   .otpRow {
@@ -972,11 +980,75 @@
   .securityActionRow > * {
     width: 100%;
   }
+
+  .passwordStrength,
+  .resendRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .passwordStrengthBars,
+  .resendRow > * {
+    width: 100%;
+  }
 }
 
 @media (max-width: 520px) {
+  .authHeaderInner,
+  .authFooterInner {
+    border-radius: 22px;
+    padding: 14px 16px;
+  }
+
+  .authCard,
+  .authShowcaseCard {
+    padding: 20px 16px;
+  }
+
   .authMetricGrid {
     grid-template-columns: 1fr;
+  }
+
+  .otpRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .otpInput {
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  .brandStack small,
+  .authAuraOne,
+  .authAuraTwo {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .authHeader {
+    padding: 12px 12px 0;
+  }
+
+  .authMain {
+    padding: 16px 12px 26px;
+  }
+
+  .authFooter {
+    padding: 0 12px 18px;
+  }
+
+  .authCopyright {
+    font-size: 0.82rem;
+  }
+
+  .authFooterLinks a {
+    min-height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .brandStack strong {
+    font-size: 0.92rem;
   }
 }
 

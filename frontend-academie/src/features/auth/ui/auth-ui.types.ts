@@ -6,6 +6,7 @@ export interface FooterLink {
 export interface SocialProvider {
   label: string;
   icon: "google" | "github";
+  provider: "google" | "github";
 }
 
 export interface OtpTimer {

@@ -1,46 +1,114 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { fetchAdminAuditLogs, fetchAdminHealth } from "../admin-space.client";
+import type { AdminAuditLogRecord, AdminHealthRecord } from "../admin-space.types";
 import styles from "../admin-space.module.css";
 import { AdminShell } from "../components/AdminShell";
 
+function formatDate(value: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function AdminAuditLogsPage() {
+  const [logs, setLogs] = useState<AdminAuditLogRecord[]>([]);
+  const [health, setHealth] = useState<AdminHealthRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAuditData() {
+      setLoading(true);
+
+      try {
+        const [nextLogs, nextHealth] = await Promise.all([
+          fetchAdminAuditLogs(60),
+          fetchAdminHealth(),
+        ]);
+
+        if (!isActive) {
+          return;
+        }
+
+        setLogs(nextLogs);
+        setHealth(nextHealth);
+        setErrorMessage(null);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : "Impossible de charger l audit.",
+        );
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadAuditData();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const metrics = useMemo(() => {
+    return {
+      criticalLike: logs.filter(
+        (log) =>
+          log.action.toLowerCase().includes("delete") ||
+          log.action.toLowerCase().includes("role") ||
+          log.action.toLowerCase().includes("payment"),
+      ).length,
+      uniqueIps: new Set(logs.map((log) => log.ipAddress).filter(Boolean)).size,
+      uniqueUsers: new Set(logs.map((log) => log.userId).filter(Boolean)).size,
+    };
+  }, [logs]);
+
   return (
     <AdminShell activePath="/admin/audit-logs" title="Audit Logs">
       <section className={styles.heroRow}>
         <div>
           <h1 className={styles.heroTitle}>Audit et Journaux de Securite</h1>
           <p className={styles.heroSub}>
-            Surveillance des acces, privileges et transactions critiques.
+            Trace reelle des actions admin, role changes et operations sensibles.
           </p>
-        </div>
-        <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            Exporter
-          </button>
-          <button type="button" className={styles.primaryBtn}>
-            Filtres avances
-          </button>
+          {errorMessage ? <p className={styles.heroSub}>{errorMessage}</p> : null}
         </div>
       </section>
 
       <section className={styles.grid4}>
         <article className={styles.kpi}>
-          <p>Alertes Critiques</p>
-          <strong>12</strong>
-          <span>+4% vs hier</span>
+          <p>Evenements charges</p>
+          <strong>{loading ? "..." : logs.length}</strong>
+          <span>Derniers logs d audit recuperes</span>
         </article>
         <article className={styles.kpi}>
-          <p>Actions Systeme</p>
-          <strong>1,482</strong>
-          <span>24h</span>
+          <p>Actions sensibles</p>
+          <strong>{loading ? "..." : metrics.criticalLike}</strong>
+          <span>Delete, role et payment dans la fenetre</span>
         </article>
         <article className={styles.kpi}>
-          <p>Connexions Uniques</p>
-          <strong>89</strong>
-          <span>Session secure</span>
+          <p>Connexions IP</p>
+          <strong>{loading ? "..." : metrics.uniqueIps}</strong>
+          <span>Adresses distinctes observees</span>
         </article>
         <article className={styles.kpi}>
           <p>Status API</p>
-          <strong>OPERATIONNEL</strong>
-          <span>Live</span>
+          <strong>{loading ? "..." : health?.backendStatus ?? "unknown"}</strong>
+          <span>Base {health?.databaseStatus ?? "unknown"}</span>
         </article>
       </section>
 
@@ -53,41 +121,32 @@ export function AdminAuditLogsPage() {
                 <th>User</th>
                 <th>Action</th>
                 <th>IP</th>
-                <th>Severity</th>
+                <th>Resource</th>
                 <th>Details</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>2023-11-24 14:32:01</td>
-                <td>Jean Dupont</td>
-                <td>User Role Changed</td>
-                <td>192.168.1.45</td>
-                <td>WARNING</td>
-                <td>Examiner</td>
-              </tr>
-              <tr>
-                <td>2023-11-24 14:30:44</td>
-                <td>SYSTEM</td>
-                <td>API Key Generated</td>
-                <td>127.0.0.1</td>
-                <td>INFO</td>
-                <td>Examiner</td>
-              </tr>
-              <tr>
-                <td>2023-11-24 14:28:12</td>
-                <td>Marie Leroy</td>
-                <td>Manual Payment Override</td>
-                <td>45.22.10.192</td>
-                <td>CRITICAL</td>
-                <td>ALERTE</td>
-              </tr>
+              {logs.map((log) => (
+                <tr key={log.id}>
+                  <td>{formatDate(log.createdAt)}</td>
+                  <td>{log.userId ?? "SYSTEM"}</td>
+                  <td>{log.action}</td>
+                  <td>{log.ipAddress ?? "-"}</td>
+                  <td>{log.resource}</td>
+                  <td>{log.userAgent ?? JSON.stringify(log.metadata ?? {})}</td>
+                </tr>
+              ))}
+              {!loading && logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>Aucun journal d audit disponible.</td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
         <footer className={styles.footerRow}>
-          <span>Affichage de 1-3 sur 14,821</span>
-          <span>Page 1 / 296</span>
+          <span>Affichage de {logs.length} evenement(s)</span>
+          <span>{metrics.uniqueUsers} utilisateur(s) concernes</span>
         </footer>
       </section>
     </AdminShell>

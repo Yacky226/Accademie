@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#FFF8F3"/>
+  <rect x="60" y="60" width="1480" height="780" rx="44" fill="url(#bg)"/>
+  <circle cx="1220" cy="268" r="132" fill="#0D1C2E" fill-opacity="0.08"/>
+  <circle cx="1328" cy="356" r="72" fill="#FFFFFF" fill-opacity="0.6"/>
+  <rect x="118" y="130" width="292" height="44" rx="22" fill="#0D1C2E" fill-opacity="0.1"/>
+  <rect x="118" y="214" width="632" height="90" rx="30" fill="#0D1C2E"/>
+  <rect x="118" y="336" width="564" height="24" rx="12" fill="#36516F" fill-opacity="0.5"/>
+  <rect x="118" y="382" width="486" height="24" rx="12" fill="#36516F" fill-opacity="0.5"/>
+  <rect x="118" y="472" width="328" height="184" rx="32" fill="#FFFFFF" fill-opacity="0.88"/>
+  <rect x="474" y="472" width="328" height="184" rx="32" fill="#FFFFFF" fill-opacity="0.72"/>
+  <rect x="830" y="472" width="328" height="184" rx="32" fill="#FFFFFF" fill-opacity="0.56"/>
+  <rect x="1144" y="472" width="280" height="184" rx="32" fill="#0D1C2E" fill-opacity="0.08"/>
+  <rect x="1170" y="504" width="228" height="24" rx="12" fill="#2563EB"/>
+  <rect x="1170" y="548" width="188" height="24" rx="12" fill="#7AA5FF"/>
+  <rect x="1170" y="592" width="214" height="24" rx="12" fill="#7AA5FF"/>
+  <text x="118" y="158" fill="#0D1C2E" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">PRODUCT UI TRACK</text>
+  <text x="118" y="272" fill="#FFFFFF" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">React Interface Engineering</text>
+  <text x="118" y="744" fill="#0D1C2E" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Responsive layouts · Forms · Design systems · UX polish</text>
+  <defs>
+    <linearGradient id="bg" x1="60" y1="60" x2="1540" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE3D1"/>
+      <stop offset="1" stop-color="#FFD0A8"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -15,6 +15,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
+import { ContactModule } from './modules/contact/contact.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { EvaluationsModule } from './modules/evaluations/evaluations.module';
 import { GradesModule } from './modules/grades/grades.module';
@@ -25,6 +26,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ProblemsModule } from './modules/problems/problems.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { SupportModule } from './modules/support/support.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -35,6 +37,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     UsersModule,
     AcademyModule,
+    ContactModule,
     CoursesModule,
     ProgramsModule,
     ProblemsModule,
@@ -46,6 +49,7 @@ import { UsersModule } from './modules/users/users.module';
     PaymentsModule,
     InvoicesModule,
     NotificationsModule,
+    SupportModule,
     AnalyticsModule,
     AdminModule,
   ],

@@ -56,8 +56,9 @@ export class CalendarController {
   @Post('events')
   async createEvent(
     @Body() dto: CreateCalendarEventDto,
+    @CurrentUser('sub') userId: string,
   ): Promise<CalendarEventResponseDto> {
-    const event = await this.calendarService.createEvent(dto);
+    const event = await this.calendarService.createEvent(dto, userId);
     return this.toResponse(event);
   }
 

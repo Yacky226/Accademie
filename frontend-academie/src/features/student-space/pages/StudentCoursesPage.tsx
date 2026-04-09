@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/core/store/app-store-hooks";
 import {
@@ -36,7 +36,7 @@ export function StudentCoursesPage() {
           <p className={styles.heroSub}>
             Organisez votre parcours et suivez votre progression.
           </p>
-          {errorMessage ? <p className={styles.heroSub}>{errorMessage}</p> : null}
+          {errorMessage ? <p className={`${styles.heroSub} ${styles.messageError}`}>{errorMessage}</p> : null}
         </div>
 
         <div className={styles.actionRow}>
@@ -100,10 +100,8 @@ export function StudentCoursesPage() {
                     width={160}
                   />
                   <div>
-                    <p>{course.title}</p>
-                    <span>
-                      {course.level} â€¢ {course.hours}
-                    </span>
+                    <Link href={course.catalogHref}>{course.title}</Link>
+                    <span>{`${course.level} - ${course.hours}`}</span>
                   </div>
                 </article>
               ))}
@@ -120,6 +118,11 @@ export function StudentCoursesPage() {
                 <span style={{ width: `${course.progress}%` }} />
               </div>
               <p className={styles.heroSub}>Prochaine lecon: {course.nextLesson}</p>
+              <div className={`${styles.actionRow} ${styles.actionRowSpaced}`}>
+                <Link className={styles.primaryBtn} href={`/student/courses/${course.slug}`}>
+                  Ouvrir le cours
+                </Link>
+              </div>
             </article>
           ))}
         </section>

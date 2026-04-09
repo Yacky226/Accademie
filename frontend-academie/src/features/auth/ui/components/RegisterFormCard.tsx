@@ -16,8 +16,15 @@ const passwordStrengthToneClassMap = {
 
 export function RegisterFormCard() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const { errorMessage, handleSubmit, isSubmitting, passwordStrength, updateField, values } =
-    useRegisterFormController();
+  const {
+    errorMessage,
+    handleSubmit,
+    isSubmitting,
+    passwordStrength,
+    startSocialAuth,
+    updateField,
+    values,
+  } = useRegisterFormController();
 
   return (
     <article className={styles.authCard}>
@@ -159,7 +166,12 @@ export function RegisterFormCard() {
 
       <div className={styles.socialGrid}>
         {authSocialProviders.map((provider) => (
-          <button key={provider.label} className={styles.socialButton} type="button">
+          <button
+            key={provider.label}
+            className={styles.socialButton}
+            onClick={() => startSocialAuth(provider.provider)}
+            type="button"
+          >
             <span className={styles.socialIcon}>
               <SocialIcon icon={provider.icon} />
             </span>
