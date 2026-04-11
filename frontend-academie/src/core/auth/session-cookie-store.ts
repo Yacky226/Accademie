@@ -1,5 +1,6 @@
 import type { SessionSnapshot, SessionUser } from "@/entities/user/model/user-session.types";
 import { isUserRole } from "@/entities/user/model/user-session.types";
+import type { OnboardingStepSlug } from "@/features/onboarding/model/onboarding-progress";
 
 export const SESSION_STATUS_COOKIE = "aa_session_state";
 export const SESSION_ROLE_COOKIE = "aa_session_role";
@@ -8,6 +9,8 @@ export const SESSION_AVATAR_COOKIE = "aa_session_avatar";
 export const SESSION_EMAIL_COOKIE = "aa_session_email";
 export const SESSION_ID_COOKIE = "aa_session_id";
 export const SESSION_VERIFIED_COOKIE = "aa_session_verified";
+export const SESSION_ONBOARDING_COMPLETED_COOKIE = "aa_session_onboarding_completed";
+export const SESSION_ONBOARDING_STEP_COOKIE = "aa_session_onboarding_step";
 
 const SESSION_COOKIE_KEYS = [
   SESSION_STATUS_COOKIE,
@@ -17,6 +20,8 @@ const SESSION_COOKIE_KEYS = [
   SESSION_EMAIL_COOKIE,
   SESSION_ID_COOKIE,
   SESSION_VERIFIED_COOKIE,
+  SESSION_ONBOARDING_COMPLETED_COOKIE,
+  SESSION_ONBOARDING_STEP_COOKIE,
 ] as const;
 
 const SESSION_COOKIE_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -45,6 +50,8 @@ function createSessionSnapshot(values: {
   role?: string | null;
   avatarUrl?: string | null;
   emailVerified?: boolean | null;
+  onboardingCompleted?: boolean | null;
+  onboardingNextStep?: string | null;
 }): SessionSnapshot {
   if (!values.isAuthenticated || !isUserRole(values.role)) {
     return {
@@ -62,6 +69,11 @@ function createSessionSnapshot(values: {
       role: values.role,
       avatarUrl: values.avatarUrl ?? null,
       emailVerified: values.emailVerified === true,
+      onboardingCompleted: values.onboardingCompleted ?? null,
+      onboardingNextStep:
+        values.onboardingNextStep?.trim() && values.onboardingNextStep.startsWith("step-")
+          ? (values.onboardingNextStep as OnboardingStepSlug)
+          : null,
     },
   };
 }
@@ -95,6 +107,10 @@ export function readClientSessionCookieSnapshot(): SessionSnapshot {
     name: readCookieValue(cookieMap.get(SESSION_NAME_COOKIE)),
     role: readCookieValue(cookieMap.get(SESSION_ROLE_COOKIE)),
     emailVerified: cookieMap.get(SESSION_VERIFIED_COOKIE) === "true",
+    onboardingCompleted: cookieMap.has(SESSION_ONBOARDING_COMPLETED_COOKIE)
+      ? cookieMap.get(SESSION_ONBOARDING_COMPLETED_COOKIE) === "true"
+      : null,
+    onboardingNextStep: readCookieValue(cookieMap.get(SESSION_ONBOARDING_STEP_COOKIE)),
   });
 }
 
@@ -109,6 +125,13 @@ export function readServerSessionCookieSnapshot(
     name: readCookieValue(cookieStore.get(SESSION_NAME_COOKIE)?.value),
     role: readCookieValue(cookieStore.get(SESSION_ROLE_COOKIE)?.value),
     emailVerified: cookieStore.get(SESSION_VERIFIED_COOKIE)?.value === "true",
+    onboardingCompleted:
+      cookieStore.get(SESSION_ONBOARDING_COMPLETED_COOKIE)?.value === undefined
+        ? null
+        : cookieStore.get(SESSION_ONBOARDING_COMPLETED_COOKIE)?.value === "true",
+    onboardingNextStep: readCookieValue(
+      cookieStore.get(SESSION_ONBOARDING_STEP_COOKIE)?.value,
+    ),
   });
 }
 
@@ -126,6 +149,10 @@ export function writeClientSessionCookies(user: SessionUser) {
   writeCookie(SESSION_ROLE_COOKIE, user.role, SESSION_COOKIE_TTL_SECONDS);
   writeCookie(SESSION_NAME_COOKIE, user.name, SESSION_COOKIE_TTL_SECONDS);
   writeCookie(SESSION_VERIFIED_COOKIE, user.emailVerified ? "true" : "false", SESSION_COOKIE_TTL_SECONDS);
+  writeOnboardingCookies({
+    onboardingCompleted: user.onboardingCompleted,
+    onboardingNextStep: user.onboardingNextStep,
+  });
 
   if (user.avatarUrl) {
     writeCookie(SESSION_AVATAR_COOKIE, user.avatarUrl, SESSION_COOKIE_TTL_SECONDS);
@@ -144,6 +171,39 @@ export function writeClientSessionCookies(user: SessionUser) {
   } else {
     writeCookie(SESSION_ID_COOKIE, "", 0);
   }
+}
+
+export function writeClientOnboardingCookies(input: {
+  onboardingCompleted: boolean | null;
+  onboardingNextStep: OnboardingStepSlug | null;
+}) {
+  writeOnboardingCookies(input);
+}
+
+function writeOnboardingCookies(input: {
+  onboardingCompleted: boolean | null;
+  onboardingNextStep: OnboardingStepSlug | null;
+}) {
+  if (input.onboardingCompleted === null) {
+    writeCookie(SESSION_ONBOARDING_COMPLETED_COOKIE, "", 0);
+  } else {
+    writeCookie(
+      SESSION_ONBOARDING_COMPLETED_COOKIE,
+      input.onboardingCompleted ? "true" : "false",
+      SESSION_COOKIE_TTL_SECONDS,
+    );
+  }
+
+  if (input.onboardingNextStep) {
+    writeCookie(
+      SESSION_ONBOARDING_STEP_COOKIE,
+      input.onboardingNextStep,
+      SESSION_COOKIE_TTL_SECONDS,
+    );
+    return;
+  }
+
+  writeCookie(SESSION_ONBOARDING_STEP_COOKIE, "", 0);
 }
 
 export function clearClientSessionCookies() {

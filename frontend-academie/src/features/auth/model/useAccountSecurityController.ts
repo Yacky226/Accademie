@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
-import { getDashboardPathForRole } from "@/core/router/route-access-control";
+import { getAuthenticatedLandingPath } from "@/core/router/route-access-control";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
 import {
   logoutAllSessionsThunk,
@@ -25,7 +25,7 @@ export function useAccountSecurityController() {
   } = useCurrentAuthSession();
 
   const verificationRedirectTarget = user
-    ? getDashboardPathForRole(user.role)
+    ? getAuthenticatedLandingPath(user)
     : "/auth/login";
 
   const verificationHref = user?.email

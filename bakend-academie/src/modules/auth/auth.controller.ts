@@ -39,6 +39,8 @@ const SESSION_AVATAR_COOKIE = 'aa_session_avatar';
 const SESSION_EMAIL_COOKIE = 'aa_session_email';
 const SESSION_ID_COOKIE = 'aa_session_id';
 const SESSION_VERIFIED_COOKIE = 'aa_session_verified';
+const SESSION_ONBOARDING_COMPLETED_COOKIE = 'aa_session_onboarding_completed';
+const SESSION_ONBOARDING_STEP_COOKIE = 'aa_session_onboarding_step';
 
 @Controller('auth')
 export class AuthController {
@@ -370,6 +372,25 @@ export class AuthController {
       user.emailVerified ? 'true' : 'false',
       cookieOptions,
     );
+    const onboardingState = this.resolveOnboardingState(user);
+    response.cookie(
+      SESSION_ONBOARDING_COMPLETED_COOKIE,
+      onboardingState.completed ? 'true' : 'false',
+      cookieOptions,
+    );
+
+    if (onboardingState.nextStep) {
+      response.cookie(
+        SESSION_ONBOARDING_STEP_COOKIE,
+        onboardingState.nextStep,
+        cookieOptions,
+      );
+    } else {
+      response.clearCookie(
+        SESSION_ONBOARDING_STEP_COOKIE,
+        this.getFrontendSessionCookieOptions(),
+      );
+    }
 
     if (user.avatarUrl?.trim()) {
       response.cookie(SESSION_AVATAR_COOKIE, user.avatarUrl.trim(), cookieOptions);
@@ -388,6 +409,8 @@ export class AuthController {
       SESSION_EMAIL_COOKIE,
       SESSION_ID_COOKIE,
       SESSION_VERIFIED_COOKIE,
+      SESSION_ONBOARDING_COMPLETED_COOKIE,
+      SESSION_ONBOARDING_STEP_COOKIE,
     ].forEach((cookieName) => {
       response.clearCookie(cookieName, this.getFrontendSessionCookieOptions());
     });
@@ -478,9 +501,11 @@ export class AuthController {
     user: PublicAuthUser;
   }) {
     const role = this.resolvePrimaryFrontendRole(input.user.roles);
+    const onboardingState = this.resolveOnboardingState(input.user);
     const defaultTarget =
-      input.mode === 'register' && role === 'student'
-        ? '/onboarding/step-1'
+      (input.mode === 'register' && role === 'student') ||
+      (role === 'student' && !onboardingState.completed)
+        ? this.buildOnboardingPath(onboardingState.nextStep)
         : this.resolveDashboardPath(role);
     const nextTarget = input.redirectTo ?? defaultTarget;
 
@@ -499,6 +524,21 @@ export class AuthController {
       frontendOrigin: input.frontendOrigin,
       pathname: nextTarget,
     });
+  }
+
+  private buildOnboardingPath(
+    nextStep: 'step-1' | 'step-2' | 'step-3' | 'step-4' | null,
+    redirectTo?: string | null,
+  ) {
+    const pathname = `/onboarding/${nextStep ?? 'step-1'}`;
+
+    if (!redirectTo) {
+      return pathname;
+    }
+
+    const params = new URLSearchParams();
+    params.set('redirect', redirectTo);
+    return `${pathname}?${params.toString()}`;
   }
 
   private resolveDashboardPath(role: 'student' | 'teacher' | 'admin') {
@@ -527,6 +567,52 @@ export class AuthController {
     }
 
     return 'student';
+  }
+
+  private resolveOnboardingState(user: PublicAuthUser) {
+    const role = this.resolvePrimaryFrontendRole(user.roles);
+    if (role !== 'student') {
+      return {
+        completed: true,
+        nextStep: null,
+      } satisfies {
+        completed: boolean;
+        nextStep: 'step-1' | 'step-2' | 'step-3' | 'step-4' | null;
+      };
+    }
+
+    const onboardingProfile = user.onboardingProfile ?? {};
+    const stepFields = [
+      { slug: 'step-1', fields: ['fullName', 'email', 'primaryLanguage'] },
+      { slug: 'step-2', fields: ['currentRole', 'yearsOfExperience', 'dailyCodingTime'] },
+      { slug: 'step-3', fields: ['primaryGoal', 'targetStack', 'weeklyCommitment'] },
+      {
+        slug: 'step-4',
+        fields: ['preferredCohortPace', 'mentorInteractionMode', 'timezone'],
+      },
+    ] as const;
+
+    const allStepsCompleted = stepFields.every((step) =>
+      step.fields.every((field) => {
+        const value = onboardingProfile[field];
+        return typeof value === 'string' && value.trim().length > 0;
+      }),
+    );
+    const completed = Boolean(user.onboardingCompletedAt) || allStepsCompleted;
+    const pendingStep = stepFields.find((step) =>
+      step.fields.some((field) => {
+        const value = onboardingProfile[field];
+        return typeof value !== 'string' || value.trim().length === 0;
+      }),
+    );
+
+    return {
+      completed,
+      nextStep: completed ? null : (pendingStep?.slug ?? 'step-1'),
+    } satisfies {
+      completed: boolean;
+      nextStep: 'step-1' | 'step-2' | 'step-3' | 'step-4' | null;
+    };
   }
 
   // Keeps cookie TTL aligned with refresh token lifetime.

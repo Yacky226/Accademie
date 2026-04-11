@@ -7,6 +7,8 @@ export interface AuthUserIdentity {
   email: string;
   avatarUrl?: string | null;
   emailVerified: boolean;
+  onboardingProfile?: Record<string, string> | null;
+  onboardingCompletedAt?: Date | null;
   roles: string[];
   status: UserStatus;
   passwordHash: string;
@@ -18,6 +20,8 @@ export interface PublicAuthUser {
   fullName: string;
   avatarUrl?: string | null;
   emailVerified: boolean;
+  onboardingProfile?: Record<string, string> | null;
+  onboardingCompletedAt?: Date | null;
   roles: string[];
 }
 

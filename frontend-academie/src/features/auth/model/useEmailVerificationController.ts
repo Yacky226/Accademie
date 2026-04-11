@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import {
-  getDashboardPathForRole,
+  getAuthenticatedLandingPath,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
 import {
@@ -35,7 +35,7 @@ export function useEmailVerificationController() {
     () =>
       resolveSafeRedirectTarget(
         searchParams.get("redirect"),
-        user ? getDashboardPathForRole(user.role) : "/auth/login",
+        user ? getAuthenticatedLandingPath(user) : "/auth/login",
       ),
     [searchParams, user],
   );

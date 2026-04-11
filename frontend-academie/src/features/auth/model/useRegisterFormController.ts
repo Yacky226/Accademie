@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import { buildSocialAuthAuthorizationUrl } from "../api/auth-api.client";
-import { getDashboardPathForRole } from "@/core/router/route-access-control";
+import {
+  getAuthenticatedLandingPath,
+  getDashboardPathForRole,
+} from "@/core/router/route-access-control";
 import { clearAuthFeedback, registerThunk } from "./auth.slice";
 import { useCurrentAuthSession } from "./useCurrentAuthSession";
 import type { AuthSocialProvider, RegisterFormValues } from "./auth.types";
@@ -136,10 +139,7 @@ export function useRegisterFormController() {
 
     try {
       const sessionUser = await dispatch(registerThunk(values)).unwrap();
-      const postVerificationTarget =
-        sessionUser.role === "student"
-          ? "/onboarding/step-1"
-          : getDashboardPathForRole(sessionUser.role);
+      const postVerificationTarget = getAuthenticatedLandingPath(sessionUser);
 
       if (!sessionUser.emailVerified) {
         const verificationTarget = new URLSearchParams();

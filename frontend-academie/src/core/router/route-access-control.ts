@@ -1,7 +1,9 @@
 import type {
   SessionSnapshot,
+  SessionUser,
   UserRole,
 } from "@/entities/user/model/user-session.types";
+import { buildOnboardingPath } from "@/features/onboarding/model/onboarding-progress";
 
 const AUTH_ROUTES = [
   "/auth",
@@ -22,6 +24,22 @@ export function getDashboardPathForRole(role: UserRole) {
   }
 
   return "/student/dashboard";
+}
+
+export function requiresStudentOnboarding(
+  user: Pick<SessionUser, "role" | "onboardingCompleted"> | null | undefined,
+) {
+  return user?.role === "student" && user.onboardingCompleted === false;
+}
+
+export function getAuthenticatedLandingPath(
+  user: Pick<SessionUser, "role" | "onboardingCompleted" | "onboardingNextStep">,
+) {
+  if (requiresStudentOnboarding(user)) {
+    return buildOnboardingPath(user.onboardingNextStep);
+  }
+
+  return getDashboardPathForRole(user.role);
 }
 
 export function getRequiredRoleForPath(pathname: string): UserRole | null {

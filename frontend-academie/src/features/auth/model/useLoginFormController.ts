@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import { buildSocialAuthAuthorizationUrl } from "../api/auth-api.client";
 import {
-  getDashboardPathForRole,
+  getAuthenticatedLandingPath,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
 import { clearAuthFeedback, loginThunk } from "./auth.slice";
@@ -56,7 +56,7 @@ export function useLoginFormController() {
 
     try {
       const sessionUser = await dispatch(loginThunk(values)).unwrap();
-      const fallbackTarget = getDashboardPathForRole(sessionUser.role);
+      const fallbackTarget = getAuthenticatedLandingPath(sessionUser);
       const redirectTarget = resolveSafeRedirectTarget(
         searchParams.get("redirect"),
         fallbackTarget,

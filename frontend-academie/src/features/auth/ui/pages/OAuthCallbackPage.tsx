@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import {
-  getDashboardPathForRole,
+  getAuthenticatedLandingPath,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
 import { fetchCurrentSessionThunk } from "../../model/auth.slice";
@@ -56,10 +56,7 @@ export function OAuthCallbackPage() {
           return;
         }
 
-        const fallbackTarget =
-          mode === "register" && sessionUser.role === "student"
-            ? "/onboarding/step-1"
-            : getDashboardPathForRole(sessionUser.role);
+        const fallbackTarget = getAuthenticatedLandingPath(sessionUser);
         const nextTarget = resolveSafeRedirectTarget(
           redirectTarget,
           fallbackTarget,

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStoreDispatch } from "@/core/store/auth-store-hooks";
 import {
-  getDashboardPathForRole,
+  getAuthenticatedLandingPath,
   resolveSafeRedirectTarget,
 } from "@/core/router/route-access-control";
 import {
@@ -87,7 +87,7 @@ export function useResetPasswordFormController() {
 
       const redirectTarget = resolveSafeRedirectTarget(
         searchParams.get("redirect"),
-        getDashboardPathForRole(sessionUser.role),
+        getAuthenticatedLandingPath(sessionUser),
       );
 
       if (!sessionUser.emailVerified) {

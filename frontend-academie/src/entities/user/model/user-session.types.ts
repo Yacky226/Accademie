@@ -1,3 +1,5 @@
+import type { OnboardingStepSlug } from "@/features/onboarding/model/onboarding-progress";
+
 export const USER_ROLES = ["student", "teacher", "admin"] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
@@ -9,6 +11,8 @@ export interface SessionUser {
   role: UserRole;
   avatarUrl: string | null;
   emailVerified: boolean;
+  onboardingCompleted: boolean | null;
+  onboardingNextStep: OnboardingStepSlug | null;
 }
 
 export interface SessionSnapshot {

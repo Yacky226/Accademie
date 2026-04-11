@@ -416,6 +416,8 @@ export class AuthService {
       fullName: `${user.firstName} ${user.lastName}`.trim(),
       avatarUrl: user.avatarUrl ?? null,
       emailVerified: user.emailVerified,
+      onboardingProfile: user.onboardingProfile ?? null,
+      onboardingCompletedAt: user.onboardingCompletedAt ?? null,
       roles: user.roles,
     };
   }

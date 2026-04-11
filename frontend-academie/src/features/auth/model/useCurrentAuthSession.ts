@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthStoreSelector } from "@/core/store/auth-store-hooks";
-import { getDashboardPathForRole } from "@/core/router/route-access-control";
+import { getAuthenticatedLandingPath } from "@/core/router/route-access-control";
 import { formatUserRoleLabel } from "@/entities/user/model/user-session.types";
 import {
   selectAuthActionPreviewToken,
@@ -27,7 +27,7 @@ export function useCurrentAuthSession() {
     actionPreviewUrl,
     dashboardHref: user
       ? user.emailVerified
-        ? getDashboardPathForRole(user.role)
+        ? getAuthenticatedLandingPath(user)
         : `/auth/verify${user.email ? `?email=${encodeURIComponent(user.email)}` : ""}`
       : "/auth/login",
     errorMessage,

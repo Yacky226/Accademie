@@ -1,15 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   SESSION_EMAIL_COOKIE,
+  SESSION_ONBOARDING_COMPLETED_COOKIE,
+  SESSION_ONBOARDING_STEP_COOKIE,
   SESSION_ROLE_COOKIE,
   SESSION_STATUS_COOKIE,
   SESSION_VERIFIED_COOKIE,
 } from "./src/core/auth/session-cookie-store";
 import {
+  getAuthenticatedLandingPath,
   getDashboardPathForRole,
   getRequiredRoleForPath,
   isAuthRoute,
 } from "./src/core/router/route-access-control";
+import { buildOnboardingPath } from "./src/features/onboarding/model/onboarding-progress";
 import { isUserRole } from "./src/entities/user/model/user-session.types";
 
 export function middleware(request: NextRequest) {
@@ -18,9 +22,27 @@ export function middleware(request: NextRequest) {
   const roleValue = request.cookies.get(SESSION_ROLE_COOKIE)?.value;
   const emailValue = request.cookies.get(SESSION_EMAIL_COOKIE)?.value;
   const isVerified = request.cookies.get(SESSION_VERIFIED_COOKIE)?.value === "true";
+  const onboardingCompletedCookie = request.cookies.get(
+    SESSION_ONBOARDING_COMPLETED_COOKIE,
+  )?.value;
+  const onboardingCompleted =
+    onboardingCompletedCookie === undefined
+      ? null
+      : onboardingCompletedCookie === "true";
+  const onboardingStepValue =
+    request.cookies.get(SESSION_ONBOARDING_STEP_COOKIE)?.value ?? null;
+  const onboardingNextStep =
+    onboardingStepValue === "step-1" ||
+    onboardingStepValue === "step-2" ||
+    onboardingStepValue === "step-3" ||
+    onboardingStepValue === "step-4"
+      ? onboardingStepValue
+      : null;
   const role = isUserRole(roleValue) ? roleValue : null;
   const isAuthenticated = sessionState === "authenticated" && Boolean(role);
   const requiredRole = getRequiredRoleForPath(pathname);
+  const requiresOnboarding =
+    role === "student" && isVerified && onboardingCompleted === false;
 
   if (requiredRole && !isAuthenticated) {
     const loginUrl = new URL("/auth/login", request.url);
@@ -42,9 +64,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(fallbackPath, request.url));
   }
 
+  if (requiredRole && requiresOnboarding) {
+    const onboardingUrl = new URL(
+      buildOnboardingPath(onboardingNextStep, `${pathname}${search}`),
+      request.url,
+    );
+    return NextResponse.redirect(onboardingUrl);
+  }
+
   if (isAuthenticated && role && isAuthRoute(pathname)) {
     const authLandingPath = isVerified
-      ? getDashboardPathForRole(role)
+      ? getAuthenticatedLandingPath({
+          role,
+          onboardingCompleted,
+          onboardingNextStep,
+        })
       : `/auth/verify${emailValue ? `?email=${encodeURIComponent(emailValue)}` : ""}`;
     if (pathname !== "/auth/verify" || isVerified) {
       return NextResponse.redirect(new URL(authLandingPath, request.url));

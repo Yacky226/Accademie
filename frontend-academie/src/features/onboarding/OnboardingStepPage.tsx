@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { writeClientOnboardingCookies } from "@/core/auth/session-cookie-store";
+import {
+  getDashboardPathForRole,
+  resolveSafeRedirectTarget,
+} from "@/core/router/route-access-control";
 import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import { AcademyBrandIcon } from "@/shared/ui/AcademyBrandIcon";
 import {
@@ -11,6 +16,10 @@ import {
 } from "@/features/users/api/user-profile.client";
 import type { OnboardingProfile } from "@/features/users/model/user-profile.types";
 import { onboardingSteps, type OnboardingStep } from "./onboarding.data";
+import {
+  buildOnboardingPath,
+  resolveOnboardingProgressState,
+} from "./model/onboarding-progress";
 import styles from "./onboarding.module.css";
 
 interface OnboardingStepPageProps {
@@ -168,7 +177,8 @@ function mapProfileToValues(input: {
 
 export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
   const router = useRouter();
-  const { dashboardHref, isAuthenticated } = useCurrentAuthSession();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, user } = useCurrentAuthSession();
   const currentStep = onboardingSteps.find((step) => step.slug === slug);
   const [values, setValues] = useState<OnboardingValues>({});
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -264,6 +274,15 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
         onboardingCompletedAt: allFieldsCompleted ? new Date().toISOString() : null,
         onboardingProfile,
       });
+      const onboardingState = resolveOnboardingProgressState({
+        onboardingCompletedAt: allFieldsCompleted ? new Date().toISOString() : null,
+        onboardingProfile,
+        role: user?.role ?? "student",
+      });
+      writeClientOnboardingCookies({
+        onboardingCompleted: onboardingState.completed,
+        onboardingNextStep: onboardingState.nextStep,
+      });
       setSyncError(null);
       if (showSavedMessage) {
         setSyncMessage(
@@ -313,6 +332,14 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
   const overallCompletion =
     totalFields === 0 ? 0 : Math.round((completedFields / totalFields) * 100);
   const remainingFields = Math.max(currentProgress.total - currentProgress.completed, 0);
+  const requestedRedirectTarget = resolveSafeRedirectTarget(
+    searchParams.get("redirect"),
+    "",
+  );
+
+  function buildStepHref(stepSlug: OnboardingStep["slug"]) {
+    return buildOnboardingPath(stepSlug, requestedRedirectTarget || null);
+  }
 
   async function handleNavigate(href: string) {
     await persistOnboarding(true);
@@ -325,7 +352,12 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
       return;
     }
 
-    router.push(isAuthenticated ? dashboardHref : "/auth/login");
+    if (isAuthenticated && user) {
+      router.push(requestedRedirectTarget || getDashboardPathForRole(user.role));
+      return;
+    }
+
+    router.push("/auth/login");
   }
 
   return (
@@ -402,7 +434,7 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                       isActive ? styles.stepLinkActive : isComplete ? styles.stepLinkDone : ""
                     }`}
                     key={step.slug}
-                    onClick={() => void handleNavigate(`/onboarding/${step.slug}`)}
+                    onClick={() => void handleNavigate(buildStepHref(step.slug))}
                     type="button"
                   >
                     <span
@@ -529,7 +561,7 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                 {previousStep ? (
                   <button
                     className={styles.secondaryButton}
-                    onClick={() => void handleNavigate(`/onboarding/${previousStep.slug}`)}
+                    onClick={() => void handleNavigate(buildStepHref(previousStep.slug))}
                     type="button"
                   >
                     Back
@@ -543,7 +575,7 @@ export function OnboardingStepPage({ slug }: OnboardingStepPageProps) {
                 {nextStep ? (
                   <button
                     className={styles.primaryButton}
-                    onClick={() => void handleNavigate(`/onboarding/${nextStep.slug}`)}
+                    onClick={() => void handleNavigate(buildStepHref(nextStep.slug))}
                     type="button"
                   >
                     Continue

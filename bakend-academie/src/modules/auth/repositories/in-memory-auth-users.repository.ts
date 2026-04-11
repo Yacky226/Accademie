@@ -47,6 +47,8 @@ export class InMemoryAuthUsersRepository implements AuthUsersRepository {
       email: normalizedEmail,
       avatarUrl: null,
       emailVerified: false,
+      onboardingProfile: null,
+      onboardingCompletedAt: null,
       roles: input.roleNames,
       status: UserStatus.ACTIVE,
       passwordHash: input.passwordHash,

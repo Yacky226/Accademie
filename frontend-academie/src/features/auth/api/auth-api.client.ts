@@ -9,6 +9,7 @@ import {
   type SessionUser,
   type UserRole,
 } from "@/entities/user/model/user-session.types";
+import { resolveOnboardingProgressState } from "@/features/onboarding/model/onboarding-progress";
 import { isApiClientError, requestApiJson } from "@/core/api/api-http-client";
 import type {
   AuthActionFeedback,
@@ -62,6 +63,32 @@ function fallbackName(email: string | undefined, fullName: string | undefined) {
   return "Architect Academy";
 }
 
+function normalizeOnboardingProfile(value: unknown) {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const normalizedEntries = Object.entries(value).reduce<Record<string, string>>(
+    (result, [key, entry]) => {
+      if (typeof entry !== "string") {
+        return result;
+      }
+
+      const normalizedKey = key.trim();
+      const normalizedValue = entry.trim();
+      if (!normalizedKey || !normalizedValue) {
+        return result;
+      }
+
+      result[normalizedKey] = normalizedValue;
+      return result;
+    },
+    {},
+  );
+
+  return Object.keys(normalizedEntries).length > 0 ? normalizedEntries : null;
+}
+
 function mapSessionUser(payload: unknown, context: AuthRequestContext = {}): SessionUser {
   const data = extractData(payload);
   const source = isRecord(data.user)
@@ -90,6 +117,19 @@ function mapSessionUser(payload: unknown, context: AuthRequestContext = {}): Ses
     (typeof source.role === "string" && source.role) ||
     (typeof data.role === "string" && data.role) ||
     context.fallbackRole;
+  const resolvedRole = toUserRole(roleCandidate, context.fallbackRole ?? "student");
+  const onboardingProfile = normalizeOnboardingProfile(
+    isRecord(source.onboardingProfile) ? source.onboardingProfile : data.onboardingProfile,
+  );
+  const onboardingCompletedAt =
+    (typeof source.onboardingCompletedAt === "string" && source.onboardingCompletedAt) ||
+    (typeof data.onboardingCompletedAt === "string" && data.onboardingCompletedAt) ||
+    null;
+  const onboardingState = resolveOnboardingProgressState({
+    onboardingCompletedAt,
+    onboardingProfile,
+    role: resolvedRole,
+  });
 
   return {
     avatarUrl: resolveApiAssetUrl(
@@ -103,11 +143,13 @@ function mapSessionUser(payload: unknown, context: AuthRequestContext = {}): Ses
       (typeof source.id === "number" && String(source.id)) ||
       null,
     name: nameCandidate,
-    role: toUserRole(roleCandidate, context.fallbackRole ?? "student"),
+    role: resolvedRole,
     emailVerified:
       (typeof source.emailVerified === "boolean" && source.emailVerified) ||
       (typeof data.emailVerified === "boolean" && data.emailVerified) ||
       false,
+    onboardingCompleted: onboardingState.completed,
+    onboardingNextStep: onboardingState.nextStep,
   };
 }
 

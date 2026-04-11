@@ -202,6 +202,8 @@ export class TypeOrmAuthUsersRepository implements AuthUsersRepository {
       email: user.email,
       avatarUrl: user.avatarUrl ?? null,
       emailVerified: user.emailVerified,
+      onboardingProfile: user.onboardingProfile ?? null,
+      onboardingCompletedAt: user.onboardingCompletedAt ?? null,
       roles: (user.roles ?? []).map((role) => role.name),
       status: user.status,
       passwordHash: user.passwordHash,
