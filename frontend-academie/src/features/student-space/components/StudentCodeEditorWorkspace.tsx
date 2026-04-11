@@ -32,7 +32,7 @@ import { StudentMonacoEditor } from "./StudentMonacoEditor";
 import styles from "../student-space.module.css";
 
 type ProblemTabId = "description" | "examples" | "constraints" | "hints";
-type WorkspaceFileId = "solution" | "notes" | "tests";
+type WorkspaceFileId = "solution" | "tests";
 
 const problemTabs: Array<{ id: ProblemTabId; label: string }> = [
   { id: "description", label: "Description" },
@@ -40,16 +40,6 @@ const problemTabs: Array<{ id: ProblemTabId; label: string }> = [
   { id: "constraints", label: "Constraints" },
   { id: "hints", label: "Hints" },
 ];
-
-const initialNotes = `Approach:
-- Handle the empty tree first.
-- Swap the left and right children at each node.
-- Recurse into both subtrees.
-
-Complexity target:
-- Time: O(n)
-- Memory: O(h) for recursion depth
-`;
 
 function buildTimeLabel() {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -78,6 +68,37 @@ function isExecutionPending(status: string) {
   return status === "PENDING" || status === "RUNNING";
 }
 
+function EditorFocusToggleIcon({ isActive }: { isActive: boolean }) {
+  return (
+    <svg
+      aria-hidden
+      className={styles.codeStudioFocusIcon}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+      viewBox="0 0 20 20"
+    >
+      {isActive ? (
+        <>
+          <path d="M7 2.75H2.75V7" />
+          <path d="M13 2.75h4.25V7" />
+          <path d="M2.75 13V17.25H7" />
+          <path d="M17.25 13v4.25H13" />
+        </>
+      ) : (
+        <>
+          <path d="M2.75 7H7V2.75" />
+          <path d="M13 2.75V7h4.25" />
+          <path d="M7 17.25V13H2.75" />
+          <path d="M17.25 13H13v4.25" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export function StudentCodeEditorWorkspace() {
   const dispatch = useAppDispatch();
   const studentCodeExercise = useAppSelector(selectStudentCodeExercise);
@@ -95,7 +116,6 @@ export function StudentCodeEditorWorkspace() {
     useState<ProblemTabId>("description");
   const [activeFile, setActiveFile] = useState<WorkspaceFileId>("solution");
   const [isEditorFocus, setIsEditorFocus] = useState(false);
-  const [notesContent, setNotesContent] = useState(initialNotes);
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [consoleEntries, setConsoleEntries] = useState<StudentConsoleEntry[]>(
     studentCodeConsoleBoot,
@@ -128,29 +148,16 @@ export function StudentCodeEditorWorkspace() {
       (language) => language.id === resolvedActiveLanguageId,
     ) ?? studentCodeExercise.languages[0];
   const currentCode = codeByLanguage[activeLanguage.id];
-  const activeEditorContent =
-    activeFile === "solution" ? currentCode : notesContent;
-  const lineCount = activeEditorContent.split("\n").length;
-  const characterCount = activeEditorContent.length;
-  const monacoLanguage =
-    activeFile === "solution"
-      ? toMonacoLanguage(activeLanguage.id)
-      : "markdown";
-  const monacoPath =
-    activeFile === "solution"
-      ? `file:///workspace/${activeLanguage.fileName}`
-      : "file:///workspace/notes.md";
+  const lineCount = currentCode.split("\n").length;
+  const characterCount = currentCode.length;
+  const monacoLanguage = toMonacoLanguage(activeLanguage.id);
+  const monacoPath = `file:///workspace/${activeLanguage.fileName}`;
 
   const fileItems = [
     {
       id: "solution" as const,
       label: activeLanguage.fileName,
       meta: `${activeLanguage.label} starter`,
-    },
-    {
-      id: "notes" as const,
-      label: "notes.md",
-      meta: "Editable notes",
     },
     {
       id: "tests" as const,
@@ -160,17 +167,10 @@ export function StudentCodeEditorWorkspace() {
   ];
 
   function handleCodeChange(nextValue: string) {
-    if (activeFile === "solution") {
-      setCodeByLanguage((current) => ({
-        ...current,
-        [activeLanguage.id]: nextValue,
-      }));
-      return;
-    }
-
-    if (activeFile === "notes") {
-      setNotesContent(nextValue);
-    }
+    setCodeByLanguage((current) => ({
+      ...current,
+      [activeLanguage.id]: nextValue,
+    }));
   }
 
   function handleLanguageChange(nextLanguageId: StudentCodingLanguageId) {
@@ -559,40 +559,18 @@ export function StudentCodeEditorWorkspace() {
     <div className={styles.codeStudioShell}>
       <header className={styles.codeStudioTopbar}>
         <div className={styles.codeStudioTopbarCopy}>
-          <span className={styles.codeStudioEyebrow}>Student code studio</span>
           <div className={styles.codeStudioHeadingRow}>
             <h1>{studentCodeExercise.title}</h1>
             <span className={styles.codeStudioDifficultyPill}>
               {studentCodeExercise.difficulty}
             </span>
           </div>
-          <p>
-            Resolve coding exercises inside a real IDE workspace, switch
-            languages instantly and iterate against a live console before
-            submission.
-          </p>
           {editorErrorMessage ? (
             <p className={`${styles.heroSub} ${styles.messageError}`}>{editorErrorMessage}</p>
           ) : null}
         </div>
 
         <div className={styles.codeStudioTopbarActions}>
-          <button
-            className={
-              isEditorFocus
-                ? styles.codeStudioModeButtonActive
-                : styles.codeStudioModeButton
-            }
-            onClick={() => setIsEditorFocus((current) => !current)}
-            type="button"
-          >
-            {isEditorFocus ? "Show brief" : "Focus editor"}
-          </button>
-
-          <div className={styles.codeStudioStatCard}>
-            <span>{studentCodeExercise.submissions}</span>
-            <strong>{studentCodeExercise.acceptanceRate}</strong>
-          </div>
           <Link className={styles.codeStudioBackLink} href="/student/courses">
             Back to courses
           </Link>
@@ -606,24 +584,6 @@ export function StudentCodeEditorWorkspace() {
       >
         {!isEditorFocus ? (
           <section className={styles.codeStudioProblemPanel}>
-            <div className={styles.codeStudioProblemMeta}>
-              <div>
-                <span className={styles.codeStudioMetaLabel}>Problem type</span>
-                <strong>{studentCodeExercise.category}</strong>
-              </div>
-              <div>
-                <span className={styles.codeStudioMetaLabel}>Last attempt</span>
-                <strong>{studentCodeExercise.lastAttempt}</strong>
-              </div>
-              <div>
-                <span className={styles.codeStudioMetaLabel}>Community</span>
-                <strong>
-                  {studentCodeExercise.likes} likes /{" "}
-                  {studentCodeExercise.dislikes} dislikes
-                </strong>
-              </div>
-            </div>
-
             <div className={styles.codeStudioDocTabs}>
               {problemTabs.map((tab) => (
                 <button
@@ -649,21 +609,40 @@ export function StudentCodeEditorWorkspace() {
 
         <section className={styles.codeStudioEditorPanel}>
           <header className={styles.codeStudioEditorHeader}>
-            <div className={styles.codeStudioFileTabs}>
-              {fileItems.map((file) => (
-                <button
-                  key={file.id}
-                  className={
-                    activeFile === file.id
-                      ? styles.codeStudioFileTabActive
-                      : styles.codeStudioFileTab
-                  }
-                  onClick={() => setActiveFile(file.id)}
-                  type="button"
-                >
-                  {file.label}
-                </button>
-              ))}
+            <div className={styles.codeStudioEditorHeaderPrimary}>
+              <div className={styles.codeStudioFileTabs}>
+                {fileItems.map((file) => (
+                  <button
+                    key={file.id}
+                    className={
+                      activeFile === file.id
+                        ? styles.codeStudioFileTabActive
+                        : styles.codeStudioFileTab
+                    }
+                    onClick={() => setActiveFile(file.id)}
+                    type="button"
+                  >
+                    {file.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                aria-label={
+                  isEditorFocus ? "Restore split view" : "Expand editor and hide brief"
+                }
+                aria-pressed={isEditorFocus}
+                className={
+                  isEditorFocus
+                    ? styles.codeStudioEditorFocusButtonActive
+                    : styles.codeStudioEditorFocusButton
+                }
+                onClick={() => setIsEditorFocus((current) => !current)}
+                title={isEditorFocus ? "Restore split view" : "Expand editor"}
+                type="button"
+              >
+                <EditorFocusToggleIcon isActive={isEditorFocus} />
+              </button>
             </div>
 
             <div className={styles.codeStudioEditorActions}>
@@ -710,43 +689,49 @@ export function StudentCodeEditorWorkspace() {
             </div>
           </header>
 
-          <div className={styles.codeStudioEditorShell}>
-            <aside className={styles.codeStudioExplorer}>
-              <div className={styles.codeStudioExplorerHead}>
-                <span>Workspace</span>
-                <strong>{activeLanguage.runtime}</strong>
-              </div>
+          <div
+            className={`${styles.codeStudioEditorShell} ${
+              isEditorFocus ? styles.codeStudioEditorShellFocus : ""
+            }`}
+          >
+            {!isEditorFocus ? (
+              <aside className={styles.codeStudioExplorer}>
+                <div className={styles.codeStudioExplorerHead}>
+                  <span>Workspace</span>
+                  <strong>{activeLanguage.runtime}</strong>
+                </div>
 
-              <div className={styles.codeStudioExplorerList}>
-                {fileItems.map((file) => (
-                  <button
-                    key={file.id}
-                    className={
-                      activeFile === file.id
-                        ? styles.codeStudioExplorerItemActive
-                        : styles.codeStudioExplorerItem
+                <div className={styles.codeStudioExplorerList}>
+                  {fileItems.map((file) => (
+                    <button
+                      key={file.id}
+                      className={
+                        activeFile === file.id
+                          ? styles.codeStudioExplorerItemActive
+                          : styles.codeStudioExplorerItem
+                      }
+                      onClick={() => setActiveFile(file.id)}
+                      type="button"
+                    >
+                      <strong>{file.label}</strong>
+                      <span>{file.meta}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className={styles.codeStudioExplorerSummary}>
+                  <span>Tracked tests</span>
+                  <strong>
+                    {
+                      studentCodeExercise.tests.filter(
+                        (testCase) => testCase.status === "passed",
+                      ).length
                     }
-                    onClick={() => setActiveFile(file.id)}
-                    type="button"
-                  >
-                    <strong>{file.label}</strong>
-                    <span>{file.meta}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className={styles.codeStudioExplorerSummary}>
-                <span>Tracked tests</span>
-                <strong>
-                  {
-                    studentCodeExercise.tests.filter(
-                      (testCase) => testCase.status === "passed",
-                    ).length
-                  }
-                  /{studentCodeExercise.tests.length}
-                </strong>
-              </div>
-            </aside>
+                    /{studentCodeExercise.tests.length}
+                  </strong>
+                </div>
+              </aside>
+            ) : null}
 
             <div className={styles.codeStudioWorkspace}>
               {activeFile === "tests" ? (
@@ -790,8 +775,8 @@ export function StudentCodeEditorWorkspace() {
                     language={monacoLanguage}
                     onChange={handleCodeChange}
                     path={monacoPath}
-                    value={activeEditorContent}
-                    wordWrap={activeFile === "notes" ? "on" : "off"}
+                    value={currentCode}
+                    wordWrap="off"
                   />
                 </div>
               )}

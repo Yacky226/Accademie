@@ -2154,9 +2154,12 @@
 }
 
 .codeStudioShell {
+  flex: 1 1 auto;
+  width: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 18px;
+  min-width: 0;
   min-height: 0;
   height: 100%;
 }
@@ -2165,9 +2168,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 22px 24px;
-  border-radius: 32px;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 24px;
   border: 1px solid rgba(188, 204, 236, 0.56);
   background:
     radial-gradient(circle at top right, rgba(50, 120, 251, 0.1), transparent 32%),
@@ -2177,11 +2180,10 @@
 
 .codeStudioTopbarCopy {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
 }
 
-.codeStudioEyebrow,
 .codeStudioMetaLabel,
 .codeStudioSectionHead h3,
 .codeStudioExplorerHead span,
@@ -2190,50 +2192,30 @@
   text-transform: uppercase;
 }
 
-.codeStudioEyebrow {
-  width: fit-content;
-  min-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(0, 74, 198, 0.08);
-  color: #2456a8;
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
 .codeStudioHeadingRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .codeStudioHeadingRow h1 {
   margin: 0;
   font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
-  font-size: clamp(1.8rem, 1.45rem + 0.8vw, 2.35rem);
-  letter-spacing: -0.05em;
-  line-height: 1.02;
-}
-
-.codeStudioTopbarCopy p {
-  margin: 0;
-  color: #62728a;
-  line-height: 1.65;
-  max-width: 72ch;
+  font-size: clamp(1.15rem, 1.02rem + 0.35vw, 1.45rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
 }
 
 .codeStudioDifficultyPill {
-  min-height: 32px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: 999px;
   background: rgba(255, 181, 150, 0.34);
   color: #7d2d00;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 800;
 }
 
@@ -2249,64 +2231,16 @@
   flex-shrink: 0;
 }
 
-.codeStudioModeButton,
-.codeStudioModeButtonActive {
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(191, 211, 255, 0.72);
-  background: linear-gradient(180deg, rgba(238, 244, 255, 0.96) 0%, rgba(255, 255, 255, 0.94) 100%);
-  color: #2456a8;
-  font-size: 0.82rem;
-  font-weight: 800;
-  box-shadow: 0 14px 26px rgba(13, 28, 46, 0.06);
-  cursor: pointer;
-}
-
-.codeStudioModeButtonActive {
-  border-color: transparent;
-  color: #ffffff;
-  background: linear-gradient(135deg, #0d1c2e, #2563eb);
-}
-
-.codeStudioStatCard {
-  min-width: 156px;
-  padding: 14px 16px;
-  border-radius: 22px;
-  border: 1px solid rgba(188, 204, 236, 0.56);
-  background: rgba(255, 255, 255, 0.88);
-  display: grid;
-  gap: 6px;
-}
-
-.codeStudioStatCard span {
-  color: #607089;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.codeStudioStatCard strong {
-  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
-  font-size: 1.18rem;
-  color: #0d1c2e;
-  letter-spacing: -0.04em;
-}
-
 .codeStudioBackLink {
-  min-height: 46px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 18px;
+  padding: 0 16px;
   border-radius: 999px;
   color: #ffffff;
   text-decoration: none;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 800;
   background: linear-gradient(135deg, #004ac6, #3278fb);
   box-shadow: 0 18px 30px rgba(0, 74, 198, 0.22);
@@ -2338,34 +2272,7 @@
 .codeStudioProblemPanel {
   display: flex;
   flex-direction: column;
-}
-
-.codeStudioProblemMeta {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 22px 22px 0;
-}
-
-.codeStudioProblemMeta div {
-  display: grid;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #f3f7ff 0%, #ffffff 100%);
-  border: 1px solid rgba(208, 219, 241, 0.86);
-}
-
-.codeStudioMetaLabel {
-  color: #607089;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.codeStudioProblemMeta strong {
-  color: #0d1c2e;
-  font-size: 0.92rem;
-  line-height: 1.45;
+  align-self: start;
 }
 
 .codeStudioDocTabs {
@@ -2401,7 +2308,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 22px;
+  padding: 18px;
   display: grid;
   align-content: start;
 }
@@ -2411,15 +2318,15 @@
 .codeStudioConstraintStack,
 .codeStudioHintStack {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .codeStudioLeadCopy {
   margin: 0;
   color: #0d1c2e;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  line-height: 1.7;
+  line-height: 1.58;
 }
 
 .codeStudioBodyCopy,
@@ -2428,29 +2335,29 @@
 .codeStudioHintCard p {
   margin: 0;
   color: #62728a;
-  line-height: 1.68;
+  line-height: 1.58;
 }
 
 .codeStudioDiagramCard {
   margin: 0;
-  padding: 14px;
-  border-radius: 24px;
+  padding: 10px;
+  border-radius: 20px;
   background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
   border: 1px solid rgba(208, 219, 241, 0.86);
 }
 
 .codeStudioDiagram {
   width: 100%;
-  height: auto;
+  height: clamp(170px, 22vw, 220px);
   display: block;
-  border-radius: 18px;
+  border-radius: 16px;
   object-fit: cover;
 }
 
 .codeStudioDiagramCard figcaption {
-  margin-top: 10px;
+  margin-top: 6px;
   color: #7a879b;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   text-align: center;
 }
 
@@ -2582,11 +2489,62 @@
   gap: 16px;
 }
 
+.codeStudioEditorHeaderPrimary {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .codeStudioFileTabs {
+  min-width: 0;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.codeStudioEditorFocusButton,
+.codeStudioEditorFocusButtonActive {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(180, 197, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(234, 241, 255, 0.76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.codeStudioEditorFocusButton:hover,
+.codeStudioEditorFocusButton:focus-visible,
+.codeStudioEditorFocusButtonActive:hover,
+.codeStudioEditorFocusButtonActive:focus-visible {
+  transform: translateY(-1px);
+}
+
+.codeStudioEditorFocusButtonActive {
+  border-color: transparent;
+  color: #ffffff;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  box-shadow: 0 14px 24px rgba(0, 74, 198, 0.22);
+}
+
+.codeStudioFocusIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .codeStudioFileTab,
@@ -2695,6 +2653,10 @@
   min-height: 0;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.codeStudioEditorShellFocus {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .codeStudioExplorer {
@@ -3731,11 +3693,21 @@
     flex: 1 1 220px;
   }
 
+  .codeStudioEditorHeaderPrimary {
+    width: 100%;
+  }
+
   .codeStudioStatCard,
   .codeStudioBackLink,
   .codeStudioLanguageSelectWrap {
     width: 100%;
     min-width: 0;
+  }
+
+  .codeStudioEditorFocusButton,
+  .codeStudioEditorFocusButtonActive {
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .codeStudioBackLink {
