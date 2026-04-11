@@ -22,100 +22,14 @@
   gap: 24px;
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
-  gap: 24px;
-  align-items: stretch;
-}
-
-.heroCopy,
-.heroStats,
-.dashboardMock,
-.toastSection,
 .panel {
   border: 1px solid rgba(195, 198, 215, 0.35);
   box-shadow: 0 20px 40px rgba(13, 28, 46, 0.06);
 }
 
-.heroCopy {
-  border-radius: 24px;
-  padding: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 32%),
-    linear-gradient(135deg, #ffffff, #f7faff);
-}
-
-.heroEyebrow,
-.sectionEyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #355ea9;
-}
-
-.heroTitle {
-  margin-top: 12px;
-  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
-  line-height: 1.08;
-  letter-spacing: -0.05em;
-}
-
-.heroLead {
-  margin-top: 16px;
-  max-width: 62ch;
-  color: #4e5c75;
-  line-height: 1.7;
-}
-
-.heroStats {
-  border-radius: 24px;
-  padding: 20px;
-  background: linear-gradient(180deg, #ffffff, #f8fbff);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.statCard {
-  border-radius: 18px;
-  padding: 16px;
-  background: #f7faff;
-  border: 1px solid #e6edf9;
-}
-
-.statCard span {
-  display: block;
-  color: #5f6c84;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.statCard strong {
-  display: block;
-  margin-top: 10px;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-  font-size: 1.65rem;
-  color: var(--notify-primary);
-}
-
-.statCard p {
-  margin-top: 8px;
-  color: #617088;
-  font-size: 0.8rem;
-  line-height: 1.5;
-}
-
 .contentGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.95fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -379,8 +293,7 @@
 }
 
 .panelColumn {
-  position: sticky;
-  top: 88px;
+  position: static;
 }
 
 .panel {
@@ -705,50 +618,9 @@
   text-decoration: none;
 }
 
-@media (max-width: 1180px) {
-  .hero,
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .panelColumn {
-    position: static;
-  }
-}
-
-@media (max-width: 860px) {
-  .heroStats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .mockCardGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .sectionHeading {
-    align-items: start;
-    flex-direction: column;
-  }
-}
-
 @media (max-width: 640px) {
-  .heroCopy,
-  .heroStats,
-  .dashboardMock,
-  .toastSection,
   .panel {
     border-radius: 20px;
-  }
-
-  .heroCopy,
-  .heroStats,
-  .dashboardMock,
-  .toastSection {
-    padding: 20px;
-  }
-
-  .heroStats {
-    grid-template-columns: 1fr;
   }
 
   .panelHeader,

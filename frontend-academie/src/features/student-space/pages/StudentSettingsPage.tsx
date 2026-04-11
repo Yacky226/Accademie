@@ -2,12 +2,11 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { useAppDispatch } from "@/core/store/app-store-hooks";
 import { fetchCurrentSessionThunk } from "@/features/auth/model/auth.slice";
 import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import { AccountSecurityPanel } from "@/features/auth/ui/components/AccountSecurityPanel";
-import { useNotificationCenterState } from "@/features/notification-center/model/useNotificationCenterState";
 import {
   fetchCurrentUserProfile,
   updateCurrentUserProfile,
@@ -56,63 +55,10 @@ function toProfileForm(profile: UserProfile): UpdateUserProfilePayload {
   };
 }
 
-function formatDateLabel(value: string | null) {
-  if (!value) {
-    return "Non disponible";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Non disponible";
-  }
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
-function computeProfileCompletion(profile: UserProfile | null) {
-  if (!profile) {
-    return 0;
-  }
-
-  const fields = [
-    profile.firstName,
-    profile.lastName,
-    profile.email,
-    profile.phone,
-    profile.city,
-    profile.country,
-    profile.bio,
-    profile.avatarUrl,
-    profile.emailVerified ? "verified" : "",
-  ];
-
-  const completedFields = fields.filter((value) => value?.trim()).length;
-  return Math.round((completedFields / fields.length) * 100);
-}
-
-function formatRoleLabel(profile: UserProfile | null) {
-  const primaryRole = profile?.roles[0] ?? "student";
-
-  if (primaryRole === "teacher") {
-    return "Teacher";
-  }
-
-  if (primaryRole === "admin") {
-    return "Admin";
-  }
-
-  return "Student";
-}
-
 export function StudentSettingsPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { user } = useCurrentAuthSession();
-  const { unreadCount } = useNotificationCenterState();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [form, setForm] = useState<UpdateUserProfilePayload>(EMPTY_FORM);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -159,7 +105,6 @@ export function StudentSettingsPage() {
     };
   }, []);
 
-  const profileCompletion = useMemo(() => computeProfileCompletion(profile), [profile]);
   const profileName = profile?.fullName || user?.name || "Architect Academy Student";
   const avatarSrc = profile?.avatarUrl ?? user?.avatarUrl ?? null;
   const hasChanges =
@@ -281,24 +226,6 @@ export function StudentSettingsPage() {
 
       {errorMessage ? <p className={styles.settingsStatusError}>{errorMessage}</p> : null}
       {successMessage ? <p className={styles.settingsStatusSuccess}>{successMessage}</p> : null}
-
-      <section className={styles.settingsSummaryGrid}>
-        <article className={styles.settingsSummaryCard}>
-          <span>Profil complet</span>
-          <strong>{profileCompletion}%</strong>
-          <p>Ajoutez vos coordonnees et une photo pour personnaliser votre espace.</p>
-        </article>
-        <article className={styles.settingsSummaryCard}>
-          <span>Notifications non lues</span>
-          <strong>{unreadCount}</strong>
-          <p>Vos alertes de cours et mises a jour recentes sont centralisees ici.</p>
-        </article>
-        <article className={styles.settingsSummaryCard}>
-          <span>Securite du compte</span>
-          <strong>{profile?.emailVerified ? "Verifie" : "A verifier"}</strong>
-          <p>Derniere connexion: {formatDateLabel(profile?.lastLoginAt ?? null)}</p>
-        </article>
-      </section>
 
       <div className={styles.settingsGrid}>
         <article className={styles.settingsSectionCard}>
@@ -425,34 +352,6 @@ export function StudentSettingsPage() {
                   value={form.bio}
                 />
               </label>
-            </div>
-          </div>
-        </article>
-
-        <article className={styles.settingsSectionCard}>
-          <div className={styles.settingsSectionHead}>
-            <div>
-              <span className={styles.supportInsightLabel}>Account snapshot</span>
-              <h2>Vue du compte</h2>
-            </div>
-          </div>
-
-          <div className={styles.settingsProfileGrid}>
-            <div className={styles.settingsFieldCard}>
-              <span>Nom complet</span>
-              <strong>{profileName}</strong>
-            </div>
-            <div className={styles.settingsFieldCard}>
-              <span>Role</span>
-              <strong>{formatRoleLabel(profile)}</strong>
-            </div>
-            <div className={styles.settingsFieldCard}>
-              <span>Email verifie</span>
-              <strong>{profile?.emailVerified ? "Oui" : "Non"}</strong>
-            </div>
-            <div className={styles.settingsFieldCard}>
-              <span>Membre depuis</span>
-              <strong>{formatDateLabel(profile?.createdAt ?? null)}</strong>
             </div>
           </div>
         </article>

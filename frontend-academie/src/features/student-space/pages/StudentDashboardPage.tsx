@@ -222,7 +222,7 @@ export function StudentDashboardPage() {
                 ))}
               </div>
             ) : null}
-            <div className={styles.actionRow}>
+            <div className={`${styles.actionRow} ${styles.actionRowSpaced}`}>
               <Link className={styles.ghostBtn} href="/student/leaderboard">
                 Voir le classement
               </Link>

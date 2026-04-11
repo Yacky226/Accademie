@@ -72,7 +72,7 @@ export function AccountSecurityPanel({
           <p className={styles.previewCopy}>
             Open the generated verification link directly while email delivery is still local-only.
           </p>
-          <Link className={styles.secondaryButton} href={previewUrl}>
+          <Link className={`${styles.secondaryButton} ${styles.securitySecondaryButton}`} href={previewUrl}>
             Open verification preview
           </Link>
         </div>
@@ -80,12 +80,12 @@ export function AccountSecurityPanel({
 
       <div className={styles.securityActionRow}>
         {emailVerified ? (
-          <Link className={styles.secondaryButton} href={verificationHref}>
+          <Link className={`${styles.secondaryButton} ${styles.securitySecondaryButton}`} href={verificationHref}>
             Review verification state
           </Link>
         ) : (
           <button
-            className={styles.secondaryButton}
+            className={`${styles.secondaryButton} ${styles.securitySecondaryButton}`}
             disabled={isRequestingVerification || !user?.email}
             onClick={() => void handleSendVerificationLink()}
             type="button"
@@ -95,7 +95,7 @@ export function AccountSecurityPanel({
         )}
 
         <button
-          className={styles.primaryButton}
+          className={`${styles.primaryButton} ${styles.securityPrimaryButton}`}
           disabled={isClosingAllSessions}
           onClick={() => void handleLogoutAllSessions()}
           type="button"
