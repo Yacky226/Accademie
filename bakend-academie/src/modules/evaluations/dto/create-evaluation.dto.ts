@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsNumber,
@@ -6,8 +7,11 @@ import {
   IsString,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { EvaluationType } from '../../../core/enums';
+import { CreateEvaluationQuestionDto } from './create-evaluation-question.dto';
 
 export class CreateEvaluationDto {
   @IsString()
@@ -64,4 +68,10 @@ export class CreateEvaluationDto {
   @IsOptional()
   @IsString()
   courseId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateEvaluationQuestionDto)
+  questions?: CreateEvaluationQuestionDto[];
 }

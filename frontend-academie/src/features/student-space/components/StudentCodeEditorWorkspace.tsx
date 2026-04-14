@@ -15,6 +15,7 @@ import {
   selectLatestJudgeRun,
   selectLatestSubmission,
   selectStudentCodeEditorError,
+  selectStudentCodeEditorProblemSlug,
   selectStudentCodeEditorRunStatus,
   selectStudentCodeEditorStatus,
   selectStudentCodeEditorSubmitStatus,
@@ -25,9 +26,14 @@ import {
   studentCodeExercise as fallbackStudentCodeExercise,
 } from "@/features/student-code-editor/model/student-code-editor.catalog";
 import type {
+  StudentCodingTestCase,
   StudentCodingLanguageId,
   StudentConsoleEntry,
 } from "@/features/student-code-editor/model/student-code-editor.contracts";
+import type {
+  StudentCodeExecutionRecord,
+  StudentCodeSubmissionTestResult,
+} from "@/features/student-code-editor/model/student-code-editor.types";
 import { StudentMonacoEditor } from "./StudentMonacoEditor";
 import styles from "../student-space.module.css";
 
@@ -40,6 +46,12 @@ const problemTabs: Array<{ id: ProblemTabId; label: string }> = [
   { id: "constraints", label: "Constraints" },
   { id: "hints", label: "Hints" },
 ];
+
+interface StudentCodeEditorWorkspaceProps {
+  problemSlug?: string | null;
+  backHref?: string;
+  backLabel?: string;
+}
 
 function buildTimeLabel() {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -66,6 +78,89 @@ function toMonacoLanguage(languageId: StudentCodingLanguageId) {
 
 function isExecutionPending(status: string) {
   return status === "PENDING" || status === "RUNNING";
+}
+
+function formatTestStatus(status: string): StudentCodingTestCase["status"] {
+  if (status === "ACCEPTED") {
+    return "passed";
+  }
+
+  if (status === "PENDING" || status === "RUNNING") {
+    return "pending";
+  }
+
+  return "warning";
+}
+
+function buildSubmissionTestDetail(result: StudentCodeSubmissionTestResult) {
+  const detailParts = [
+    result.input?.trim() ? `Input: ${result.input.trim()}` : null,
+    result.expectedOutput?.trim()
+      ? `Expected: ${result.expectedOutput.trim()}`
+      : null,
+    result.stdout?.trim() ? `Output: ${result.stdout.trim()}` : null,
+    result.stderr?.trim() ? result.stderr.trim() : null,
+    result.compileOutput?.trim() ? result.compileOutput.trim() : null,
+  ].filter((value): value is string => Boolean(value));
+
+  if (detailParts.length > 0) {
+    return detailParts.join(" ");
+  }
+
+  if (result.passed) {
+    return result.isHidden
+      ? "Secured test passed successfully."
+      : "Public test matched the expected output.";
+  }
+
+  return result.isHidden
+    ? "A secured test failed. Review the judge verdict for more context."
+    : "This test failed during evaluation.";
+}
+
+function mapSubmissionTestsToWorkspaceTests(
+  testResults: StudentCodeSubmissionTestResult[] | undefined,
+): StudentCodingTestCase[] {
+  if (!testResults?.length) {
+    return [];
+  }
+
+  return testResults.map((testResult) => ({
+    detail: buildSubmissionTestDetail(testResult),
+    label: testResult.isHidden
+      ? `Secured test #${testResult.position}`
+      : `Test #${testResult.position}`,
+    status: formatTestStatus(testResult.status),
+  }));
+}
+
+function buildSubmissionStatusCopy(
+  submission: StudentCodeExecutionRecord | null,
+  fallbackSuccessMessage: string,
+) {
+  if (!submission) {
+    return fallbackSuccessMessage;
+  }
+
+  if (
+    submission.verdict === "ACCEPTED" &&
+    submission.passedCount !== undefined &&
+    submission.totalCount !== undefined
+  ) {
+    return `${submission.passedCount}/${submission.totalCount} secured tests passed. ${fallbackSuccessMessage}`;
+  }
+
+  if (
+    !isExecutionPending(submission.status) &&
+    submission.passedCount !== undefined &&
+    submission.totalCount !== undefined
+  ) {
+    return `${submission.passedCount}/${submission.totalCount} secured tests passed. Open tests.txt to inspect the failing case.`;
+  }
+
+  return `Backend status: ${submission.status}${
+    submission.verdict ? ` / ${submission.verdict}` : ""
+  }.`;
 }
 
 function EditorFocusToggleIcon({ isActive }: { isActive: boolean }) {
@@ -99,10 +194,12 @@ function EditorFocusToggleIcon({ isActive }: { isActive: boolean }) {
   );
 }
 
-export function StudentCodeEditorWorkspace() {
+function StudentCodeEditorWorkspaceContent({
+  backHref,
+  backLabel,
+}: Required<Pick<StudentCodeEditorWorkspaceProps, "backHref" | "backLabel">>) {
   const dispatch = useAppDispatch();
   const studentCodeExercise = useAppSelector(selectStudentCodeExercise);
-  const workspaceStatus = useAppSelector(selectStudentCodeEditorStatus);
   const runStatus = useAppSelector(selectStudentCodeEditorRunStatus);
   const submitStatus = useAppSelector(selectStudentCodeEditorSubmitStatus);
   const editorErrorMessage = useAppSelector(selectStudentCodeEditorError);
@@ -131,12 +228,6 @@ export function StudentCodeEditorWorkspace() {
         ]),
       ) as Record<StudentCodingLanguageId, string>,
   );
-
-  useEffect(() => {
-    if (workspaceStatus === "idle") {
-      void dispatch(fetchStudentCodeEditorBootstrapThunk());
-    }
-  }, [dispatch, workspaceStatus]);
   const resolvedActiveLanguageId = studentCodeExercise.languages.some(
     (language) => language.id === activeLanguageId,
   )
@@ -152,6 +243,16 @@ export function StudentCodeEditorWorkspace() {
   const characterCount = currentCode.length;
   const monacoLanguage = toMonacoLanguage(activeLanguage.id);
   const monacoPath = `file:///workspace/${activeLanguage.fileName}`;
+  const submissionTests = mapSubmissionTestsToWorkspaceTests(
+    latestSubmission?.testResults,
+  );
+  const trackedTests =
+    submissionTests.length > 0 ? submissionTests : studentCodeExercise.tests;
+  const passedTrackedTests =
+    latestSubmission?.passedCount ??
+    trackedTests.filter((testCase) => testCase.status === "passed").length;
+  const totalTrackedTests =
+    latestSubmission?.totalCount ?? trackedTests.length;
 
   const fileItems = [
     {
@@ -162,7 +263,7 @@ export function StudentCodeEditorWorkspace() {
     {
       id: "tests" as const,
       label: "tests.txt",
-      meta: `${studentCodeExercise.tests.length} tracked cases`,
+      meta: `${totalTrackedTests} tracked cases`,
     },
   ];
 
@@ -322,6 +423,7 @@ export function StudentCodeEditorWorkspace() {
         }),
       ).unwrap();
 
+      setActiveFile("tests");
       setConsoleEntries([
         {
           tone: "muted",
@@ -331,12 +433,10 @@ export function StudentCodeEditorWorkspace() {
         },
         {
           tone: submission.verdict === "ACCEPTED" ? "success" : "info",
-          message:
-            submission.verdict === "ACCEPTED"
-              ? activeLanguage.submitSummary
-              : `Backend status: ${submission.status}${
-                  submission.verdict ? ` / ${submission.verdict}` : ""
-                }.`,
+          message: buildSubmissionStatusCopy(
+            submission,
+            activeLanguage.submitSummary,
+          ),
         },
         {
           tone: submission.verdict === "ACCEPTED" ? "success" : "info",
@@ -356,6 +456,7 @@ export function StudentCodeEditorWorkspace() {
           .unwrap()
           .then((resolvedSubmission) => {
             if (isExecutionPending(resolvedSubmission.status)) {
+              setActiveFile("tests");
               setConsoleEntries([
                 {
                   tone: "muted",
@@ -371,6 +472,7 @@ export function StudentCodeEditorWorkspace() {
               return;
             }
 
+            setActiveFile("tests");
             setConsoleEntries([
               {
                 tone: "muted",
@@ -381,14 +483,10 @@ export function StudentCodeEditorWorkspace() {
                   resolvedSubmission.verdict === "ACCEPTED"
                     ? "success"
                     : "info",
-                message:
-                  resolvedSubmission.verdict === "ACCEPTED"
-                    ? activeLanguage.submitSummary
-                    : `Backend status: ${resolvedSubmission.status}${
-                        resolvedSubmission.verdict
-                          ? ` / ${resolvedSubmission.verdict}`
-                          : ""
-                      }.`,
+                message: buildSubmissionStatusCopy(
+                  resolvedSubmission,
+                  activeLanguage.submitSummary,
+                ),
               },
               {
                 tone:
@@ -571,8 +669,8 @@ export function StudentCodeEditorWorkspace() {
         </div>
 
         <div className={styles.codeStudioTopbarActions}>
-          <Link className={styles.codeStudioBackLink} href="/student/courses">
-            Back to courses
+          <Link className={styles.codeStudioBackLink} href={backHref}>
+            {backLabel}
           </Link>
         </div>
       </header>
@@ -696,11 +794,6 @@ export function StudentCodeEditorWorkspace() {
           >
             {!isEditorFocus ? (
               <aside className={styles.codeStudioExplorer}>
-                <div className={styles.codeStudioExplorerHead}>
-                  <span>Workspace</span>
-                  <strong>{activeLanguage.runtime}</strong>
-                </div>
-
                 <div className={styles.codeStudioExplorerList}>
                   {fileItems.map((file) => (
                     <button
@@ -722,12 +815,7 @@ export function StudentCodeEditorWorkspace() {
                 <div className={styles.codeStudioExplorerSummary}>
                   <span>Tracked tests</span>
                   <strong>
-                    {
-                      studentCodeExercise.tests.filter(
-                        (testCase) => testCase.status === "passed",
-                      ).length
-                    }
-                    /{studentCodeExercise.tests.length}
+                    {passedTrackedTests}/{totalTrackedTests}
                   </strong>
                 </div>
               </aside>
@@ -739,13 +827,19 @@ export function StudentCodeEditorWorkspace() {
                   <div className={styles.codeStudioTestsHead}>
                     <h2>Execution matrix</h2>
                     <p>
-                      Review the cases you should satisfy before final
-                      submission.
+                      {latestSubmission
+                        ? isExecutionPending(latestSubmission.status)
+                          ? "Your latest submission is still running in the secured judge queue."
+                          : latestSubmission.passedCount !== undefined &&
+                              latestSubmission.totalCount !== undefined
+                            ? `${latestSubmission.passedCount}/${latestSubmission.totalCount} secured tests validated on the latest submission.`
+                            : "Review the latest judge feedback for this submission."
+                        : "Run or submit your solution to replace these placeholders with real judge feedback."}
                     </p>
                   </div>
 
                   <div className={styles.codeStudioTestsList}>
-                    {studentCodeExercise.tests.map((testCase) => (
+                    {trackedTests.map((testCase) => (
                       <article
                         key={testCase.label}
                         className={styles.codeStudioTestCard}
@@ -767,6 +861,27 @@ export function StudentCodeEditorWorkspace() {
                         <p>{testCase.detail}</p>
                       </article>
                     ))}
+
+                    {latestSubmission &&
+                    !isExecutionPending(latestSubmission.status) &&
+                    (latestSubmission.testResults?.length ?? 0) === 0 ? (
+                      <article className={styles.codeStudioTestCard}>
+                        <div className={styles.codeStudioTestHeader}>
+                          <strong>Judge feedback</strong>
+                          <span
+                            className={`${styles.codeStudioTestStatus} ${styles.codeStudioTestStatusWarning}`}
+                          >
+                            {latestSubmission.verdict ?? latestSubmission.status}
+                          </span>
+                        </div>
+                        <p>
+                          {latestSubmission.compileOutput?.trim() ||
+                            latestSubmission.stderr?.trim() ||
+                            latestSubmission.stdout?.trim() ||
+                            "This submission completed without case-level details."}
+                        </p>
+                      </article>
+                    ) : null}
                   </div>
                 </div>
               ) : (
@@ -839,5 +954,36 @@ export function StudentCodeEditorWorkspace() {
         </section>
       </div>
     </div>
+  );
+}
+
+export function StudentCodeEditorWorkspace({
+  problemSlug = null,
+  backHref = "/student/problems",
+  backLabel = "Back to problem list",
+}: StudentCodeEditorWorkspaceProps) {
+  const dispatch = useAppDispatch();
+  const studentCodeExercise = useAppSelector(selectStudentCodeExercise);
+  const loadedProblemSlug = useAppSelector(selectStudentCodeEditorProblemSlug);
+  const workspaceStatus = useAppSelector(selectStudentCodeEditorStatus);
+
+  useEffect(() => {
+    const shouldLoadWorkspace =
+      workspaceStatus === "idle" ||
+      (workspaceStatus !== "loading" && loadedProblemSlug !== problemSlug);
+
+    if (shouldLoadWorkspace) {
+      void dispatch(fetchStudentCodeEditorBootstrapThunk(problemSlug));
+    }
+  }, [dispatch, loadedProblemSlug, problemSlug, workspaceStatus]);
+
+  const workspaceKey = `${problemSlug ?? "default"}-${loadedProblemSlug ?? "pending"}-${studentCodeExercise.title}`;
+
+  return (
+    <StudentCodeEditorWorkspaceContent
+      key={workspaceKey}
+      backHref={backHref}
+      backLabel={backLabel}
+    />
   );
 }

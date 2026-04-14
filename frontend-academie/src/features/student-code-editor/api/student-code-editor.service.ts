@@ -1,14 +1,17 @@
 import { requestApiJson } from "@/core/api/api-http-client";
 import { requestAuthenticatedApiJson } from "@/features/auth/api/authenticated-api.client";
 import type {
+  StudentCodingDifficulty,
   StudentCodingExercise,
   StudentCodingLanguage,
   StudentCodingLanguageId,
+  StudentCodingProblemSummary,
 } from "../model/student-code-editor.contracts";
 import { studentCodeExercise } from "../model/student-code-editor.catalog";
 import type {
   BackendJudgeRunResponse,
   BackendProblemResponse,
+  BackendSubmissionEvaluationResponse,
   BackendSubmissionResponse,
   BackendSupportedLanguage,
   RunCodePayload,
@@ -31,22 +34,46 @@ function splitConstraintText(rawValue: string | undefined) {
     .filter(Boolean);
 }
 
-function formatDifficulty(difficulty: string) {
+function formatDifficulty(difficulty: string): StudentCodingDifficulty {
   const normalizedDifficulty = normalizeValue(difficulty);
 
-  if (normalizedDifficulty === "easy") {
+  if (
+    normalizedDifficulty === "easy" ||
+    normalizedDifficulty === "facile"
+  ) {
     return "Facile";
   }
 
-  if (normalizedDifficulty === "medium") {
-    return "Moyen";
+  if (
+    normalizedDifficulty === "medium" ||
+    normalizedDifficulty === "moyen" ||
+    normalizedDifficulty === "intermediaire"
+  ) {
+    return "Intermediaire";
   }
 
-  if (normalizedDifficulty === "hard") {
+  if (
+    normalizedDifficulty === "hard" ||
+    normalizedDifficulty === "difficile"
+  ) {
     return "Difficile";
   }
 
-  return difficulty;
+  return "Intermediaire";
+}
+
+function buildProblemExcerpt(statement: string) {
+  const compactStatement = statement.replace(/\s+/g, " ").trim();
+
+  if (compactStatement.length <= 180) {
+    return compactStatement;
+  }
+
+  return `${compactStatement.slice(0, 177).trimEnd()}...`;
+}
+
+function filterPublishedProblems(problems: BackendProblemResponse[]) {
+  return problems.filter((problem) => problem.isPublished);
 }
 
 function matchLocalLanguageId(
@@ -97,6 +124,27 @@ function pickPreferredProblem(problems: BackendProblemResponse[]) {
   });
 
   return matchingProblem ?? problems[0];
+}
+
+function mapProblemToSummary(
+  problem: BackendProblemResponse,
+): StudentCodingProblemSummary {
+  return {
+    id: problem.id,
+    slug: problem.slug,
+    title: problem.title,
+    difficulty: formatDifficulty(problem.difficulty),
+    category: problem.tags[0]?.name || "Algorithmie",
+    excerpt: buildProblemExcerpt(problem.statement),
+    tags:
+      problem.tags.length > 0
+        ? problem.tags.map((tag) => tag.name)
+        : studentCodeExercise.tags,
+    timeLimit: `${problem.timeLimitMs}ms`,
+    memoryLimit: `${problem.memoryLimitMb}MB`,
+    testCasesCount: problem.testCasesCount,
+    updatedAt: problem.updatedAt,
+  };
 }
 
 function buildExerciseLanguages(
@@ -178,8 +226,50 @@ function mapProblemToExercise(
   };
 }
 
+async function fetchProblemLibraryFromApi() {
+  const problems = await requestApiJson<BackendProblemResponse[]>(
+    "/api/problems/library",
+    {
+      method: "GET",
+    },
+    "Unable to load the problem library.",
+  );
+
+  return filterPublishedProblems(problems).sort((left, right) =>
+    right.updatedAt.localeCompare(left.updatedAt),
+  );
+}
+
+async function fetchPublishedProblemBySlugFromApi(slug: string) {
+  return requestApiJson<BackendProblemResponse>(
+    `/api/problems/library/${encodeURIComponent(slug)}`,
+    {
+      method: "GET",
+    },
+    "Unable to load the selected problem.",
+  );
+}
+
+async function fetchSupportedLanguagesFromApi() {
+  return requestAuthenticatedApiJson<BackendSupportedLanguage[]>(
+    "/api/problems/languages/all",
+    {
+      method: "GET",
+    },
+    "Unable to load the supported languages.",
+  );
+}
+
+export async function fetchStudentProblemLibrary() {
+  const problems = await fetchProblemLibraryFromApi();
+  return problems.map(mapProblemToSummary);
+}
+
 function mapExecutionRecord(
-  response: BackendJudgeRunResponse | BackendSubmissionResponse,
+  response:
+    | BackendJudgeRunResponse
+    | BackendSubmissionResponse
+    | BackendSubmissionEvaluationResponse,
 ): StudentCodeExecutionRecord {
   return {
     id: response.id,
@@ -193,7 +283,30 @@ function mapExecutionRecord(
     exitCode: response.exitCode,
     languageLabel: response.language?.name,
     createdAt: response.createdAt,
+    maxScore: "maxScore" in response ? response.maxScore : undefined,
+    passedCount: "passedCount" in response ? response.passedCount : undefined,
+    score: "score" in response ? response.score : undefined,
     submittedAt: "submittedAt" in response ? response.submittedAt : undefined,
+    testResults:
+      "testResults" in response
+        ? response.testResults.map((testResult) => ({
+            compileOutput: testResult.compileOutput,
+            exitCode: testResult.exitCode,
+            expectedOutput: testResult.expectedOutput,
+            input: testResult.input,
+            isHidden: testResult.isHidden,
+            memoryKb: testResult.memoryKb,
+            passed: testResult.passed,
+            points: testResult.points,
+            position: testResult.position,
+            status: testResult.status,
+            stderr: testResult.stderr,
+            stdout: testResult.stdout,
+            timeMs: testResult.timeMs,
+            verdict: testResult.verdict,
+          }))
+        : undefined,
+    totalCount: "totalCount" in response ? response.totalCount : undefined,
   };
 }
 
@@ -217,32 +330,44 @@ function buildExecutionPayload<
   };
 }
 
-export async function fetchStudentCodeEditorBootstrap() {
-  const [problems, languages] = await Promise.all([
-    requestApiJson<BackendProblemResponse[]>(
-      "/api/problems/library",
-      {
-        method: "GET",
-      },
-      "Unable to load the problem library.",
-    ),
-    requestAuthenticatedApiJson<BackendSupportedLanguage[]>(
-      "/api/problems/languages/all",
-      {
-        method: "GET",
-      },
-      "Unable to load the supported languages.",
-    ),
-  ]);
+export async function fetchStudentCodeEditorBootstrap(
+  selectedProblemSlug: string | null | undefined = null,
+) {
+  if (selectedProblemSlug) {
+    const [selectedProblem, languages] = await Promise.all([
+      fetchPublishedProblemBySlugFromApi(selectedProblemSlug),
+      fetchSupportedLanguagesFromApi(),
+    ]);
 
+    return {
+      exercise: {
+        ...mapProblemToExercise(selectedProblem),
+        languages: buildExerciseLanguages(languages),
+      },
+      problemId: selectedProblem.id,
+      problemSlug: selectedProblem.slug,
+    };
+  }
+
+  const [problems, languages] = await Promise.all([
+    fetchProblemLibraryFromApi(),
+    fetchSupportedLanguagesFromApi(),
+  ]);
   const selectedProblem = pickPreferredProblem(problems);
+
+  if (!selectedProblem) {
+    throw new Error(
+      "No published problems are currently available.",
+    );
+  }
 
   return {
     exercise: {
       ...mapProblemToExercise(selectedProblem),
       languages: buildExerciseLanguages(languages),
     },
-    problemId: selectedProblem?.id ?? null,
+    problemId: selectedProblem.id,
+    problemSlug: selectedProblem.slug,
   };
 }
 
@@ -304,6 +429,19 @@ export async function fetchSubmission(submissionId: string) {
     },
     "Unable to refresh this submission right now.",
   );
+
+  return mapExecutionRecord(response);
+}
+
+export async function fetchSubmissionEvaluation(submissionId: string) {
+  const response =
+    await requestAuthenticatedApiJson<BackendSubmissionEvaluationResponse>(
+      `/api/submissions/${submissionId}/evaluation`,
+      {
+        method: "GET",
+      },
+      "Unable to load the submission evaluation right now.",
+    );
 
   return mapExecutionRecord(response);
 }

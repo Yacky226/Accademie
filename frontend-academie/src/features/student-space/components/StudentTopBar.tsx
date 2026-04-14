@@ -85,7 +85,6 @@ export function StudentTopBar({ activePath, title }: StudentTopBarProps) {
   return (
     <header className={styles.workspaceTopbar}>
       <div className={styles.topbarLead}>
-        <span className={styles.workspaceBadge}>Student space</span>
         <div className={styles.topbarTitleWrap}>
           <p className={styles.topbarTitle}>{title}</p>
           <p className={styles.topbarSubtitle}>{subtitle}</p>

@@ -3,7 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CourseLevel, CourseStatus, EnrollmentStatus } from '../../core/enums';
+import {
+  CourseLevel,
+  CourseStatus,
+  EnrollmentStatus,
+  NotificationChannel,
+} from '../../core/enums';
+import { StorageService } from '../../integrations/storage';
+import { NotificationEntity } from '../notifications/entities/notification.entity';
+import { NotificationsRepository } from '../notifications/repositories/notifications.repository';
 import { UserEntity } from '../users/entities/user.entity';
 import { CreateCourseModuleDto } from './dto/create-course-module.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -47,7 +55,11 @@ function tokenizeText(value: string | undefined): string[] {
 
 @Injectable()
 export class CoursesService {
-  constructor(private readonly coursesRepository: CoursesRepository) {}
+  constructor(
+    private readonly coursesRepository: CoursesRepository,
+    private readonly notificationsRepository: NotificationsRepository,
+    private readonly storageService: StorageService,
+  ) {}
 
   async listCourses(): Promise<CourseEntity[]> {
     return this.coursesRepository.findAllCourses();
@@ -170,7 +182,9 @@ export class CoursesService {
     course.certificateEnabled = dto.certificateEnabled ?? false;
     course.creator = creator;
 
-    return this.coursesRepository.saveCourse(course);
+    const savedCourse = await this.coursesRepository.saveCourse(course);
+    await this.notifyStudentsAboutPublishedCourse(savedCourse);
+    return savedCourse;
   }
 
   async updateCourse(
@@ -178,6 +192,8 @@ export class CoursesService {
     dto: UpdateCourseDto,
   ): Promise<CourseEntity> {
     const course = await this.getCourseById(courseId);
+    const wasVisible = this.isCourseVisible(course);
+    const previousThumbnailUrl = course.thumbnailUrl;
 
     if (dto.slug && dto.slug !== course.slug) {
       const normalizedSlug = this.normalizeSlug(dto.slug);
@@ -205,11 +221,26 @@ export class CoursesService {
     course.certificateEnabled =
       dto.certificateEnabled ?? course.certificateEnabled;
 
-    return this.coursesRepository.saveCourse(course);
+    const savedCourse = await this.coursesRepository.saveCourse(course);
+
+    if (
+      dto.thumbnailUrl !== undefined &&
+      previousThumbnailUrl &&
+      previousThumbnailUrl !== savedCourse.thumbnailUrl
+    ) {
+      this.storageService.deleteManagedCourseThumbnail(previousThumbnailUrl);
+    }
+
+    if (!wasVisible && this.isCourseVisible(savedCourse)) {
+      await this.notifyStudentsAboutPublishedCourse(savedCourse);
+    }
+
+    return savedCourse;
   }
 
   async deleteCourse(courseId: string): Promise<void> {
     const course = await this.getCourseById(courseId);
+    this.storageService.deleteManagedCourseThumbnail(course.thumbnailUrl);
     await this.coursesRepository.softDeleteCourse(course);
   }
 
@@ -566,5 +597,62 @@ export class CoursesService {
       });
 
     return course;
+  }
+
+  private isCourseVisible(course: CourseEntity): boolean {
+    return (
+      course.isPublished === true && course.status === CourseStatus.PUBLISHED
+    );
+  }
+
+  private async notifyStudentsAboutPublishedCourse(
+    course: CourseEntity,
+  ): Promise<void> {
+    if (!this.isCourseVisible(course)) {
+      return;
+    }
+
+    const enrollments = await this.coursesRepository.findEnrollmentsByCourseId(
+      course.id,
+    );
+    const recipients = enrollments.filter(
+      (enrollment) => enrollment.status !== EnrollmentStatus.CANCELLED,
+    );
+
+    if (!recipients.length) {
+      return;
+    }
+
+    const teacherName =
+      `${course.creator?.firstName ?? ''} ${course.creator?.lastName ?? ''}`.trim() ||
+      'Votre enseignant';
+
+    await Promise.all(
+      recipients.map((enrollment) => {
+        const notification = new NotificationEntity();
+        notification.title = 'Nouveau cours disponible';
+        notification.message = `${teacherName} a publie le cours "${course.title}" pour votre formation.`;
+        notification.type = 'COURSE_UPDATE';
+        notification.channel = NotificationChannel.IN_APP;
+        notification.metadata = {
+          source: 'course-publication',
+          kind: 'course',
+          courseId: course.id,
+          courseSlug: course.slug,
+          courseTitle: course.title,
+          teacherName,
+          quote: course.shortDescription,
+          actionLabel: 'Voir le cours',
+          actionHref: `/student/courses/${course.slug}`,
+        };
+        notification.recipient = enrollment.user;
+
+        if (course.creator) {
+          notification.sender = course.creator;
+        }
+
+        return this.notificationsRepository.saveNotification(notification);
+      }),
+    );
   }
 }

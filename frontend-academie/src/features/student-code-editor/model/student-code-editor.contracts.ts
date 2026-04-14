@@ -1,4 +1,6 @@
 export type StudentCodingLanguageId = "python" | "typescript" | "java" | "cpp";
+export type StudentCodingDifficulty = "Facile" | "Intermediaire" | "Difficile";
+export type StudentCodingDifficultyFilter = "all" | StudentCodingDifficulty;
 
 export interface StudentCodingLanguage {
   id: StudentCodingLanguageId;
@@ -47,6 +49,20 @@ export interface StudentCodingExercise {
   hints: string[];
   tests: StudentCodingTestCase[];
   languages: StudentCodingLanguage[];
+}
+
+export interface StudentCodingProblemSummary {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: StudentCodingDifficulty;
+  category: string;
+  excerpt: string;
+  tags: string[];
+  timeLimit: string;
+  memoryLimit: string;
+  testCasesCount: number;
+  updatedAt: string;
 }
 
 export interface StudentConsoleEntry {

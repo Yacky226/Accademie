@@ -24,10 +24,12 @@ export interface NotificationItem {
   title: string;
   description: string;
   time: string;
+  createdAt?: string;
   kind: Exclude<NotificationFilterId, "all">;
   icon: NotificationIconName;
   tone: NotificationTone;
   unread?: boolean;
+  metadata?: Record<string, unknown>;
   quote?: string;
   actionLabel?: string;
   actionHref?: string;

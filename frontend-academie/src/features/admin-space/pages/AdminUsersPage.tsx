@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   createAdminUser,
   deleteAdminUser,
@@ -97,6 +97,7 @@ export function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const directorySectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -275,6 +276,10 @@ export function AdminUsersPage() {
     }
   }
 
+  function scrollToDirectory() {
+    directorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <AdminShell activePath="/admin/users" title="User Management">
       <section className={styles.heroRow}>
@@ -290,8 +295,8 @@ export function AdminUsersPage() {
             <p className={`${styles.heroSub} ${styles.messageSuccess}`}>{successMessage}</p>
           ) : null}
         </div>
-        <button type="button" className={styles.primaryBtn}>
-          {loading ? "Chargement..." : `${rows.length} utilisateur(s) visibles`}
+        <button type="button" className={styles.primaryBtn} onClick={scrollToDirectory}>
+          {loading ? "Chargement..." : `Voir le repertoire (${rows.length})`}
         </button>
       </section>
 
@@ -439,7 +444,7 @@ export function AdminUsersPage() {
         </article>
       </section>
 
-      <section className={styles.panel}>
+      <section ref={directorySectionRef} className={styles.panel}>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>

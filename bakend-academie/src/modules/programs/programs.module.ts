@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { UserEntity } from '../users/entities/user.entity';
 import { ProgramStepEntity } from './entities/program-step.entity';
 import { StudentProgramEntity } from './entities/student-program.entity';
@@ -9,6 +10,7 @@ import { ProgramsRepository } from './repositories/programs.repository';
 
 @Module({
   imports: [
+    NotificationsModule,
     TypeOrmModule.forFeature([
       StudentProgramEntity,
       ProgramStepEntity,

@@ -62,3 +62,92 @@ export interface TeacherProgressMetric {
   progress: number;
   tone?: "primary" | "secondary";
 }
+
+export interface TeacherProblemTagRecord {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface TeacherProblemTestCaseRecord {
+  id: string;
+  input: string;
+  expectedOutput: string;
+  isHidden: boolean;
+  points: string;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeacherProblemRecord {
+  id: string;
+  title: string;
+  slug: string;
+  statement: string;
+  inputFormat?: string;
+  outputFormat?: string;
+  constraints?: string;
+  sampleInput?: string;
+  sampleOutput?: string;
+  explanation?: string;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  timeLimitMs: number;
+  memoryLimitMb: number;
+  isPublished: boolean;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  tags: TeacherProblemTagRecord[];
+  testCasesCount: number;
+  testCases: TeacherProblemTestCaseRecord[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeacherSupportedLanguageRecord {
+  id: string;
+  name: string;
+  slug: string;
+  version?: string;
+  judge0LanguageId?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTeacherProblemPayload {
+  title: string;
+  slug: string;
+  statement: string;
+  inputFormat?: string;
+  outputFormat?: string;
+  constraints?: string;
+  sampleInput?: string;
+  sampleOutput?: string;
+  explanation?: string;
+  difficulty: TeacherProblemRecord["difficulty"];
+  status: TeacherProblemRecord["status"];
+  timeLimitMs: number;
+  memoryLimitMb: number;
+  isPublished: boolean;
+}
+
+export type UpdateTeacherProblemPayload = Partial<CreateTeacherProblemPayload>;
+
+export interface CreateTeacherProblemTagPayload {
+  name: string;
+  slug: string;
+}
+
+export interface CreateTeacherProblemTestCasePayload {
+  input: string;
+  expectedOutput: string;
+  isHidden?: boolean;
+  points?: number;
+  position: number;
+}

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { CourseEntity } from '../../courses/entities/course.entity';
+import { EnrollmentStatus } from '../../../core/enums';
 import { UserEntity } from '../../users/entities/user.entity';
 import { CalendarEventAttendeeEntity } from '../entities/calendar-event-attendee.entity';
 import { CalendarEventEntity } from '../entities/calendar-event.entity';
@@ -47,12 +48,22 @@ export class CalendarRepository {
       .createQueryBuilder('event')
       .leftJoinAndSelect('event.createdBy', 'createdBy')
       .leftJoinAndSelect('event.course', 'course')
+      .leftJoin(
+        'course.enrollments',
+        'courseEnrollment',
+        'courseEnrollment.userId = :userId AND courseEnrollment.status != :cancelledStatus',
+        {
+          userId,
+          cancelledStatus: EnrollmentStatus.CANCELLED,
+        },
+      )
       .leftJoinAndSelect('event.attendees', 'attendees')
       .leftJoinAndSelect('attendees.user', 'attendeeUser')
       .where('event.deletedAt IS NULL')
-      .andWhere('(createdBy.id = :userId OR attendeeUser.id = :userId)', {
-        userId,
-      })
+      .andWhere(
+        '(createdBy.id = :userId OR attendeeUser.id = :userId OR courseEnrollment.id IS NOT NULL)',
+        { userId },
+      )
       .orderBy('event.startsAt', 'ASC')
       .getMany();
   }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,13 +9,24 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
+import { diskStorage } from 'multer';
 import { COURSE_PERMISSIONS } from '../../core/constants';
 import { CurrentUser } from '../../core/decorators/current-user.decorator';
 import { Permissions } from '../../core/decorators/permissions.decorator';
 import { Public } from '../../core/decorators/public.decorator';
 import { Roles } from '../../core/decorators/roles.decorator';
 import { UserRole } from '../../core/enums';
+import {
+  COURSE_THUMBNAIL_UPLOADS_DIRECTORY_PATH,
+  ensureStorageDirectories,
+  StorageService,
+} from '../../integrations/storage';
 import { CreateCourseModuleDto } from './dto/create-course-module.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
@@ -31,9 +43,46 @@ import { CourseEntity } from './entities/course.entity';
 import { EnrollmentEntity } from './entities/enrollment.entity';
 import { CoursesService } from './courses.service';
 
+const MAX_COURSE_THUMBNAIL_SIZE_BYTES = 10 * 1024 * 1024;
+
+interface UploadedCourseThumbnailFile {
+  filename: string;
+  mimetype: string;
+  originalname: string;
+}
+
+function resolveThumbnailExtension(file: UploadedCourseThumbnailFile) {
+  const originalExtension = extname(file.originalname).toLowerCase();
+
+  if (originalExtension) {
+    return originalExtension;
+  }
+
+  if (file.mimetype === 'image/png') {
+    return '.png';
+  }
+
+  if (file.mimetype === 'image/webp') {
+    return '.webp';
+  }
+
+  if (file.mimetype === 'image/gif') {
+    return '.gif';
+  }
+
+  if (file.mimetype === 'image/svg+xml') {
+    return '.svg';
+  }
+
+  return '.jpg';
+}
+
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(
+    private readonly coursesService: CoursesService,
+    private readonly storageService: StorageService,
+  ) {}
 
   @Permissions(COURSE_PERMISSIONS.COURSES_READ)
   @Get()
@@ -91,6 +140,51 @@ export class CoursesController {
   ): Promise<CourseResponseDto> {
     const course = await this.coursesService.getPublishedCourseBySlug(slug);
     return this.toCourseResponse(course, false);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.TEACHER)
+  @Permissions(COURSE_PERMISSIONS.COURSES_CREATE)
+  @Post('thumbnail-upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (_request, _file, callback) => {
+          ensureStorageDirectories();
+          callback(null, COURSE_THUMBNAIL_UPLOADS_DIRECTORY_PATH);
+        },
+        filename: (_request, file: UploadedCourseThumbnailFile, callback) => {
+          callback(
+            null,
+            `${Date.now()}-${randomUUID()}${resolveThumbnailExtension(file)}`,
+          );
+        },
+      }),
+      fileFilter: (_request, file: UploadedCourseThumbnailFile, callback) => {
+        if (!file.mimetype.startsWith('image/')) {
+          callback(
+            new BadRequestException('Only image files can be uploaded.'),
+            false,
+          );
+          return;
+        }
+
+        callback(null, true);
+      },
+      limits: {
+        fileSize: MAX_COURSE_THUMBNAIL_SIZE_BYTES,
+      },
+    }),
+  )
+  async uploadCourseThumbnail(
+    @UploadedFile() file?: UploadedCourseThumbnailFile,
+  ): Promise<{ url: string }> {
+    if (!file?.filename) {
+      throw new BadRequestException('A thumbnail image file is required.');
+    }
+
+    return {
+      url: this.storageService.buildCourseThumbnailPublicUrl(file.filename),
+    };
   }
 
   @Permissions(COURSE_PERMISSIONS.COURSES_READ)

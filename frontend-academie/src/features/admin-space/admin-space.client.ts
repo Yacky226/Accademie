@@ -1,11 +1,16 @@
 import { requestApiJson } from "@/core/api/api-http-client";
+import { resolveApiAssetUrl } from "@/core/config/application-environment";
 import { requestAuthenticatedApiJson } from "@/features/auth/api/authenticated-api.client";
 import type {
   AdminAnnouncementRecord,
   AdminAnalyticsActivityRecord,
   AdminAnalyticsOverviewRecord,
   AdminAuditLogRecord,
+  AdminEvaluationAttemptRecord,
+  AdminEvaluationQuestionRecord,
+  AdminEvaluationRecord,
   AdminHealthRecord,
+  AdminNotificationRecord,
   AdminOverviewRecord,
   AdminSettingRecord,
   AdminWorkspaceCourseRecord,
@@ -118,6 +123,101 @@ type BackendAnnouncement = {
     firstName: string;
     lastName: string;
   };
+};
+
+type BackendEvaluationQuestion = {
+  id: string;
+  statement: string;
+  questionType: string;
+  options?: string[];
+  correctAnswer?: string;
+  points: string;
+  position: number;
+};
+
+type BackendEvaluation = {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  type: string;
+  instructions?: string;
+  durationInMinutes?: number;
+  maxAttempts: number;
+  passScore: string;
+  startsAt?: string;
+  endsAt?: string;
+  isPublished: boolean;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  course?: {
+    id: string;
+    title: string;
+    slug: string;
+  };
+  questions?: BackendEvaluationQuestion[];
+  attemptsCount: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type BackendEvaluationAttempt = {
+  id: string;
+  status: string;
+  answers?: Record<string, unknown>;
+  score?: string;
+  maxScore: string;
+  feedback?: string;
+  startedAt?: string;
+  submittedAt?: string;
+  student: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  grader?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  evaluation: {
+    id: string;
+    title: string;
+    slug: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type BackendNotification = {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  channel: string;
+  isRead: boolean;
+  readAt?: string;
+  metadata?: Record<string, unknown>;
+  recipient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 function readNumber(value: string | number | undefined) {
@@ -244,6 +344,110 @@ function mapAnnouncement(announcement: BackendAnnouncement): AdminAnnouncementRe
   };
 }
 
+function mapEvaluationQuestion(
+  question: BackendEvaluationQuestion,
+): AdminEvaluationQuestionRecord {
+  return {
+    id: question.id,
+    statement: question.statement,
+    questionType: question.questionType,
+    options: question.options ?? [],
+    correctAnswer: question.correctAnswer ?? null,
+    points: readNumber(question.points),
+    position: question.position,
+  };
+}
+
+function mapEvaluation(evaluation: BackendEvaluation): AdminEvaluationRecord {
+  return {
+    id: evaluation.id,
+    title: evaluation.title,
+    slug: evaluation.slug,
+    description: evaluation.description ?? "",
+    type: evaluation.type,
+    instructions: evaluation.instructions ?? "",
+    durationInMinutes: evaluation.durationInMinutes ?? null,
+    maxAttempts: evaluation.maxAttempts,
+    passScore: readNumber(evaluation.passScore),
+    startsAt: evaluation.startsAt ?? null,
+    endsAt: evaluation.endsAt ?? null,
+    isPublished: evaluation.isPublished,
+    creatorId: evaluation.creator.id,
+    creatorName: `${evaluation.creator.firstName} ${evaluation.creator.lastName}`.trim(),
+    course: evaluation.course
+      ? {
+          id: evaluation.course.id,
+          title: evaluation.course.title,
+          slug: evaluation.course.slug,
+        }
+      : null,
+    questions: (evaluation.questions ?? []).map(mapEvaluationQuestion),
+    attemptsCount: evaluation.attemptsCount,
+    createdAt: evaluation.createdAt ?? null,
+    updatedAt: evaluation.updatedAt ?? null,
+  };
+}
+
+function mapEvaluationAttempt(
+  attempt: BackendEvaluationAttempt,
+): AdminEvaluationAttemptRecord {
+  return {
+    id: attempt.id,
+    status: attempt.status,
+    answers: attempt.answers ?? null,
+    score:
+      attempt.score !== undefined ? readNumber(attempt.score) : null,
+    maxScore: readNumber(attempt.maxScore),
+    feedback: attempt.feedback ?? null,
+    startedAt: attempt.startedAt ?? null,
+    submittedAt: attempt.submittedAt ?? null,
+    student: {
+      id: attempt.student.id,
+      fullName: `${attempt.student.firstName} ${attempt.student.lastName}`.trim(),
+      email: attempt.student.email,
+    },
+    grader: attempt.grader
+      ? {
+          id: attempt.grader.id,
+          fullName: `${attempt.grader.firstName} ${attempt.grader.lastName}`.trim(),
+          email: attempt.grader.email,
+        }
+      : null,
+    evaluation: attempt.evaluation,
+    createdAt: attempt.createdAt ?? null,
+    updatedAt: attempt.updatedAt ?? null,
+  };
+}
+
+function mapNotification(
+  notification: BackendNotification,
+): AdminNotificationRecord {
+  return {
+    id: notification.id,
+    title: notification.title,
+    message: notification.message,
+    type: notification.type,
+    channel: notification.channel,
+    isRead: notification.isRead,
+    readAt: notification.readAt ?? null,
+    metadata: notification.metadata ?? null,
+    recipient: {
+      id: notification.recipient.id,
+      fullName: `${notification.recipient.firstName} ${notification.recipient.lastName}`.trim(),
+      email: notification.recipient.email,
+    },
+    sender: notification.sender
+      ? {
+          id: notification.sender.id,
+          fullName: `${notification.sender.firstName} ${notification.sender.lastName}`.trim(),
+          email: notification.sender.email,
+        }
+      : null,
+    createdAt: notification.createdAt ?? null,
+    updatedAt: notification.updatedAt ?? null,
+  };
+}
+
 export function fetchAdminOverview() {
   return requestAuthenticatedApiJson<AdminOverviewRecord>(
     "/api/admin/overview",
@@ -286,6 +490,22 @@ export function deleteAdminUser(userId: string) {
     },
     "Impossible de supprimer cet utilisateur.",
   );
+}
+
+export async function uploadAdminCourseThumbnail(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await requestAuthenticatedApiJson<{ url?: string }>(
+    "/api/courses/thumbnail-upload",
+    {
+      method: "POST",
+      body: formData,
+    },
+    "Impossible de televerser cette miniature.",
+  );
+
+  return resolveApiAssetUrl(response.url ?? null);
 }
 
 export function updateAdminUserStatus(userId: string, status: string) {
@@ -479,6 +699,161 @@ export function fetchAdminAnnouncements() {
     { method: "GET" },
     "Impossible de charger les annonces.",
   ).then((response) => response.map(mapAnnouncement));
+}
+
+export function fetchAdminEvaluations() {
+  return requestAuthenticatedApiJson<BackendEvaluation[]>(
+    "/api/evaluations",
+    { method: "GET" },
+    "Impossible de charger les evaluations admin.",
+  ).then((response) => response.map(mapEvaluation));
+}
+
+export function createAdminEvaluation(input: {
+  title: string;
+  slug: string;
+  description?: string;
+  type: string;
+  instructions?: string;
+  durationInMinutes?: number;
+  maxAttempts: number;
+  passScore: number;
+  startsAt?: string;
+  endsAt?: string;
+  isPublished?: boolean;
+  courseId?: string;
+  questions?: Array<{
+    statement: string;
+    questionType: string;
+    options?: string[];
+    correctAnswer: string;
+    points?: number;
+    position: number;
+  }>;
+}) {
+  return requestAuthenticatedApiJson<BackendEvaluation>(
+    "/api/evaluations",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    "Impossible de creer cette evaluation.",
+  ).then(mapEvaluation);
+}
+
+export function updateAdminEvaluation(
+  evaluationId: string,
+  input: Partial<{
+    title: string;
+    slug: string;
+    description: string;
+    type: string;
+    instructions: string;
+    durationInMinutes: number;
+    maxAttempts: number;
+    passScore: number;
+    startsAt: string;
+    endsAt: string;
+    isPublished: boolean;
+    courseId: string;
+  }>,
+) {
+  return requestAuthenticatedApiJson<BackendEvaluation>(
+    `/api/evaluations/${evaluationId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+    "Impossible de mettre a jour cette evaluation.",
+  ).then(mapEvaluation);
+}
+
+export function deleteAdminEvaluation(evaluationId: string) {
+  return requestAuthenticatedApiJson<null>(
+    `/api/evaluations/${evaluationId}`,
+    {
+      method: "DELETE",
+    },
+    "Impossible de supprimer cette evaluation.",
+  );
+}
+
+export function createAdminEvaluationQuestion(
+  evaluationId: string,
+  input: {
+    statement: string;
+    questionType: string;
+    options?: string[];
+    correctAnswer: string;
+    points?: number;
+    position: number;
+  },
+) {
+  return requestAuthenticatedApiJson<BackendEvaluationQuestion>(
+    `/api/evaluations/${evaluationId}/questions`,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    "Impossible d ajouter cette question.",
+  ).then(mapEvaluationQuestion);
+}
+
+export function deleteAdminEvaluationQuestion(
+  evaluationId: string,
+  questionId: string,
+) {
+  return requestAuthenticatedApiJson<null>(
+    `/api/evaluations/${evaluationId}/questions/${questionId}`,
+    {
+      method: "DELETE",
+    },
+    "Impossible de supprimer cette question.",
+  );
+}
+
+export function fetchAdminEvaluationAttempts(evaluationId: string) {
+  return requestAuthenticatedApiJson<BackendEvaluationAttempt[]>(
+    `/api/evaluations/${evaluationId}/attempts`,
+    { method: "GET" },
+    "Impossible de charger les tentatives de cette evaluation.",
+  ).then((response) => response.map(mapEvaluationAttempt));
+}
+
+export function fetchAdminNotifications() {
+  return requestAuthenticatedApiJson<BackendNotification[]>(
+    "/api/notifications",
+    { method: "GET" },
+    "Impossible de charger les notifications.",
+  ).then((response) => response.map(mapNotification));
+}
+
+export function createAdminNotification(input: {
+  title: string;
+  message: string;
+  type?: string;
+  recipientId: string;
+  senderId?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  return requestAuthenticatedApiJson<BackendNotification>(
+    "/api/notifications",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    "Impossible de creer cette notification.",
+  ).then(mapNotification);
+}
+
+export function deleteAdminNotification(notificationId: string) {
+  return requestAuthenticatedApiJson<null>(
+    `/api/notifications/${notificationId}`,
+    {
+      method: "DELETE",
+    },
+    "Impossible de supprimer cette notification.",
+  );
 }
 
 export function createAdminAnnouncement(input: {

@@ -177,3 +177,92 @@ export interface AdminAnnouncementRecord {
   updatedAt: string | null;
   createdByName: string | null;
 }
+
+export interface AdminEvaluationQuestionRecord {
+  id: string;
+  statement: string;
+  questionType: string;
+  options: string[];
+  correctAnswer: string | null;
+  points: number;
+  position: number;
+}
+
+export interface AdminEvaluationRecord {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  type: string;
+  instructions: string;
+  durationInMinutes: number | null;
+  maxAttempts: number;
+  passScore: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  isPublished: boolean;
+  creatorId: string;
+  creatorName: string;
+  course:
+    | {
+        id: string;
+        title: string;
+        slug: string;
+      }
+    | null;
+  questions: AdminEvaluationQuestionRecord[];
+  attemptsCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface AdminEvaluationAttemptRecord {
+  id: string;
+  status: string;
+  answers: Record<string, unknown> | null;
+  score: number | null;
+  maxScore: number;
+  feedback: string | null;
+  startedAt: string | null;
+  submittedAt: string | null;
+  student: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+  grader: {
+    id: string;
+    fullName: string;
+    email: string;
+  } | null;
+  evaluation: {
+    id: string;
+    title: string;
+    slug: string;
+  };
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface AdminNotificationRecord {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  channel: string;
+  isRead: boolean;
+  readAt: string | null;
+  metadata: Record<string, unknown> | null;
+  recipient: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+  sender: {
+    id: string;
+    fullName: string;
+    email: string;
+  } | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}

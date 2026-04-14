@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SubmissionStatus } from '../../core/enums';
+import { SubmissionStatus, UserRole } from '../../core/enums';
+import { JudgeExecutionService } from '../judge/execution/judge-execution.service';
+import { JudgeSubmissionEvaluation } from '../judge/execution/judge-execution.types';
 import { JudgeRunEntity } from '../judge/entities/judge-run.entity';
 import { JudgeService } from '../judge/judge.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -16,6 +18,7 @@ export class SubmissionsService {
   constructor(
     private readonly submissionsRepository: SubmissionsRepository,
     private readonly judgeService: JudgeService,
+    private readonly judgeExecutionService: JudgeExecutionService,
   ) {}
 
   async listSubmissions(): Promise<SubmissionEntity[]> {
@@ -51,6 +54,60 @@ export class SubmissionsService {
     }
 
     return submission;
+  }
+
+  async getSubmissionByIdForViewer(
+    submissionId: string,
+    requesterId: string,
+    requesterRoles: string[],
+  ): Promise<SubmissionEntity> {
+    const submission = await this.getSubmissionById(submissionId);
+
+    if (
+      !this.isPrivilegedViewer(requesterRoles) &&
+      submission.requester.id !== requesterId
+    ) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    return submission;
+  }
+
+  async getSubmissionEvaluationById(
+    submissionId: string,
+    requesterId: string,
+    requesterRoles: string[],
+  ): Promise<JudgeSubmissionEvaluation> {
+    const submission = await this.getSubmissionByIdForViewer(
+      submissionId,
+      requesterId,
+      requesterRoles,
+    );
+
+    if (!submission.language) {
+      return this.buildEvaluationFallback(
+        submission,
+        'A supported language is required to evaluate this submission.',
+      );
+    }
+
+    if (
+      submission.status === SubmissionStatus.PENDING ||
+      submission.status === SubmissionStatus.RUNNING
+    ) {
+      return this.buildEvaluationFallback(
+        submission,
+        'This submission is still being processed in the judge queue.',
+      );
+    }
+
+    return this.judgeExecutionService.evaluateSubmission({
+      expectedOutput: submission.expectedOutput,
+      language: submission.language,
+      problem: submission.problem,
+      sourceCode: submission.sourceCode,
+      stdin: submission.stdin,
+    });
   }
 
   async createSubmission(
@@ -238,5 +295,40 @@ export class SubmissionsService {
         2,
       );
     }
+  }
+
+  private isPrivilegedViewer(requesterRoles: string[]): boolean {
+    return requesterRoles.some(
+      (role) => role === UserRole.ADMIN || role === UserRole.TEACHER,
+    );
+  }
+
+  private buildEvaluationFallback(
+    submission: SubmissionEntity,
+    message: string,
+  ): JudgeSubmissionEvaluation {
+    return {
+      compileOutput:
+        submission.status === SubmissionStatus.PENDING ||
+        submission.status === SubmissionStatus.RUNNING
+          ? submission.compileOutput
+          : submission.compileOutput || message,
+      exitCode: submission.exitCode,
+      maxScore: Number.parseFloat(submission.maxScore || '0') || 0,
+      memoryKb: submission.memoryKb,
+      passedCount: 0,
+      score: Number.parseFloat(submission.score || '0') || 0,
+      status: submission.status,
+      stderr:
+        submission.status === SubmissionStatus.PENDING ||
+        submission.status === SubmissionStatus.RUNNING
+          ? message
+          : submission.stderr,
+      stdout: submission.stdout,
+      testResults: [],
+      timeMs: submission.timeMs,
+      totalCount: 0,
+      verdict: submission.verdict || 'PENDING',
+    };
   }
 }

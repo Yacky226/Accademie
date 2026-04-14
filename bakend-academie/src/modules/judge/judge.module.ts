@@ -35,6 +35,6 @@ import { JudgeService } from './judge.service';
       useExisting: Judge0ExecutionProvider,
     },
   ],
-  exports: [JudgeService, JudgeRepository],
+  exports: [JudgeService, JudgeRepository, JudgeExecutionService],
 })
 export class JudgeModule {}

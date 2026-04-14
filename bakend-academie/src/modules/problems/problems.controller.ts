@@ -16,6 +16,7 @@ import { Public } from '../../core/decorators/public.decorator';
 import { Roles } from '../../core/decorators/roles.decorator';
 import { UserRole } from '../../core/enums';
 import { CreateProblemDto } from './dto/create-problem.dto';
+import { ProblemManagementResponseDto } from './dto/problem-management-response.dto';
 import { CreateProblemTagDto } from './dto/create-problem-tag.dto';
 import { CreateProblemTestCaseDto } from './dto/create-problem-testcase.dto';
 import { CreateSupportedLanguageDto } from './dto/create-supported-language.dto';
@@ -30,9 +31,9 @@ export class ProblemsController {
 
   @Permissions(PROBLEM_PERMISSIONS.PROBLEMS_READ)
   @Get()
-  async listProblems(): Promise<ProblemResponseDto[]> {
+  async listProblems(): Promise<ProblemManagementResponseDto[]> {
     const problems = await this.problemsService.listProblems();
-    return problems.map((problem) => this.toResponse(problem));
+    return problems.map((problem) => this.toManagementResponse(problem));
   }
 
   @Public()
@@ -53,9 +54,11 @@ export class ProblemsController {
 
   @Permissions(PROBLEM_PERMISSIONS.PROBLEMS_READ)
   @Get(':id')
-  async getProblemById(@Param('id') id: string): Promise<ProblemResponseDto> {
+  async getProblemById(
+    @Param('id') id: string,
+  ): Promise<ProblemManagementResponseDto> {
     const problem = await this.problemsService.getProblemById(id);
-    return this.toResponse(problem);
+    return this.toManagementResponse(problem);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -64,9 +67,9 @@ export class ProblemsController {
   async createProblem(
     @Body() dto: CreateProblemDto,
     @CurrentUser('sub') creatorId: string,
-  ): Promise<ProblemResponseDto> {
+  ): Promise<ProblemManagementResponseDto> {
     const problem = await this.problemsService.createProblem(dto, creatorId);
-    return this.toResponse(problem);
+    return this.toManagementResponse(problem);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -75,9 +78,9 @@ export class ProblemsController {
   async updateProblem(
     @Param('id') id: string,
     @Body() dto: UpdateProblemDto,
-  ): Promise<ProblemResponseDto> {
+  ): Promise<ProblemManagementResponseDto> {
     const problem = await this.problemsService.updateProblem(id, dto);
-    return this.toResponse(problem);
+    return this.toManagementResponse(problem);
   }
 
   @Roles(UserRole.ADMIN)
@@ -107,9 +110,9 @@ export class ProblemsController {
   async attachTag(
     @Param('id') problemId: string,
     @Param('tagId') tagId: string,
-  ): Promise<ProblemResponseDto> {
+  ): Promise<ProblemManagementResponseDto> {
     const problem = await this.problemsService.attachTag(problemId, tagId);
-    return this.toResponse(problem);
+    return this.toManagementResponse(problem);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -118,9 +121,9 @@ export class ProblemsController {
   async detachTag(
     @Param('id') problemId: string,
     @Param('tagId') tagId: string,
-  ): Promise<ProblemResponseDto> {
+  ): Promise<ProblemManagementResponseDto> {
     const problem = await this.problemsService.detachTag(problemId, tagId);
-    return this.toResponse(problem);
+    return this.toManagementResponse(problem);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)
@@ -201,6 +204,27 @@ export class ProblemsController {
       testCasesCount: problem.testCases?.length ?? 0,
       createdAt: problem.createdAt,
       updatedAt: problem.updatedAt,
+    };
+  }
+
+  private toManagementResponse(
+    problem: ProblemEntity,
+  ): ProblemManagementResponseDto {
+    return {
+      ...this.toResponse(problem),
+      testCases: (problem.testCases ?? [])
+        .slice()
+        .sort((left, right) => left.position - right.position)
+        .map((testCase) => ({
+          createdAt: testCase.createdAt,
+          expectedOutput: testCase.expectedOutput,
+          id: testCase.id,
+          input: testCase.input,
+          isHidden: testCase.isHidden,
+          points: testCase.points,
+          position: testCase.position,
+          updatedAt: testCase.updatedAt,
+        })),
     };
   }
 }

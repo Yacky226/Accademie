@@ -105,9 +105,16 @@ export interface WorkspaceEvaluationRecord {
   updatedAt: string | null;
 }
 
+export type WorkspaceEvaluationQuestionType =
+  | "MULTIPLE_CHOICE"
+  | "MULTIPLE_RESPONSE"
+  | "FILL_BLANK"
+  | "TEXT";
+
 export interface WorkspaceEvaluationAttemptRecord {
   id: string;
   status: string;
+  answers: Record<string, unknown> | null;
   score: number | null;
   maxScore: number;
   feedback: string | null;
@@ -316,11 +323,12 @@ export interface CreateWorkspaceEvaluationPayload {
   endsAt: string;
   isPublished: boolean;
   courseId: string;
+  questions?: CreateWorkspaceEvaluationQuestionPayload[];
 }
 
 export interface CreateWorkspaceEvaluationQuestionPayload {
   statement: string;
-  questionType: string;
+  questionType: WorkspaceEvaluationQuestionType;
   options: string[];
   correctAnswer: string;
   points: number;
@@ -352,6 +360,10 @@ export interface CreateWorkspaceProgramStepPayload {
   position: number;
   status: "TODO" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
   dueDate: string;
+}
+
+export interface UpdateWorkspaceProgramStepProgressPayload {
+  status: "TODO" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
 }
 
 export interface CreateWorkspaceCalendarEventPayload {

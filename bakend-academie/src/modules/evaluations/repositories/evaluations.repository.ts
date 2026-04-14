@@ -38,11 +38,41 @@ export class EvaluationsRepository {
     });
   }
 
+  async findPublishedEvaluations(): Promise<EvaluationEntity[]> {
+    return this.evaluationsRepository.find({
+      where: { deletedAt: IsNull(), isPublished: true },
+      relations: {
+        creator: true,
+        course: true,
+        questions: true,
+        attempts: true,
+      },
+      order: {
+        createdAt: 'DESC',
+        questions: { position: 'ASC' },
+      },
+    });
+  }
+
   async findEvaluationById(
     evaluationId: string,
   ): Promise<EvaluationEntity | null> {
     return this.evaluationsRepository.findOne({
       where: { id: evaluationId, deletedAt: IsNull() },
+      relations: {
+        creator: true,
+        course: true,
+        questions: true,
+        attempts: true,
+      },
+    });
+  }
+
+  async findPublishedEvaluationById(
+    evaluationId: string,
+  ): Promise<EvaluationEntity | null> {
+    return this.evaluationsRepository.findOne({
+      where: { id: evaluationId, deletedAt: IsNull(), isPublished: true },
       relations: {
         creator: true,
         course: true,

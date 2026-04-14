@@ -9,6 +9,7 @@ import {
   type JudgeExecutionRequest,
   type JudgeExecutionResult,
   type JudgeSubmissionEvaluation,
+  type JudgeSubmissionTestResult,
 } from './judge-execution.types';
 
 type ExecuteRunParams = {
@@ -63,6 +64,7 @@ export class JudgeExecutionService {
         maxScore: 100,
         passedCount: 0,
         score: 0,
+        testResults: [],
         totalCount: 0,
       };
     }
@@ -81,8 +83,9 @@ export class JudgeExecutionService {
       : 100;
     const defaultCaseScore = totalCount > 0 ? maxScore / totalCount : 0;
     const caseResults: Array<{
-      testCase: JudgeEvaluationCase;
+      publicResult: JudgeSubmissionTestResult;
       result: JudgeExecutionResult;
+      testCase: JudgeEvaluationCase;
     }> = [];
     let passedCount = 0;
     let score = 0;
@@ -98,9 +101,21 @@ export class JudgeExecutionService {
         }),
       );
 
-      caseResults.push({ testCase, result });
+      const passedBeforeCurrentCase = passedCount;
+      const passedCurrentCase = result.status === SubmissionStatus.ACCEPTED;
 
-      if (result.status === SubmissionStatus.ACCEPTED) {
+      caseResults.push({
+        publicResult: this.toPublicTestResult(
+          testCase,
+          result,
+          passedBeforeCurrentCase,
+          totalCount,
+        ),
+        result,
+        testCase,
+      });
+
+      if (passedCurrentCase) {
         passedCount += 1;
         score += usesExplicitPoints ? testCase.points : defaultCaseScore;
       }
@@ -134,6 +149,7 @@ export class JudgeExecutionService {
         maxScore,
         passedCount,
         score: 0,
+        testResults: [],
         totalCount,
       };
     }
@@ -149,6 +165,7 @@ export class JudgeExecutionService {
         stdout: `All ${totalCount} secured test cases passed.`,
         stderr: undefined,
         compileOutput: undefined,
+        testResults: caseResults.map((item) => item.publicResult),
         timeMs: totalTimeMs || undefined,
         totalCount,
         verdict: 'ACCEPTED',
@@ -181,6 +198,7 @@ export class JudgeExecutionService {
           ? aggregateBase.stdout
           : undefined,
       stderr: publicFailure ? aggregateBase.stderr : secureFailureMessage,
+      testResults: caseResults.map((item) => item.publicResult),
       timeMs: totalTimeMs || aggregateBase.timeMs,
       totalCount,
       verdict:
@@ -260,6 +278,46 @@ export class JudgeExecutionService {
       compileOutput: message,
       status: SubmissionStatus.FAILED,
       verdict: 'FAILED',
+    };
+  }
+
+  private toPublicTestResult(
+    testCase: JudgeEvaluationCase,
+    result: JudgeExecutionResult,
+    passedCount: number,
+    totalCount: number,
+  ): JudgeSubmissionTestResult {
+    const isPublicCase = !testCase.isHidden;
+    const passed = result.status === SubmissionStatus.ACCEPTED;
+
+    return {
+      compileOutput:
+        result.status === SubmissionStatus.COMPILATION_ERROR
+          ? result.compileOutput
+          : isPublicCase
+            ? result.compileOutput
+            : undefined,
+      exitCode: result.exitCode,
+      expectedOutput: isPublicCase ? testCase.expectedOutput : undefined,
+      input: isPublicCase ? testCase.input : undefined,
+      isHidden: testCase.isHidden,
+      memoryKb: result.memoryKb,
+      passed,
+      points: testCase.points,
+      position: testCase.position,
+      status: result.status,
+      stderr: isPublicCase
+        ? result.stderr
+        : passed
+          ? undefined
+          : this.buildSecuredFailureMessage(
+              result.status,
+              passedCount,
+              totalCount,
+            ),
+      stdout: isPublicCase ? result.stdout : undefined,
+      timeMs: result.timeMs,
+      verdict: result.verdict || this.verdictFromStatus(result.status),
     };
   }
 

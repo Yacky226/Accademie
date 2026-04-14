@@ -101,12 +101,12 @@ export function AdminShell({ activePath, title, children }: AdminLayoutProps) {
                 </p>
               </div>
 
-              <button
-                type="button"
+              <Link
                 className={`${styles.sideButton} ${isCollapsed ? styles.sideButtonCollapsed : ""}`}
+                href="/admin/formations#create-course"
               >
                 Create New Course
-              </button>
+              </Link>
 
               <Link
                 className={`${styles.sideLink} ${isCollapsed ? styles.sideLinkCollapsed : ""}`}

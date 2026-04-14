@@ -42,7 +42,7 @@ export class SubmissionsRepository {
       where: { id: submissionId, deletedAt: IsNull() },
       relations: {
         requester: true,
-        problem: true,
+        problem: { testCases: true },
         language: true,
         judgeRun: true,
       },

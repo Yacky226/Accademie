@@ -40,6 +40,24 @@ export class NotificationsRepository {
     });
   }
 
+  async findProgramStepReminder(
+    recipientId: string,
+    stepId: string,
+  ): Promise<NotificationEntity | null> {
+    return this.notificationsRepository
+      .createQueryBuilder('notification')
+      .leftJoinAndSelect('notification.recipient', 'recipient')
+      .leftJoinAndSelect('notification.sender', 'sender')
+      .where('notification.deletedAt IS NULL')
+      .andWhere('recipient.id = :recipientId', { recipientId })
+      .andWhere("notification.metadata ->> 'source' = :source", {
+        source: 'program-step',
+      })
+      .andWhere("notification.metadata ->> 'stepId' = :stepId", { stepId })
+      .orderBy('notification.createdAt', 'DESC')
+      .getOne();
+  }
+
   async saveNotification(
     notification: NotificationEntity,
   ): Promise<NotificationEntity> {

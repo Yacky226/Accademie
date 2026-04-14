@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCurrentAuthSession } from "@/features/auth/model/useCurrentAuthSession";
 import {
   createWorkspaceCourse,
   createWorkspaceCourseLesson,
   createWorkspaceCourseModule,
   fetchWorkspaceCourses,
+  uploadWorkspaceCourseThumbnail,
 } from "@/features/workspace-data/api/workspace-api.client";
 import type {
   CreateWorkspaceCoursePayload,
@@ -68,6 +69,8 @@ export function TeacherProgramsPage() {
   const [submitting, setSubmitting] = useState<"course" | "module" | "lesson" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedCourse = useMemo(
     () => courses.find((course) => course.id === selectedCourseId) ?? courses[0] ?? null,
@@ -93,21 +96,7 @@ export function TeacherProgramsPage() {
     return { learnerCount, lessonCount, moduleCount };
   }, [courses]);
 
-  useEffect(() => {
-    void loadCourses();
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (selectedCourse && selectedCourse.id !== selectedCourseId) {
-      setSelectedCourseId(selectedCourse.id);
-    }
-
-    if (selectedModule && selectedModule.id !== selectedModuleId) {
-      setSelectedModuleId(selectedModule.id);
-    }
-  }, [selectedCourse, selectedCourseId, selectedModule, selectedModuleId]);
-
-  async function loadCourses() {
+  const loadCourses = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -119,7 +108,21 @@ export function TeacherProgramsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user?.id]);
+
+  useEffect(() => {
+    void loadCourses();
+  }, [loadCourses]);
+
+  useEffect(() => {
+    if (selectedCourse && selectedCourse.id !== selectedCourseId) {
+      setSelectedCourseId(selectedCourse.id);
+    }
+
+    if (selectedModule && selectedModule.id !== selectedModuleId) {
+      setSelectedModuleId(selectedModule.id);
+    }
+  }, [selectedCourse, selectedCourseId, selectedModule, selectedModuleId]);
 
   async function handleCreateCourse() {
     if (!courseForm.title.trim() || !courseForm.shortDescription.trim() || !courseForm.description.trim()) {
@@ -142,6 +145,42 @@ export function TeacherProgramsPage() {
       setErrorMessage(error instanceof Error ? error.message : "Impossible de creer le cours.");
     } finally {
       setSubmitting(null);
+    }
+  }
+
+  function openThumbnailPicker() {
+    thumbnailInputRef.current?.click();
+  }
+
+  async function handleThumbnailUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setUploadingThumbnail(true);
+
+    try {
+      const uploadedUrl = await uploadWorkspaceCourseThumbnail(file);
+
+      if (!uploadedUrl) {
+        throw new Error("La miniature n a pas pu etre resolue.");
+      }
+
+      setCourseForm((current) => ({
+        ...current,
+        thumbnailUrl: uploadedUrl,
+      }));
+      setErrorMessage(null);
+      setSuccessMessage("La miniature du cours a ete televersee.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de televerser cette miniature.",
+      );
+    } finally {
+      setUploadingThumbnail(false);
     }
   }
 
@@ -216,6 +255,35 @@ export function TeacherProgramsPage() {
             <input className={styles.input} placeholder="Titre du cours" value={courseForm.title} onChange={(event) => setCourseForm((current) => ({ ...current, title: event.target.value, slug: current.slug && current.slug !== slugifyWorkspaceValue(current.title) ? current.slug : slugifyWorkspaceValue(event.target.value) }))} />
             <input className={styles.input} placeholder="Slug" value={courseForm.slug} onChange={(event) => setCourseForm((current) => ({ ...current, slug: slugifyWorkspaceValue(event.target.value) }))} />
             <input className={styles.input} placeholder="Resume court" value={courseForm.shortDescription} onChange={(event) => setCourseForm((current) => ({ ...current, shortDescription: event.target.value }))} />
+            <div className={styles.authoringStack}>
+              <div className={styles.buttonRow}>
+                <input className={styles.input} placeholder="URL miniature" value={courseForm.thumbnailUrl} onChange={(event) => setCourseForm((current) => ({ ...current, thumbnailUrl: event.target.value }))} />
+                <button className={styles.ghostBtn} disabled={uploadingThumbnail} type="button" onClick={openThumbnailPicker}>
+                  {uploadingThumbnail ? "Upload..." : "Uploader une image"}
+                </button>
+              </div>
+              <input
+                ref={thumbnailInputRef}
+                accept="image/*"
+                className={styles.assetUploadInput}
+                type="file"
+                onChange={(event) => void handleThumbnailUpload(event)}
+              />
+              {courseForm.thumbnailUrl ? (
+                <div className={styles.assetPreviewFrame}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt="Apercu de la miniature du cours"
+                    className={styles.assetPreviewImage}
+                    src={courseForm.thumbnailUrl}
+                  />
+                </div>
+              ) : (
+                <p className={styles.sectionSub}>
+                  Ajoutez une image de couverture pour donner un vrai contexte visuel a votre cours.
+                </p>
+              )}
+            </div>
             <textarea className={styles.textarea} placeholder="Description detaillee" value={courseForm.description} onChange={(event) => setCourseForm((current) => ({ ...current, description: event.target.value }))} />
             <div className={styles.buttonRow}>
               <select className={styles.select} value={courseForm.level} onChange={(event) => setCourseForm((current) => ({ ...current, level: event.target.value as CreateWorkspaceCoursePayload["level"] }))}>

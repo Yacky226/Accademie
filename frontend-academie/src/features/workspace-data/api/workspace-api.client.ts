@@ -9,6 +9,7 @@ import type {
   CreateWorkspaceModulePayload,
   CreateWorkspaceProgramPayload,
   CreateWorkspaceProgramStepPayload,
+  UpdateWorkspaceProgramStepProgressPayload,
   GradeWorkspaceEvaluationAttemptPayload,
   SubmitWorkspaceEvaluationPayload,
   WorkspaceCalendarEventRecord,
@@ -220,6 +221,7 @@ function mapEvaluationAttempt(value: unknown): WorkspaceEvaluationAttemptRecord 
   const evaluation = extractData(data.evaluation);
 
   return {
+    answers: isRecord(data.answers) ? (data.answers as Record<string, unknown>) : null,
     id: readString(data.id),
     status: readString(data.status),
     score: readNullableNumber(data.score),
@@ -426,6 +428,22 @@ export function fetchWorkspaceCourses() {
   return getList("/api/courses", "Impossible de charger les cours.", mapCourse);
 }
 
+export async function uploadWorkspaceCourseThumbnail(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await requestAuthenticatedApiJson<{ url?: string }>(
+    "/api/courses/thumbnail-upload",
+    {
+      method: "POST",
+      body: formData,
+    },
+    "Impossible de televerser cette miniature.",
+  );
+
+  return resolveApiAssetUrl(readNullableString(response.url));
+}
+
 export async function createWorkspaceCourse(payload: CreateWorkspaceCoursePayload) {
   const response = await requestAuthenticatedApiJson<unknown>(
     "/api/courses",
@@ -507,6 +525,22 @@ export async function createWorkspaceEvaluation(
   return mapEvaluation(response);
 }
 
+export async function updateWorkspaceEvaluation(
+  evaluationId: string,
+  payload: Partial<CreateWorkspaceEvaluationPayload>,
+) {
+  const response = await requestAuthenticatedApiJson<unknown>(
+    `/api/evaluations/${evaluationId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    "Impossible de mettre a jour l evaluation.",
+  );
+
+  return mapEvaluation(response);
+}
+
 export async function createWorkspaceEvaluationQuestion(
   evaluationId: string,
   payload: CreateWorkspaceEvaluationQuestionPayload,
@@ -518,6 +552,19 @@ export async function createWorkspaceEvaluationQuestion(
       body: JSON.stringify(payload),
     },
     "Impossible d ajouter cette question.",
+  );
+}
+
+export async function deleteWorkspaceEvaluationQuestion(
+  evaluationId: string,
+  questionId: string,
+) {
+  await requestAuthenticatedApiJson<unknown>(
+    `/api/evaluations/${evaluationId}/questions/${questionId}`,
+    {
+      method: "DELETE",
+    },
+    "Impossible de supprimer cette question.",
   );
 }
 
@@ -602,6 +649,23 @@ export async function createWorkspaceProgramStep(
     },
     "Impossible d ajouter cette etape.",
   );
+}
+
+export async function updateWorkspaceProgramStepProgress(
+  programId: string,
+  stepId: string,
+  payload: UpdateWorkspaceProgramStepProgressPayload,
+) {
+  const response = await requestAuthenticatedApiJson<unknown>(
+    `/api/programs/${programId}/steps/${stepId}/progress`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    "Impossible de mettre a jour cette etape.",
+  );
+
+  return mapProgram(response);
 }
 
 export function fetchWorkspaceMyCalendarEvents() {

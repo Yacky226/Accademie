@@ -442,6 +442,44 @@
   background: #ffffff;
 }
 
+.calendarToolbar {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.calendarHeroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: min(100%, 420px);
+}
+
+.calendarHeroStatCard {
+  border-radius: 14px;
+  border: 1px solid #dfe6f4;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.calendarHeroStatCard span,
+.calendarHeroStatCard small {
+  color: #5c6478;
+  font-size: 0.78rem;
+}
+
+.calendarHeroStatCard strong {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 1.3rem;
+  color: #0d1c2e;
+}
+
 .weekHeader {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -473,19 +511,41 @@
 
 .dayCell {
   min-height: 94px;
+  width: 100%;
+  border: 0;
   border-right: 1px solid #edf1f9;
   border-bottom: 1px solid #edf1f9;
   padding: 9px;
   font-size: 0.75rem;
+  background: #ffffff;
   color: #5f6a7f;
+  text-align: left;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  cursor: pointer;
 }
 
 .dayCellMuted {
   opacity: 0.48;
 }
 
+.dayCellToday {
+  background: #f8fbff;
+}
+
+.dayCellSelected {
+  box-shadow: inset 0 0 0 2px rgba(0, 74, 198, 0.18);
+  background: #f3f7ff;
+}
+
 .dayCell:nth-child(7n) {
   border-right: 0;
+}
+
+.calendarDayLabel {
+  display: block;
+  font-weight: 700;
 }
 
 .dayEvent {
@@ -496,6 +556,26 @@
   font-weight: 700;
   background: #dce9ff;
   color: #003ea8;
+}
+
+.dayEventSession {
+  background: #dce9ff;
+  color: #003ea8;
+}
+
+.dayEventDeadline {
+  background: #e8f6eb;
+  color: #1f7a38;
+}
+
+.dayEventNotification {
+  background: #fff0d8;
+  color: #8f5b00;
+}
+
+.dayEventOverdue {
+  background: #ffe1e1;
+  color: #ba1a1a;
 }
 
 .progressBarTrack {
@@ -515,6 +595,54 @@
 .sideCol {
   display: grid;
   gap: 14px;
+}
+
+.calendarTaskList,
+.calendarEnrollmentList {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.calendarTaskCard,
+.calendarEnrollmentCard {
+  border-radius: 14px;
+  border: 1px solid #e6ebf5;
+  background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+  padding: 14px;
+}
+
+.calendarTaskHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.calendarStatusNeutral,
+.calendarStatusWarning,
+.calendarStatusDanger {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.calendarStatusNeutral {
+  background: #dce9ff;
+  color: #003ea8;
+}
+
+.calendarStatusWarning {
+  background: #fff0d8;
+  color: #8f5b00;
+}
+
+.calendarStatusDanger {
+  background: #ffe1e1;
+  color: #ba1a1a;
 }
 
 .settingsGrid {
@@ -1402,6 +1530,15 @@
   --workspace-sidebar-width: 108px;
 }
 
+.workspaceLayoutWide {
+  gap: 14px;
+  padding: 10px;
+}
+
+.workspaceLayoutWide .workspaceContentLocked {
+  min-height: calc(100vh - 20px);
+}
+
 .workspaceSidebarSlot {
   width: var(--workspace-sidebar-width);
   flex: 0 0 var(--workspace-sidebar-width);
@@ -1437,7 +1574,7 @@
 .workspacePageWide {
   width: 100%;
   max-width: none;
-  padding: 18px 0 0;
+  padding: 0;
 }
 
 .sidebarPanel {
@@ -1458,6 +1595,12 @@
   box-shadow: 0 26px 60px rgba(13, 28, 46, 0.08);
   display: flex;
   flex-direction: column;
+}
+
+.workspaceLayoutWide .sidebarPanel {
+  top: 10px;
+  left: 10px;
+  height: calc(100vh - 20px);
 }
 
 .sidebarPanelCollapsed {
@@ -1577,8 +1720,7 @@
 }
 
 .sidebarEyebrow,
-.upgradeMeta,
-.workspaceBadge {
+.upgradeMeta {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -1846,12 +1988,6 @@
   display: grid;
   gap: 10px;
   min-width: 0;
-}
-
-.workspaceBadge {
-  width: fit-content;
-  background: rgba(0, 74, 198, 0.08);
-  color: #1f55af;
 }
 
 .topbarTitleWrap {
@@ -2153,12 +2289,827 @@
   border: 1px solid rgba(208, 219, 241, 0.86);
 }
 
+@keyframes problemLibraryPulse {
+  0%,
+  100% {
+    opacity: 0.54;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.problemLibraryShell {
+  display: grid;
+  gap: 14px;
+}
+
+.problemLibraryHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.problemLibraryHeaderCopy {
+  display: grid;
+  gap: 8px;
+}
+
+.problemLibraryHeaderCopy h1 {
+  margin: 0;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.45rem, 1.18rem + 0.55vw, 1.95rem);
+  letter-spacing: -0.05em;
+}
+
+.problemLibraryHeaderCopy p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.65;
+}
+
+.problemLibraryHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  gap: 18px;
+  padding: 26px;
+  border-radius: 30px;
+  border: 1px solid rgba(188, 204, 236, 0.6);
+  background:
+    radial-gradient(circle at top right, rgba(50, 120, 251, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(13, 24, 39, 0.98), rgba(18, 48, 101, 0.94));
+  box-shadow: 0 26px 54px rgba(13, 28, 46, 0.16);
+  color: #f8fbff;
+}
+
+.problemLibraryHeroCopy {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.problemLibraryEyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(234, 241, 255, 0.86);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.problemLibraryHeroCopy h1 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.9rem, 1.35rem + 1vw, 2.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.problemLibraryHeroText {
+  max-width: 60ch;
+  margin: 0;
+  color: rgba(234, 241, 255, 0.8);
+  line-height: 1.7;
+}
+
+.problemLibraryHeroStats {
+  display: grid;
+  gap: 12px;
+}
+
+.problemLibraryStatCard {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(170, 194, 243, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.08) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.problemLibraryStatCard span,
+.problemLibraryMetric span,
+.problemLibraryResultsMeta span,
+.problemLibraryFilterLabel {
+  color: #62728a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.problemLibraryStatCard span {
+  color: rgba(234, 241, 255, 0.7);
+}
+
+.problemLibraryStatCard strong {
+  display: block;
+  margin-top: 10px;
+  color: #ffffff;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(1.45rem, 1.15rem + 0.45vw, 1.9rem);
+  letter-spacing: -0.05em;
+}
+
+.problemLibraryStatCard p {
+  margin: 8px 0 0;
+  color: rgba(234, 241, 255, 0.72);
+  line-height: 1.6;
+}
+
+.problemLibraryToolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(220, 229, 245, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 255, 0.94) 100%);
+  box-shadow: 0 16px 34px rgba(13, 28, 46, 0.06);
+}
+
+.problemLibraryFilterGroup {
+  display: grid;
+  gap: 10px;
+}
+
+.problemLibraryFilterRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.problemLibraryFilterChip,
+.problemLibraryFilterChipActive {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 211, 255, 0.76);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.problemLibraryFilterChip {
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  color: #35527e;
+}
+
+.problemLibraryFilterChipActive {
+  border-color: transparent;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  color: #ffffff;
+  box-shadow: 0 18px 30px rgba(0, 74, 198, 0.2);
+}
+
+.problemLibraryFilterChip:hover,
+.problemLibraryFilterChip:focus-visible,
+.problemLibraryFilterChipActive:hover,
+.problemLibraryFilterChipActive:focus-visible {
+  transform: translateY(-1px);
+}
+
+.problemLibraryFilterChip span,
+.problemLibraryFilterChipActive span {
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.problemLibraryFilterChip span {
+  background: rgba(0, 74, 198, 0.08);
+  color: #2456a8;
+}
+
+.problemLibraryFilterChipActive span {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.problemLibraryListPanel {
+  border-radius: 24px;
+  border: 1px solid rgba(220, 229, 245, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 255, 0.95) 100%);
+  box-shadow: 0 16px 34px rgba(13, 28, 46, 0.06);
+  overflow: hidden;
+}
+
+.problemLibraryListHeader,
+.problemLibraryListRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 180px 140px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.problemLibraryListHeader {
+  border-bottom: 1px solid rgba(220, 229, 245, 0.84);
+  background: linear-gradient(180deg, #f6f9ff 0%, #ffffff 100%);
+}
+
+.problemLibraryListHeader span {
+  color: #62728a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.problemLibraryListHeaderCell {
+  display: flex;
+  align-items: center;
+}
+
+.problemLibraryListHeaderCellCentered {
+  justify-content: center;
+  text-align: center;
+}
+
+.problemLibraryListHeaderCellEnd {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.problemLibraryListRow {
+  border-top: 1px solid rgba(230, 236, 247, 0.86);
+  min-height: 86px;
+}
+
+.problemLibraryListRow:first-of-type {
+  border-top: 0;
+}
+
+.problemLibraryListRow:hover {
+  background: rgba(238, 244, 255, 0.42);
+}
+
+.problemLibraryListMain {
+  min-width: 0;
+}
+
+.problemLibraryListMain h2 {
+  margin: 0;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.problemLibraryListCell {
+  display: flex;
+  align-items: center;
+}
+
+.problemLibraryListCellCentered {
+  justify-content: center;
+}
+
+.problemLibraryListDifficulty {
+}
+
+.problemLibraryListCategory {
+}
+
+.problemLibraryListAction {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.problemLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.problemLibraryCard {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 26px;
+  border: 1px solid rgba(220, 229, 245, 0.92);
+  background:
+    radial-gradient(circle at top right, rgba(50, 120, 251, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 255, 0.96) 100%);
+  box-shadow: 0 20px 42px rgba(13, 28, 46, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.problemLibraryCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(165, 190, 243, 0.9);
+  box-shadow: 0 28px 48px rgba(13, 28, 46, 0.1);
+}
+
+.problemLibraryCardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.problemLibraryDifficultyEasy,
+.problemLibraryDifficultyMedium,
+.problemLibraryDifficultyHard,
+.problemLibraryCategoryBadge,
+.problemLibraryTagRow span {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.problemLibraryDifficultyEasy {
+  background: rgba(34, 197, 94, 0.14);
+  color: #137333;
+}
+
+.problemLibraryDifficultyMedium {
+  background: rgba(244, 177, 32, 0.18);
+  color: #8a4b00;
+}
+
+.problemLibraryDifficultyHard {
+  background: rgba(220, 38, 38, 0.14);
+  color: #b42318;
+}
+
+.problemLibraryCategoryBadge {
+  background: rgba(219, 232, 255, 0.72);
+  color: #2456a8;
+}
+
+.problemLibraryCardBody {
+  display: grid;
+  gap: 10px;
+}
+
+.problemLibraryCardBody h2 {
+  margin: 0;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.2rem;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+}
+
+.problemLibraryCardBody p {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.7;
+}
+
+.problemLibraryTagRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.problemLibraryTagRow span {
+  background: rgba(238, 244, 255, 0.95);
+  color: #3f5e89;
+}
+
+.problemLibraryMetricRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.problemLibraryMetric {
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  border: 1px solid rgba(215, 225, 243, 0.9);
+}
+
+.problemLibraryMetric strong {
+  display: block;
+  margin-top: 8px;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1rem;
+  letter-spacing: -0.04em;
+}
+
+.problemLibraryCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #62728a;
+  font-size: 0.82rem;
+}
+
+.problemLibrarySolveButton,
+.problemLibraryResetButton,
+.problemLibraryPaginationButton,
+.problemLibraryPaginationButtonActive {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.problemLibrarySolveButton,
+.problemLibraryResetButton,
+.problemLibraryPaginationButtonActive {
+  border: 0;
+  color: #ffffff;
+  background: linear-gradient(135deg, #004ac6, #3278fb);
+  box-shadow: 0 16px 28px rgba(0, 74, 198, 0.2);
+}
+
+.problemLibrarySolveButton,
+.problemLibraryResetButton {
+  padding: 0 18px;
+}
+
+.problemLibraryPaginationButton,
+.problemLibraryPaginationButtonActive {
+  min-width: 42px;
+  padding: 0 14px;
+}
+
+.problemLibraryPaginationButton {
+  border: 1px solid rgba(191, 211, 255, 0.76);
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  color: #35527e;
+  box-shadow: none;
+}
+
+.problemLibrarySolveButton:hover,
+.problemLibrarySolveButton:focus-visible,
+.problemLibraryResetButton:hover,
+.problemLibraryResetButton:focus-visible,
+.problemLibraryPaginationButton:hover,
+.problemLibraryPaginationButton:focus-visible,
+.problemLibraryPaginationButtonActive:hover,
+.problemLibraryPaginationButtonActive:focus-visible {
+  transform: translateY(-1px);
+}
+
+.problemLibrarySolveButton:disabled,
+.problemLibraryResetButton:disabled,
+.problemLibraryPaginationButton:disabled,
+.problemLibraryPaginationButtonActive:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+.problemLibraryEmptyState {
+  padding: 34px 24px;
+  border-radius: 28px;
+  border: 1px dashed rgba(173, 193, 235, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 249, 255, 0.92) 100%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.problemLibraryEmptyState h2 {
+  margin: 0;
+  color: #0d1c2e;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.04em;
+}
+
+.problemLibraryEmptyState p {
+  max-width: 56ch;
+  margin: 0;
+  color: #62728a;
+  line-height: 1.7;
+}
+
+.problemLibraryPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(220, 229, 245, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 255, 0.94) 100%);
+  box-shadow: 0 16px 34px rgba(13, 28, 46, 0.06);
+}
+
+.problemLibraryPaginationPages {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.problemLibraryPaginationDots {
+  color: #62728a;
+  font-weight: 800;
+}
+
+.problemLibraryCardSkeleton {
+  pointer-events: none;
+}
+
+.problemLibraryListRowSkeleton {
+  pointer-events: none;
+}
+
+.problemLibrarySkeletonBadge,
+.problemLibrarySkeletonTitle,
+.problemLibrarySkeletonLine,
+.problemLibrarySkeletonLineShort,
+.problemLibrarySkeletonMetric,
+.problemLibrarySkeletonFooter,
+.problemLibrarySkeletonButton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(220, 229, 245, 0.76) 0%, rgba(238, 244, 255, 0.98) 50%, rgba(220, 229, 245, 0.76) 100%);
+  animation: problemLibraryPulse 1.3s ease-in-out infinite;
+}
+
+.problemLibrarySkeletonBadge {
+  width: 92px;
+  height: 30px;
+}
+
+.problemLibrarySkeletonTitle {
+  width: min(420px, 92%);
+  height: 18px;
+}
+
+.problemLibrarySkeletonButton {
+  width: 110px;
+  height: 42px;
+}
+
+.evaluationQuestionCount {
+  font-weight: 700;
+  color: #0d1c2e;
+}
+
+.evaluationRunnerShell {
+  display: grid;
+  gap: 18px;
+}
+
+.evaluationRunnerHero {
+  display: grid;
+  gap: 18px;
+}
+
+.evaluationRunnerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.evaluationRunnerHeaderCopy {
+  max-width: 760px;
+  display: grid;
+  gap: 10px;
+}
+
+.evaluationRunnerHeaderCopy h1 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.evaluationRunnerHeaderCopy p {
+  margin: 0;
+  color: #5c6478;
+  line-height: 1.7;
+}
+
+.evaluationRunnerMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 12px;
+  width: min(100%, 520px);
+}
+
+.evaluationRunnerMetaCard {
+  border-radius: 18px;
+  border: 1px solid rgba(211, 223, 243, 0.9);
+  background: linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.evaluationRunnerMetaCard span,
+.evaluationRunnerMetaCard small,
+.evaluationInlineMeta {
+  color: #5c6478;
+  font-size: 0.82rem;
+}
+
+.evaluationRunnerMetaCard strong {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 1.3rem;
+  color: #0d1c2e;
+}
+
+.evaluationRunnerInfoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.evaluationRunnerLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.evaluationRunnerMain,
+.evaluationRunnerAside {
+  display: grid;
+  gap: 16px;
+}
+
+.evaluationSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.evaluationSectionHeader h2 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.2rem;
+}
+
+.evaluationSectionHeader p {
+  margin: 6px 0 0;
+  color: #5c6478;
+}
+
+.evaluationQuestionList {
+  display: grid;
+  gap: 14px;
+}
+
+.evaluationQuestionCard {
+  border-radius: 18px;
+  border: 1px solid rgba(218, 227, 244, 0.9);
+  background: linear-gradient(180deg, #fcfdff 0%, #f6f9ff 100%);
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.evaluationQuestionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.evaluationQuestionHeader h3 {
+  margin: 6px 0 0;
+  font-size: 1.05rem;
+}
+
+.evaluationQuestionMeta {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+  color: #5c6478;
+  font-size: 0.8rem;
+}
+
+.evaluationQuestionMeta strong {
+  color: #004ac6;
+}
+
+.evaluationChoiceCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(216, 226, 244, 0.92);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.evaluationChoiceCard span {
+  color: #0d1c2e;
+  font-weight: 600;
+}
+
+.evaluationAttemptSummary {
+  display: grid;
+  gap: 8px;
+}
+
+.evaluationAttemptSummary strong {
+  font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
+  font-size: 1.8rem;
+  color: #0d1c2e;
+}
+
+.evaluationAttemptList {
+  display: grid;
+  gap: 12px;
+}
+
+.evaluationAttemptCard {
+  border-radius: 18px;
+  border: 1px solid rgba(216, 226, 244, 0.92);
+  background: linear-gradient(180deg, #fbfcff 0%, #f5f8ff 100%);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.evaluationAttemptHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.evaluationAttemptHeader strong,
+.evaluationAttemptHeader span {
+  color: #0d1c2e;
+}
+
+.evaluationAttemptAnswers {
+  display: grid;
+  gap: 8px;
+}
+
+.evaluationAttemptAnswerRow {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(228, 235, 247, 0.9);
+}
+
+.evaluationAttemptAnswerRow span {
+  color: #5c6478;
+  font-size: 0.79rem;
+}
+
+.evaluationAttemptAnswerRow strong,
+.evaluationFeedback {
+  color: #0d1c2e;
+  line-height: 1.6;
+}
+
 .codeStudioShell {
   flex: 1 1 auto;
   width: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 18px;
+  gap: 12px;
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -2472,6 +3423,7 @@
 .codeStudioEditorPanel {
   display: flex;
   flex-direction: column;
+  align-self: start;
   background:
     radial-gradient(circle at top right, rgba(50, 120, 251, 0.06), transparent 24%),
     linear-gradient(180deg, #101827 0%, #0d1320 100%);
@@ -2487,6 +3439,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.codeStudioEditorHeader::-webkit-scrollbar,
+.codeStudioFileTabs::-webkit-scrollbar {
+  display: none;
 }
 
 .codeStudioEditorHeaderPrimary {
@@ -2503,7 +3464,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
 .codeStudioEditorFocusButton,
@@ -2570,8 +3534,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  min-width: max-content;
+  margin-left: auto;
 }
 
 .codeStudioEditorActions > * {
@@ -2589,6 +3555,8 @@
   color: rgba(234, 241, 255, 0.8);
   font-size: 0.76rem;
   font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .codeStudioLanguageSelect {
@@ -2597,6 +3565,7 @@
   color: #ffffff;
   font: inherit;
   min-width: 92px;
+  cursor: pointer;
 }
 
 .codeStudioLanguageSelect:focus {
@@ -2627,6 +3596,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .codeStudioGhostButton {
@@ -2762,8 +3732,9 @@
 }
 
 .codeStudioEditorCanvas {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  height: clamp(320px, 44vh, 460px);
+  min-height: 320px;
   display: flex;
   background: rgba(7, 12, 20, 0.48);
 }
@@ -2771,13 +3742,13 @@
 .codeStudioMonacoWrap {
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 100%;
 }
 
 .codeStudioMonacoLoading {
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 100%;
   display: grid;
   place-items: center;
   color: rgba(234, 241, 255, 0.64);
@@ -2853,7 +3824,7 @@
 }
 
 .codeStudioConsole {
-  height: 184px;
+  height: 152px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(4, 8, 14, 0.72);
   display: flex;
@@ -3693,8 +4664,24 @@
     flex: 1 1 220px;
   }
 
+  .codeStudioEditorHeader {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .codeStudioEditorActions {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+
+  .codeStudioEditorActions > * {
+    flex: 0 0 auto;
+  }
+
   .codeStudioEditorHeaderPrimary {
-    width: 100%;
+    width: auto;
+    min-width: 0;
   }
 
   .codeStudioStatCard,
@@ -3702,6 +4689,10 @@
   .codeStudioLanguageSelectWrap {
     width: 100%;
     min-width: 0;
+  }
+
+  .codeStudioLanguageSelectWrap {
+    width: auto;
   }
 
   .codeStudioEditorFocusButton,
@@ -3722,6 +4713,10 @@
   .codeStudioFileTabs,
   .codeStudioStatusMeta {
     width: 100%;
+  }
+
+  .codeStudioFileTabs {
+    width: auto;
   }
 
   .codeStudioStatusBar {
@@ -3745,6 +4740,19 @@
 }
 
 @media (max-width: 1200px) {
+  .problemLibraryHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .problemLibraryHero {
+    grid-template-columns: 1fr;
+  }
+
+  .problemLibraryGrid {
+    grid-template-columns: 1fr;
+  }
+
   .workspaceLayoutCollapsed {
     --workspace-sidebar-width: 312px;
   }
@@ -3828,6 +4836,45 @@
 }
 
 @media (max-width: 900px) {
+  .problemLibraryToolbar,
+  .problemLibraryPagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .problemLibraryListHeader {
+    display: none;
+  }
+
+  .problemLibraryListRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title action"
+      "difficulty category";
+    align-items: center;
+  }
+
+  .problemLibraryListMain {
+    grid-area: title;
+  }
+
+  .problemLibraryListDifficulty {
+    grid-area: difficulty;
+  }
+
+  .problemLibraryListCategory {
+    grid-area: category;
+    justify-content: flex-end;
+  }
+
+  .problemLibraryListAction {
+    grid-area: action;
+  }
+
+  .problemLibraryMetricRow {
+    grid-template-columns: 1fr;
+  }
+
   .workspaceTopbar {
     position: static;
     flex-direction: column;
@@ -3889,6 +4936,35 @@
     padding-top: 18px;
   }
 
+  .problemLibraryHero,
+  .problemLibraryToolbar,
+  .problemLibraryPagination,
+  .problemLibraryListPanel,
+  .problemLibraryEmptyState {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .problemLibraryHeader {
+    gap: 10px;
+  }
+
+  .problemLibraryHero {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .problemLibraryToolbar,
+  .problemLibraryPagination {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .problemLibraryListRow {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .codeStudioTopbar,
   .codeStudioProblemBody,
   .codeStudioProblemMeta,
@@ -3912,12 +4988,13 @@
   }
 
   .codeStudioEditorCanvas {
-    min-height: 340px;
+    height: 300px;
+    min-height: 300px;
   }
 
   .codeStudioMonacoWrap,
   .codeStudioMonacoLoading {
-    min-height: 340px;
+    min-height: 100%;
   }
 
   .workspaceFooter {
@@ -3926,6 +5003,27 @@
 
   .topbarTitle {
     font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .calendarHeroStats {
+    grid-template-columns: 1fr;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .calendarToolbar {
+    align-items: stretch;
+  }
+
+  .evaluationRunnerLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .evaluationRunnerMeta {
+    grid-template-columns: 1fr;
+    width: 100%;
   }
 }
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createAdminCourse,
   deleteAdminCourse,
   fetchAdminCourses,
+  uploadAdminCourseThumbnail,
   updateAdminCourse,
 } from "../admin-space.client";
 import type { AdminWorkspaceCourseRecord } from "../admin-space.types";
@@ -24,6 +25,8 @@ type CourseFormState = {
   certificateEnabled: boolean;
   publishNow: boolean;
 };
+
+type CourseInventoryFilter = "ALL" | "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 const INITIAL_FORM: CourseFormState = {
   title: "",
@@ -63,14 +66,30 @@ function statusClass(course: AdminWorkspaceCourseRecord) {
   return styles.statusPending;
 }
 
+function getCourseInventoryStatus(course: AdminWorkspaceCourseRecord): Exclude<CourseInventoryFilter, "ALL"> {
+  if (course.isPublished || course.status === "PUBLISHED") {
+    return "PUBLISHED";
+  }
+
+  if (course.status === "ARCHIVED") {
+    return "ARCHIVED";
+  }
+
+  return "DRAFT";
+}
+
 export function AdminCoursesPage() {
   const [courses, setCourses] = useState<AdminWorkspaceCourseRecord[]>([]);
   const [form, setForm] = useState<CourseFormState>(INITIAL_FORM);
+  const [inventoryFilter, setInventoryFilter] = useState<CourseInventoryFilter>("ALL");
   const [creating, setCreating] = useState(false);
   const [savingCourseId, setSavingCourseId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const inventorySectionRef = useRef<HTMLElement | null>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -110,15 +129,63 @@ export function AdminCoursesPage() {
 
   const metrics = useMemo(() => {
     return {
-      draft: courses.filter((course) => !course.isPublished).length,
+      draft: courses.filter((course) => getCourseInventoryStatus(course) === "DRAFT").length,
       enrollments: courses.reduce((sum, course) => sum + course.enrollmentsCount, 0),
-      published: courses.filter((course) => course.isPublished).length,
+      published: courses.filter((course) => getCourseInventoryStatus(course) === "PUBLISHED").length,
       total: courses.length,
     };
   }, [courses]);
 
+  const visibleCourses = useMemo(() => {
+    return courses.filter(
+      (course) =>
+        inventoryFilter === "ALL" || getCourseInventoryStatus(course) === inventoryFilter,
+    );
+  }, [courses, inventoryFilter]);
+
   function resetForm() {
     setForm(INITIAL_FORM);
+  }
+
+  function scrollToInventory() {
+    inventorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function openThumbnailPicker() {
+    thumbnailInputRef.current?.click();
+  }
+
+  async function handleThumbnailUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setUploadingThumbnail(true);
+
+    try {
+      const uploadedUrl = await uploadAdminCourseThumbnail(file);
+
+      if (!uploadedUrl) {
+        throw new Error("La miniature n a pas pu etre resolue.");
+      }
+
+      setForm((current) => ({
+        ...current,
+        thumbnailUrl: uploadedUrl,
+      }));
+      setErrorMessage(null);
+      setSuccessMessage("La miniature du cours a ete televersee.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de televerser cette miniature.",
+      );
+      setSuccessMessage(null);
+    } finally {
+      setUploadingThumbnail(false);
+    }
   }
 
   async function handleCreateCourse(event: React.FormEvent<HTMLFormElement>) {
@@ -263,11 +330,25 @@ export function AdminCoursesPage() {
           {successMessage ? <p className={`${styles.heroSub} ${styles.messageSuccess}`}>{successMessage}</p> : null}
         </div>
         <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            {loading ? "Chargement..." : `${metrics.draft} brouillon(s)`}
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={() => {
+              setInventoryFilter("DRAFT");
+              scrollToInventory();
+            }}
+          >
+            {loading ? "Chargement..." : `Voir ${metrics.draft} brouillon(s)`}
           </button>
-          <button type="button" className={styles.primaryBtn}>
-            {loading ? "..." : `${metrics.published} publie(s)`}
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => {
+              setInventoryFilter("PUBLISHED");
+              scrollToInventory();
+            }}
+          >
+            {loading ? "..." : `Voir ${metrics.published} publie(s)`}
           </button>
         </div>
       </section>
@@ -295,7 +376,7 @@ export function AdminCoursesPage() {
         </article>
       </section>
 
-      <section className={styles.panel}>
+      <section id="create-course" className={styles.panel}>
         <header className={styles.panelHead}>
           <h3>Creer un nouveau cours</h3>
         </header>
@@ -337,16 +418,49 @@ export function AdminCoursesPage() {
               </label>
               <label className={styles.settingsField}>
                 <span>URL miniature</span>
-                <input
-                  className={styles.settingsInput}
-                  value={form.thumbnailUrl}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      thumbnailUrl: event.target.value,
-                    }))
-                  }
-                />
+                <div className={styles.assetUploadShell}>
+                  <div className={styles.assetUploadRow}>
+                    <input
+                      className={styles.settingsInput}
+                      value={form.thumbnailUrl}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          thumbnailUrl: event.target.value,
+                        }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      disabled={uploadingThumbnail}
+                      onClick={openThumbnailPicker}
+                    >
+                      {uploadingThumbnail ? "Upload..." : "Uploader une image"}
+                    </button>
+                  </div>
+                  <input
+                    ref={thumbnailInputRef}
+                    accept="image/*"
+                    className={styles.assetUploadInput}
+                    type="file"
+                    onChange={(event) => void handleThumbnailUpload(event)}
+                  />
+                  {form.thumbnailUrl ? (
+                    <div className={styles.assetPreviewFrame}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt="Apercu de la miniature du cours"
+                        className={styles.assetPreviewImage}
+                        src={form.thumbnailUrl}
+                      />
+                    </div>
+                  ) : (
+                    <p className={styles.assetUploadHint}>
+                      Televersez une image de couverture ou collez une URL deja hebergee.
+                    </p>
+                  )}
+                </div>
               </label>
               <label className={styles.settingsField}>
                 <span>Prix</span>
@@ -474,9 +588,21 @@ export function AdminCoursesPage() {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section ref={inventorySectionRef} className={styles.panel}>
         <header className={styles.panelHead}>
           <h3>Course Inventory</h3>
+          <select
+            className={styles.settingsInput}
+            value={inventoryFilter}
+            onChange={(event) =>
+              setInventoryFilter(event.target.value as CourseInventoryFilter)
+            }
+          >
+            <option value="ALL">Tous les cours</option>
+            <option value="DRAFT">Brouillons</option>
+            <option value="PUBLISHED">Publies</option>
+            <option value="ARCHIVED">Archives</option>
+          </select>
         </header>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -492,7 +618,7 @@ export function AdminCoursesPage() {
               </tr>
             </thead>
             <tbody>
-              {courses.map((course) => (
+              {visibleCourses.map((course) => (
                 <tr key={course.id}>
                   <td>
                     <strong>{course.title}</strong>
@@ -539,9 +665,9 @@ export function AdminCoursesPage() {
                   </td>
                 </tr>
               ))}
-              {!loading && courses.length === 0 ? (
+              {!loading && visibleCourses.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>Aucun cours disponible pour le moment.</td>
+                  <td colSpan={7}>Aucun cours ne correspond au filtre selectionne.</td>
                 </tr>
               ) : null}
             </tbody>

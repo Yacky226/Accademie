@@ -341,6 +341,7 @@ export class JudgeQueueService implements OnModuleInit, OnModuleDestroy {
       passedCount: 0,
       score: 0,
       status: SubmissionStatus.FAILED,
+      testResults: [],
       totalCount: 0,
       verdict: 'FAILED',
     };
@@ -367,6 +368,7 @@ export class JudgeQueueService implements OnModuleInit, OnModuleDestroy {
       status: run.status,
       stderr: run.stderr,
       stdout: run.stdout,
+      testResults: [],
       timeMs: run.timeMs,
       totalCount: 1,
       verdict: run.verdict || this.inferRunVerdict(run),

@@ -30,6 +30,40 @@ export class ProgramsRepository {
     });
   }
 
+  async findProgramsByStudentId(
+    studentId: string,
+  ): Promise<StudentProgramEntity[]> {
+    return this.programsRepository.find({
+      where: { student: { id: studentId } },
+      relations: {
+        student: true,
+        teacher: true,
+        steps: true,
+      },
+      order: {
+        createdAt: 'DESC',
+        steps: { position: 'ASC' },
+      },
+    });
+  }
+
+  async findProgramsByTeacherId(
+    teacherId: string,
+  ): Promise<StudentProgramEntity[]> {
+    return this.programsRepository.find({
+      where: { teacher: { id: teacherId } },
+      relations: {
+        student: true,
+        teacher: true,
+        steps: true,
+      },
+      order: {
+        createdAt: 'DESC',
+        steps: { position: 'ASC' },
+      },
+    });
+  }
+
   async findProgramById(
     programId: string,
   ): Promise<StudentProgramEntity | null> {

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { resolve } from 'path';
 import {
   AVATAR_UPLOADS_DIRECTORY_PATH,
+  COURSE_THUMBNAIL_UPLOADS_DIRECTORY_PATH,
   ensureStorageDirectories,
 } from './storage.constants';
 
@@ -16,28 +17,54 @@ export class StorageService {
     return `/uploads/avatars/${fileName}`;
   }
 
+  buildCourseThumbnailPublicUrl(fileName: string) {
+    return `/uploads/course-thumbnails/${fileName}`;
+  }
+
   deleteManagedAvatar(avatarUrl?: string | null) {
-    if (!avatarUrl) {
+    this.deleteManagedUpload(
+      avatarUrl,
+      '/uploads/avatars/',
+      AVATAR_UPLOADS_DIRECTORY_PATH,
+    );
+  }
+
+  deleteManagedCourseThumbnail(thumbnailUrl?: string | null) {
+    this.deleteManagedUpload(
+      thumbnailUrl,
+      '/uploads/course-thumbnails/',
+      COURSE_THUMBNAIL_UPLOADS_DIRECTORY_PATH,
+    );
+  }
+
+  private deleteManagedUpload(
+    assetUrl: string | null | undefined,
+    publicPrefix: string,
+    uploadsDirectoryPath: string,
+  ) {
+    if (!assetUrl) {
       return;
     }
 
-    const normalizedUrl = avatarUrl.replace(/\\/g, '/');
-    const avatarPrefix = '/uploads/avatars/';
-    const prefixIndex = normalizedUrl.indexOf(avatarPrefix);
+    const normalizedUrl = assetUrl.replace(/\\/g, '/');
+    const prefixIndex = normalizedUrl.indexOf(publicPrefix);
 
     if (prefixIndex < 0) {
       return;
     }
 
-    const fileName = normalizedUrl.slice(prefixIndex + avatarPrefix.length);
+    const fileName = normalizedUrl.slice(prefixIndex + publicPrefix.length);
     if (!fileName || fileName.includes('..')) {
       return;
     }
 
-    const avatarDirectoryPath = resolve(AVATAR_UPLOADS_DIRECTORY_PATH);
-    const filePath = resolve(AVATAR_UPLOADS_DIRECTORY_PATH, fileName);
+    const normalizedUploadsDirectoryPath = resolve(uploadsDirectoryPath);
+    const filePath = resolve(uploadsDirectoryPath, fileName);
 
-    if (!filePath.startsWith(avatarDirectoryPath) || !existsSync(filePath)) {
+    if (
+      !filePath.startsWith(normalizedUploadsDirectoryPath) ||
+      !existsSync(filePath)
+    ) {
       return;
     }
 

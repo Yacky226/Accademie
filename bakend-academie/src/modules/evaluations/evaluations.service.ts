@@ -3,8 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EvaluationType } from '../../core/enums';
+import {
+  EnrollmentStatus,
+  EvaluationType,
+  NotificationChannel,
+} from '../../core/enums';
+import { CoursesRepository } from '../courses/repositories/courses.repository';
 import { GradesService } from '../grades/grades.service';
+import { NotificationEntity } from '../notifications/entities/notification.entity';
+import { NotificationsRepository } from '../notifications/repositories/notifications.repository';
 import { CreateEvaluationQuestionDto } from './dto/create-evaluation-question.dto';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { GradeEvaluationAttemptDto } from './dto/grade-evaluation-attempt.dto';
@@ -21,10 +28,16 @@ export class EvaluationsService {
   constructor(
     private readonly evaluationsRepository: EvaluationsRepository,
     private readonly gradesService: GradesService,
+    private readonly coursesRepository: CoursesRepository,
+    private readonly notificationsRepository: NotificationsRepository,
   ) {}
 
   async listEvaluations(): Promise<EvaluationEntity[]> {
     return this.evaluationsRepository.findAllEvaluations();
+  }
+
+  async listPublishedEvaluations(): Promise<EvaluationEntity[]> {
+    return this.evaluationsRepository.findPublishedEvaluations();
   }
 
   async getEvaluationById(evaluationId: string): Promise<EvaluationEntity> {
@@ -37,10 +50,32 @@ export class EvaluationsService {
     return evaluation;
   }
 
+  async getPublishedEvaluationById(
+    evaluationId: string,
+  ): Promise<EvaluationEntity> {
+    const evaluation =
+      await this.evaluationsRepository.findPublishedEvaluationById(
+        evaluationId,
+      );
+    if (!evaluation) {
+      throw new NotFoundException('Published evaluation not found');
+    }
+
+    return evaluation;
+  }
+
   async createEvaluation(
     dto: CreateEvaluationDto,
     creatorId: string,
   ): Promise<EvaluationEntity> {
+    const queuedQuestions = dto.questions ?? [];
+
+    if (dto.isPublished && queuedQuestions.length === 0) {
+      throw new ConflictException(
+        'Add at least one question before publishing the evaluation',
+      );
+    }
+
     const normalizedSlug = this.normalizeSlug(dto.slug);
     const existingEvaluation =
       await this.evaluationsRepository.findEvaluationBySlug(normalizedSlug);
@@ -52,6 +87,8 @@ export class EvaluationsService {
     if (!creator) {
       throw new NotFoundException('Creator user not found');
     }
+
+    this.assertNoDuplicateQuestionPositions(queuedQuestions);
 
     const evaluation = new EvaluationEntity();
     evaluation.title = dto.title;
@@ -77,7 +114,22 @@ export class EvaluationsService {
       evaluation.course = course;
     }
 
-    return this.evaluationsRepository.saveEvaluation(evaluation);
+    const savedEvaluation =
+      await this.evaluationsRepository.saveEvaluation(evaluation);
+
+    for (const questionDto of queuedQuestions) {
+      const question = this.buildQuestionEntity(savedEvaluation, questionDto);
+      await this.evaluationsRepository.saveQuestion(question);
+    }
+
+    const hydratedEvaluation = await this.getEvaluationById(savedEvaluation.id);
+
+    if (hydratedEvaluation.isPublished) {
+      this.assertEvaluationCanBePublished(hydratedEvaluation);
+      await this.notifyStudentsAboutPublishedEvaluation(hydratedEvaluation);
+    }
+
+    return hydratedEvaluation;
   }
 
   async updateEvaluation(
@@ -85,6 +137,7 @@ export class EvaluationsService {
     dto: UpdateEvaluationDto,
   ): Promise<EvaluationEntity> {
     const evaluation = await this.getEvaluationById(evaluationId);
+    const wasPublished = evaluation.isPublished;
 
     if (dto.slug && this.normalizeSlug(dto.slug) !== evaluation.slug) {
       const existingEvaluation =
@@ -124,7 +177,18 @@ export class EvaluationsService {
       evaluation.course = course;
     }
 
-    return this.evaluationsRepository.saveEvaluation(evaluation);
+    if (evaluation.isPublished) {
+      this.assertEvaluationCanBePublished(evaluation);
+    }
+
+    const savedEvaluation =
+      await this.evaluationsRepository.saveEvaluation(evaluation);
+
+    if (!wasPublished && savedEvaluation.isPublished) {
+      await this.notifyStudentsAboutPublishedEvaluation(savedEvaluation);
+    }
+
+    return savedEvaluation;
   }
 
   async deleteEvaluation(evaluationId: string): Promise<void> {
@@ -145,15 +209,7 @@ export class EvaluationsService {
       throw new ConflictException('A question already exists at this position');
     }
 
-    const question = new EvaluationQuestionEntity();
-    question.statement = dto.statement;
-    question.questionType = (dto.questionType ?? 'TEXT').toUpperCase();
-    question.options = dto.options;
-    question.correctAnswer = dto.correctAnswer;
-    question.points = (dto.points ?? 1).toFixed(2);
-    question.position = dto.position;
-    question.evaluation = evaluation;
-
+    const question = this.buildQuestionEntity(evaluation, dto);
     return this.evaluationsRepository.saveQuestion(question);
   }
 
@@ -182,12 +238,23 @@ export class EvaluationsService {
       }
     }
 
-    question.statement = dto.statement ?? question.statement;
-    question.questionType = dto.questionType
-      ? dto.questionType.toUpperCase()
+    const normalizedQuestionType = dto.questionType
+      ? this.normalizeQuestionType(dto.questionType)
       : question.questionType;
-    question.options = dto.options ?? question.options;
-    question.correctAnswer = dto.correctAnswer ?? question.correctAnswer;
+    const normalizedOptions =
+      dto.options !== undefined
+        ? this.normalizeQuestionOptions(dto.options)
+        : question.options;
+    const normalizedCorrectAnswer = this.normalizeCorrectAnswer(
+      normalizedQuestionType,
+      dto.correctAnswer ?? question.correctAnswer,
+      normalizedOptions,
+    );
+
+    question.statement = dto.statement ?? question.statement;
+    question.questionType = normalizedQuestionType;
+    question.options = normalizedOptions;
+    question.correctAnswer = normalizedCorrectAnswer;
     question.points =
       dto.points !== undefined ? dto.points.toFixed(2) : question.points;
     question.position = dto.position ?? question.position;
@@ -249,8 +316,11 @@ export class EvaluationsService {
       );
     }
 
+    this.assertAllQuestionsAutoGradable(evaluation.questions ?? []);
+    this.assertAllQuestionsAnswered(evaluation.questions ?? [], dto.answers);
+
     const attempt = new EvaluationAttemptEntity();
-    attempt.status = 'SUBMITTED';
+    attempt.status = 'GRADED';
     attempt.answers = dto.answers ?? {};
     attempt.maxScore = this.computeMaxScore(evaluation.questions ?? []).toFixed(
       2,
@@ -263,23 +333,15 @@ export class EvaluationsService {
       evaluation.questions ?? [],
       attempt.answers,
     );
-    if (autoGrade) {
-      attempt.status = 'GRADED';
-      attempt.score = autoGrade.score.toFixed(2);
-      attempt.feedback = autoGrade.feedback;
-    }
+    attempt.score = autoGrade.score.toFixed(2);
+    attempt.feedback = autoGrade.feedback;
 
     const savedAttempt = await this.evaluationsRepository.saveAttempt(attempt);
-    if (autoGrade) {
-      await this.gradesService.upsertGradeFromEvaluationAttempt(
-        savedAttempt.id,
-        {
-          score: autoGrade.score,
-          feedback: autoGrade.feedback,
-          status: 'PUBLISHED',
-        },
-      );
-    }
+    await this.gradesService.upsertGradeFromEvaluationAttempt(savedAttempt.id, {
+      score: autoGrade.score,
+      feedback: autoGrade.feedback,
+      status: 'PUBLISHED',
+    });
 
     return savedAttempt;
   }
@@ -353,23 +415,16 @@ export class EvaluationsService {
   private tryAutoGradeAttempt(
     questions: EvaluationQuestionEntity[],
     answers?: Record<string, unknown>,
-  ): { score: number; feedback: string } | null {
-    if (!questions.length) {
-      return null;
-    }
-
+  ): { score: number; feedback: string } {
     const submittedAnswers = answers ?? {};
-    const isFullyAutoGradable = questions.every(
-      (question) => question.correctAnswer !== undefined,
-    );
-    if (!isFullyAutoGradable) {
-      return null;
-    }
-
     const totalScore = questions.reduce((score, question) => {
       const submittedAnswer = submittedAnswers[question.id];
       const expectedAnswer = this.parseCorrectAnswer(question.correctAnswer);
-      return this.answersMatch(submittedAnswer, expectedAnswer)
+      return this.answersMatch(
+        question.questionType,
+        submittedAnswer,
+        expectedAnswer,
+      )
         ? score + Number(question.points)
         : score;
     }, 0);
@@ -393,11 +448,236 @@ export class EvaluationsService {
     }
   }
 
-  private answersMatch(left: unknown, right: unknown): boolean {
+  private answersMatch(
+    questionType: string,
+    left: unknown,
+    right: unknown,
+  ): boolean {
+    const normalizedQuestionType = this.normalizeQuestionType(questionType);
+
+    if (
+      (normalizedQuestionType === 'FILL_BLANK' ||
+        normalizedQuestionType === 'TEXT') &&
+      Array.isArray(right)
+    ) {
+      const normalizedLeft = this.normalizeAnswer(left);
+      return right.some(
+        (candidate) =>
+          JSON.stringify(this.normalizeAnswer(candidate)) ===
+          JSON.stringify(normalizedLeft),
+      );
+    }
+
     return (
       JSON.stringify(this.normalizeAnswer(left)) ===
       JSON.stringify(this.normalizeAnswer(right))
     );
+  }
+
+  private normalizeQuestionType(questionType?: string): string {
+    const normalizedValue = questionType?.trim().toUpperCase();
+
+    if (
+      normalizedValue === 'MULTIPLE_CHOICE' ||
+      normalizedValue === 'MULTIPLE_RESPONSE' ||
+      normalizedValue === 'FILL_BLANK' ||
+      normalizedValue === 'TEXT'
+    ) {
+      return normalizedValue;
+    }
+
+    if (normalizedValue === 'SHORT_ANSWER') {
+      return 'FILL_BLANK';
+    }
+
+    return 'TEXT';
+  }
+
+  private assertNoDuplicateQuestionPositions(
+    questions: CreateEvaluationQuestionDto[],
+  ): void {
+    const positions = new Set<number>();
+
+    questions.forEach((question) => {
+      if (positions.has(question.position)) {
+        throw new ConflictException(
+          'Each question must use a unique position in the evaluation',
+        );
+      }
+
+      positions.add(question.position);
+    });
+  }
+
+  private buildQuestionEntity(
+    evaluation: EvaluationEntity,
+    dto: CreateEvaluationQuestionDto,
+  ): EvaluationQuestionEntity {
+    const question = new EvaluationQuestionEntity();
+    const normalizedQuestionType = this.normalizeQuestionType(dto.questionType);
+    const normalizedOptions = this.normalizeQuestionOptions(dto.options);
+
+    question.statement = dto.statement;
+    question.questionType = normalizedQuestionType;
+    question.options = normalizedOptions;
+    question.correctAnswer = this.normalizeCorrectAnswer(
+      normalizedQuestionType,
+      dto.correctAnswer,
+      normalizedOptions,
+    );
+    question.points = (dto.points ?? 1).toFixed(2);
+    question.position = dto.position;
+    question.evaluation = evaluation;
+
+    return question;
+  }
+
+  private normalizeQuestionOptions(options?: string[]): string[] | undefined {
+    if (!options?.length) {
+      return undefined;
+    }
+
+    const normalizedOptions = options
+      .map((option) => option.trim())
+      .filter(Boolean);
+
+    return normalizedOptions.length > 0 ? normalizedOptions : undefined;
+  }
+
+  private normalizeCorrectAnswer(
+    questionType: string,
+    correctAnswer?: string,
+    options?: string[],
+  ): string {
+    const normalizedQuestionType = this.normalizeQuestionType(questionType);
+    const normalizedCorrectAnswer = correctAnswer?.trim();
+
+    if (!normalizedCorrectAnswer) {
+      throw new ConflictException(
+        'A correct answer is required for automatic evaluation',
+      );
+    }
+
+    if (normalizedQuestionType === 'MULTIPLE_CHOICE') {
+      if (!options?.length) {
+        throw new ConflictException(
+          'Multiple choice questions require answer options',
+        );
+      }
+
+      if (!options.includes(normalizedCorrectAnswer)) {
+        throw new ConflictException(
+          'The correct answer must match one of the available options',
+        );
+      }
+
+      return normalizedCorrectAnswer;
+    }
+
+    if (normalizedQuestionType === 'MULTIPLE_RESPONSE') {
+      if (!options?.length) {
+        throw new ConflictException(
+          'Multiple response questions require answer options',
+        );
+      }
+
+      const parsedAnswer = this.parseCorrectAnswer(normalizedCorrectAnswer);
+      const normalizedAnswers = Array.isArray(parsedAnswer)
+        ? parsedAnswer
+            .filter((value): value is string => typeof value === 'string')
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : typeof parsedAnswer === 'string' && parsedAnswer.trim()
+          ? [parsedAnswer.trim()]
+          : [];
+
+      if (!normalizedAnswers.length) {
+        throw new ConflictException(
+          'Select at least one correct answer for this question',
+        );
+      }
+
+      const hasInvalidAnswer = normalizedAnswers.some(
+        (value) => !options.includes(value),
+      );
+      if (hasInvalidAnswer) {
+        throw new ConflictException(
+          'Every correct answer must match one of the available options',
+        );
+      }
+
+      return JSON.stringify(Array.from(new Set(normalizedAnswers)));
+    }
+
+    const parsedAnswer = this.parseCorrectAnswer(normalizedCorrectAnswer);
+    const acceptedAnswers = Array.isArray(parsedAnswer)
+      ? parsedAnswer
+          .filter((value): value is string => typeof value === 'string')
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : typeof parsedAnswer === 'string' && parsedAnswer.trim()
+        ? [parsedAnswer.trim()]
+        : [];
+
+    if (!acceptedAnswers.length) {
+      throw new ConflictException(
+        'Provide at least one accepted answer for this question',
+      );
+    }
+
+    return acceptedAnswers.length === 1
+      ? acceptedAnswers[0]
+      : JSON.stringify(acceptedAnswers);
+  }
+
+  private assertEvaluationCanBePublished(
+    evaluation: EvaluationEntity,
+  ): void {
+    if (!(evaluation.questions ?? []).length) {
+      throw new ConflictException(
+        'Publish at least one question before publishing this evaluation',
+      );
+    }
+
+    this.assertAllQuestionsAutoGradable(evaluation.questions ?? []);
+  }
+
+  private assertAllQuestionsAutoGradable(
+    questions: EvaluationQuestionEntity[],
+  ): void {
+    questions.forEach((question) => {
+      this.normalizeCorrectAnswer(
+        question.questionType,
+        question.correctAnswer,
+        question.options,
+      );
+    });
+  }
+
+  private assertAllQuestionsAnswered(
+    questions: EvaluationQuestionEntity[],
+    answers?: Record<string, unknown>,
+  ): void {
+    const submittedAnswers = answers ?? {};
+    const missingAnswer = questions.some((question) => {
+      const answer = submittedAnswers[question.id];
+
+      if (Array.isArray(answer)) {
+        return answer.length === 0;
+      }
+
+      if (typeof answer === 'string') {
+        return answer.trim().length === 0;
+      }
+
+      return answer === undefined || answer === null;
+    });
+
+    if (missingAnswer) {
+      throw new ConflictException(
+        'All questions must be answered before submission',
+      );
+    }
   }
 
   private normalizeAnswer(value: unknown): unknown {
@@ -423,5 +703,73 @@ export class EvaluationsService {
     }
 
     return value;
+  }
+
+  private async notifyStudentsAboutPublishedEvaluation(
+    evaluation: EvaluationEntity,
+  ): Promise<void> {
+    if (!evaluation.isPublished || !evaluation.course) {
+      return;
+    }
+
+    if (
+      evaluation.type !== EvaluationType.QUIZ &&
+      evaluation.type !== EvaluationType.EXAM
+    ) {
+      return;
+    }
+
+    const enrollments = await this.coursesRepository.findEnrollmentsByCourseId(
+      evaluation.course.id,
+    );
+    const recipients = enrollments.filter(
+      (enrollment) => enrollment.status !== EnrollmentStatus.CANCELLED,
+    );
+
+    if (!recipients.length) {
+      return;
+    }
+
+    const evaluationLabel =
+      evaluation.type === EvaluationType.EXAM ? 'examen' : 'QCM';
+    const notificationTitle =
+      evaluation.type === EvaluationType.EXAM
+        ? 'Nouvel examen disponible'
+        : 'Nouveau QCM disponible';
+    const teacherName =
+      `${evaluation.creator?.firstName ?? ''} ${evaluation.creator?.lastName ?? ''}`.trim() ||
+      'Votre enseignant';
+
+    await Promise.all(
+      recipients.map((enrollment) => {
+        const notification = new NotificationEntity();
+        notification.title = notificationTitle;
+        notification.message = `${teacherName} a publie le ${evaluationLabel} "${evaluation.title}" dans "${evaluation.course?.title ?? 'votre formation'}".`;
+        notification.type = 'COURSE_UPDATE';
+        notification.channel = NotificationChannel.IN_APP;
+        notification.metadata = {
+          source: 'evaluation-publication',
+          kind: 'course',
+          evaluationId: evaluation.id,
+          evaluationSlug: evaluation.slug,
+          evaluationTitle: evaluation.title,
+          evaluationType: evaluation.type,
+          courseId: evaluation.course?.id,
+          courseSlug: evaluation.course?.slug,
+          courseTitle: evaluation.course?.title,
+          teacherName,
+          quote: evaluation.description,
+          actionLabel: 'Ouvrir l evaluation',
+          actionHref: `/student/evaluations?evaluation=${evaluation.slug}`,
+        };
+        notification.recipient = enrollment.user;
+
+        if (evaluation.creator) {
+          notification.sender = evaluation.creator;
+        }
+
+        return this.notificationsRepository.saveNotification(notification);
+      }),
+    );
   }
 }

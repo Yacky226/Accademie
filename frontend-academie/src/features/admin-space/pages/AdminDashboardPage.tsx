@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   fetchAdminAnalyticsActivity,
   fetchAdminAnalyticsOverview,
@@ -21,6 +22,7 @@ function formatNumber(value: number) {
 }
 
 export function AdminDashboardPage() {
+  const router = useRouter();
   const [overview, setOverview] = useState<AdminOverviewRecord | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalyticsOverviewRecord | null>(null);
   const [activity, setActivity] = useState<AdminAnalyticsActivityRecord | null>(null);
@@ -73,6 +75,31 @@ export function AdminDashboardPage() {
     };
   }, []);
 
+  async function refreshDashboard() {
+    setLoading(true);
+
+    try {
+      const [nextOverview, nextAnalytics, nextActivity, nextHealth] = await Promise.all([
+        fetchAdminOverview(),
+        fetchAdminAnalyticsOverview(),
+        fetchAdminAnalyticsActivity(),
+        fetchAdminHealth(),
+      ]);
+
+      setOverview(nextOverview);
+      setAnalytics(nextAnalytics);
+      setActivity(nextActivity);
+      setHealth(nextHealth);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de charger le dashboard admin.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const projectionBars = useMemo(() => {
     if (!activity) {
       return [20, 35, 30, 45, 40, 50];
@@ -103,11 +130,20 @@ export function AdminDashboardPage() {
           {errorMessage ? <p className={`${styles.heroSub} ${styles.messageError}`}>{errorMessage}</p> : null}
         </div>
         <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            {loading ? "Chargement..." : "Vue synchronisee"}
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={loading}
+            onClick={() => void refreshDashboard()}
+          >
+            {loading ? "Chargement..." : "Rafraichir la vue"}
           </button>
-          <button type="button" className={styles.primaryBtn}>
-            Supervision active
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => router.push("/admin/analytics")}
+          >
+            Ouvrir analytics
           </button>
         </div>
       </section>

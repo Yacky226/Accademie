@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { StorageModule } from '../../integrations/storage';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { UserEntity } from '../users/entities/user.entity';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
@@ -11,6 +13,8 @@ import { CoursesRepository } from './repositories/courses.repository';
 
 @Module({
   imports: [
+    NotificationsModule,
+    StorageModule,
     TypeOrmModule.forFeature([
       CourseEntity,
       CourseModuleEntity,

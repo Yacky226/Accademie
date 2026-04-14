@@ -31,7 +31,9 @@ export function StudentShell({
   return (
     <div className={styles.workspaceShell}>
       <div
-        className={`${styles.workspaceLayout} ${isCollapsed ? styles.workspaceLayoutCollapsed : ""}`}
+        className={`${styles.workspaceLayout} ${widePage ? styles.workspaceLayoutWide : ""} ${
+          isCollapsed ? styles.workspaceLayoutCollapsed : ""
+        }`}
       >
         <div className={styles.workspaceSidebarSlot}>
           <StudentSidebar

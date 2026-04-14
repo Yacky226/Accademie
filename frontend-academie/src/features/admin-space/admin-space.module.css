@@ -80,6 +80,9 @@
 
 .sideButton {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 10px;
   padding: 10px 12px;
@@ -87,6 +90,7 @@
   font-weight: 700;
   color: #ffffff;
   background: linear-gradient(135deg, #004ac6, #2563eb);
+  text-decoration: none;
 }
 
 .content {
@@ -166,6 +170,7 @@
   border-radius: 10px;
   padding: 10px 14px;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .primaryBtn {
@@ -294,6 +299,11 @@
   border-radius: 10px;
   padding: 9px 10px;
   background: #fbfdff;
+}
+
+.filterCard select,
+select.settingsInput {
+  cursor: pointer;
 }
 
 .kpi {
@@ -887,6 +897,7 @@
   padding: 12px;
   font-size: 0.92rem;
   font-weight: 700;
+  cursor: pointer;
   transition:
     transform 0.2s ease,
     background-color 0.2s ease,
@@ -1008,6 +1019,7 @@
   border-radius: 14px;
   font-size: 0.84rem;
   font-weight: 800;
+  cursor: pointer;
   box-shadow: 0 18px 30px rgba(0, 74, 198, 0.2);
 }
 
@@ -1027,6 +1039,7 @@
   color: #49607f;
   font-size: 0.76rem;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .sideLinkCollapsed {
@@ -1178,6 +1191,7 @@
   text-decoration: none;
   min-width: 0;
   flex-shrink: 1;
+  cursor: pointer;
 }
 
 .adminAvatarShell {
@@ -1284,6 +1298,7 @@
   color: #2456a8;
   font-size: 0.76rem;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .heroTitle {
@@ -1301,6 +1316,7 @@
   min-height: 44px;
   border-radius: 14px;
   font-size: 0.84rem;
+  cursor: pointer;
   box-shadow: 0 14px 26px rgba(13, 28, 46, 0.06);
 }
 
@@ -1534,6 +1550,7 @@
   border-radius: 18px;
   border: 1px solid rgba(220, 229, 245, 0.84);
   background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  cursor: pointer;
 }
 
 .ticketQueueMeta strong,
@@ -1559,6 +1576,12 @@
 .settingsField {
   display: grid;
   gap: 8px;
+}
+
+.settingsFieldHint {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.55;
 }
 
 .settingsInput,
@@ -1592,6 +1615,92 @@
   resize: vertical;
 }
 
+.assetUploadShell {
+  display: grid;
+  gap: 12px;
+}
+
+.assetUploadRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.assetUploadRow > :first-child {
+  flex: 1 1 320px;
+}
+
+.assetUploadInput {
+  display: none;
+}
+
+.assetUploadHint {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.55;
+}
+
+.assetPreviewFrame {
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(208, 219, 241, 0.92);
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+  min-height: 184px;
+}
+
+.assetPreviewImage {
+  display: block;
+  width: 100%;
+  height: 184px;
+  object-fit: cover;
+}
+
+.authoringQuestionPanel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(208, 219, 241, 0.92);
+  background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%);
+}
+
+.authoringQuestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.authoringQuestionList {
+  display: grid;
+  gap: 12px;
+}
+
+.authoringQuestionCard {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 229, 245, 0.84);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.authoringQuestionMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.authoringAnswerPreview {
+  margin: 0;
+  color: #62728a;
+  line-height: 1.55;
+}
+
 .settingsInput:focus,
 .settingsTextarea:focus,
 .inlineTextarea:focus {
@@ -1608,9 +1717,19 @@
   flex-shrink: 0;
   border-radius: 999px;
   position: relative;
+  cursor: pointer;
   border: 1px solid rgba(188, 204, 236, 0.84);
   background: linear-gradient(180deg, #e2e8f5 0%, #cfd8ea 100%);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.primaryBtn:disabled,
+.ghostBtn:disabled,
+.secondaryBtn:disabled,
+.dangerBtn:disabled,
+.sideButton:disabled,
+.integrationRow:disabled {
+  cursor: not-allowed;
 }
 
 .adminToggle::after {

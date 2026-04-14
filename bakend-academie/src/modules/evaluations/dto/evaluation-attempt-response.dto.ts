@@ -1,6 +1,7 @@
 export class EvaluationAttemptResponseDto {
   id!: string;
   status!: string;
+  answers?: Record<string, unknown>;
   score?: string;
   maxScore!: string;
   feedback?: string;

@@ -190,11 +190,19 @@ export function AdminPaymentsPage() {
           {successMessage ? <p className={`${styles.heroSub} ${styles.messageSuccess}`}>{successMessage}</p> : null}
         </div>
         <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            {loading ? "Chargement..." : `${metrics.pending} paiement(s) en attente`}
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={() => setStatusFilter("PENDING")}
+          >
+            {loading ? "Chargement..." : `Voir ${metrics.pending} en attente`}
           </button>
-          <button type="button" className={styles.primaryBtn}>
-            {loading ? "..." : formatCurrencyGroups(metrics.paidRevenue)}
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => setStatusFilter("PAID")}
+          >
+            {loading ? "..." : `Voir les payes · ${formatCurrencyGroups(metrics.paidRevenue)}`}
           </button>
         </div>
       </section>

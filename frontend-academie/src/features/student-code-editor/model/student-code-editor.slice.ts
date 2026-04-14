@@ -4,6 +4,7 @@ import {
   createJudgeRun,
   createSubmission,
   fetchJudgeRun,
+  fetchSubmissionEvaluation,
   fetchStudentCodeEditorBootstrap,
   fetchSubmission,
 } from "../api/student-code-editor.service";
@@ -20,6 +21,7 @@ const initialState: StudentCodeEditorState = {
   latestRun: null,
   latestSubmission: null,
   problemId: null,
+  problemSlug: null,
   runStatus: "idle",
   status: "idle",
   submitStatus: "idle",
@@ -39,20 +41,24 @@ export const fetchStudentCodeEditorBootstrapThunk = createAsyncThunk<
   {
     exercise: StudentCodeEditorState["exercise"];
     problemId: string | null;
+    problemSlug: string | null;
   },
-  void,
+  string | null | undefined,
   { rejectValue: string }
->("studentCodeEditor/fetchBootstrap", async (_, { rejectWithValue }) => {
-  try {
-    return await fetchStudentCodeEditorBootstrap();
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error
-        ? error.message
-        : "Unable to load the code editor workspace.",
-    );
-  }
-});
+>(
+  "studentCodeEditor/fetchBootstrap",
+  async (selectedProblemId, { rejectWithValue }) => {
+    try {
+      return await fetchStudentCodeEditorBootstrap(selectedProblemId);
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error
+          ? error.message
+          : "Unable to load the code editor workspace.",
+      );
+    }
+  },
+);
 
 export const createJudgeRunThunk = createAsyncThunk<
   StudentCodeExecutionRecord,
@@ -97,11 +103,14 @@ export const createSubmissionThunk = createAsyncThunk<
   async (payload, { getState, rejectWithValue }) => {
     try {
       const state = getState().studentCodeEditor;
-      return await createSubmission(
+      const submission = await createSubmission(
         payload,
         state.problemId,
         state.exercise.languages,
       );
+      return isExecutionPending(submission.status)
+        ? submission
+        : await fetchSubmissionEvaluation(submission.id);
     } catch (error) {
       return rejectWithValue(
         error instanceof Error
@@ -155,14 +164,16 @@ export const pollSubmissionThunk = createAsyncThunk<
 
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         if (!isExecutionPending(latestSubmission.status)) {
-          return latestSubmission;
+          return fetchSubmissionEvaluation(latestSubmission.id);
         }
 
         await sleep(pollDelayMs);
         latestSubmission = await fetchSubmission(submissionId);
       }
 
-      return latestSubmission;
+      return isExecutionPending(latestSubmission.status)
+        ? latestSubmission
+        : await fetchSubmissionEvaluation(latestSubmission.id);
     } catch (error) {
       return rejectWithValue(
         error instanceof Error
@@ -181,15 +192,26 @@ const studentCodeEditorSlice = createSlice({
     builder
       .addCase(fetchStudentCodeEditorBootstrapThunk.pending, (state) => {
         state.errorMessage = null;
+        state.latestRun = null;
+        state.latestSubmission = null;
+        state.problemId = null;
+        state.problemSlug = null;
+        state.runStatus = "idle";
         state.status = "loading";
+        state.submitStatus = "idle";
       })
       .addCase(
         fetchStudentCodeEditorBootstrapThunk.fulfilled,
         (state, action) => {
           state.errorMessage = null;
           state.exercise = action.payload.exercise;
+          state.latestRun = null;
+          state.latestSubmission = null;
           state.problemId = action.payload.problemId;
+          state.problemSlug = action.payload.problemSlug;
+          state.runStatus = "idle";
           state.status = "succeeded";
+          state.submitStatus = "idle";
         },
       )
       .addCase(
@@ -197,6 +219,8 @@ const studentCodeEditorSlice = createSlice({
         (state, action) => {
           state.errorMessage =
             action.payload ?? "Unable to load the code editor workspace.";
+          state.problemId = null;
+          state.problemSlug = null;
           state.status = "failed";
         },
       )

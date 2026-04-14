@@ -17,6 +17,7 @@ import { UserRole } from '../../core/enums';
 import { CreateProgramStepDto } from './dto/create-program-step.dto';
 import { CreateStudentProgramDto } from './dto/create-student-program.dto';
 import { ProgramResponseDto } from './dto/program-response.dto';
+import { UpdateMyProgramStepProgressDto } from './dto/update-my-program-step-progress.dto';
 import { UpdateProgramStepDto } from './dto/update-program-step.dto';
 import { UpdateStudentProgramDto } from './dto/update-student-program.dto';
 import { StudentProgramEntity } from './entities/student-program.entity';
@@ -28,15 +29,29 @@ export class ProgramsController {
 
   @Permissions(PROGRAM_PERMISSIONS.PROGRAMS_READ)
   @Get()
-  async listPrograms(): Promise<ProgramResponseDto[]> {
-    const programs = await this.programsService.listPrograms();
+  async listPrograms(
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+  ): Promise<ProgramResponseDto[]> {
+    const programs = await this.programsService.listProgramsForViewer(
+      userId,
+      roles,
+    );
     return programs.map((program) => this.toResponse(program));
   }
 
   @Permissions(PROGRAM_PERMISSIONS.PROGRAMS_READ)
   @Get(':id')
-  async getProgramById(@Param('id') id: string): Promise<ProgramResponseDto> {
-    const program = await this.programsService.getProgramById(id);
+  async getProgramById(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+  ): Promise<ProgramResponseDto> {
+    const program = await this.programsService.getProgramByIdForViewer(
+      id,
+      userId,
+      roles,
+    );
     return this.toResponse(program);
   }
 
@@ -81,6 +96,25 @@ export class ProgramsController {
     @Body() dto: UpdateProgramStepDto,
   ) {
     return this.programsService.updateStep(programId, stepId, dto);
+  }
+
+  @Permissions(PROGRAM_PERMISSIONS.PROGRAMS_UPDATE)
+  @Patch(':id/steps/:stepId/progress')
+  async updateMyStepProgress(
+    @Param('id') programId: string,
+    @Param('stepId') stepId: string,
+    @Body() dto: UpdateMyProgramStepProgressDto,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('roles') roles: string[],
+  ): Promise<ProgramResponseDto> {
+    const program = await this.programsService.updateMyStepProgress(
+      programId,
+      stepId,
+      dto,
+      userId,
+      roles,
+    );
+    return this.toResponse(program);
   }
 
   @Roles(UserRole.ADMIN, UserRole.TEACHER)

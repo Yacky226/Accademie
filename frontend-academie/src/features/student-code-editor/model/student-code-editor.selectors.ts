@@ -5,6 +5,10 @@ export const selectStudentCodeExercise = (state: RootState) => state.studentCode
 export const selectStudentCodeEditorStatus = (state: RootState) => state.studentCodeEditor.status;
 export const selectStudentCodeEditorError = (state: RootState) =>
   state.studentCodeEditor.errorMessage;
+export const selectStudentCodeEditorProblemId = (state: RootState) =>
+  state.studentCodeEditor.problemId;
+export const selectStudentCodeEditorProblemSlug = (state: RootState) =>
+  state.studentCodeEditor.problemSlug;
 export const selectStudentCodeEditorRunStatus = (state: RootState) =>
   state.studentCodeEditor.runStatus;
 export const selectStudentCodeEditorSubmitStatus = (state: RootState) =>

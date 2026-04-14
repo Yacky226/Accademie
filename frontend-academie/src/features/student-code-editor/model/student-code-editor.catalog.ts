@@ -131,7 +131,7 @@ public:
 
 export const studentCodeExercise: StudentCodingExercise = {
   title: "Inversion d un arbre binaire",
-  difficulty: "Moyen",
+  difficulty: "Intermediaire",
   category: "Arbres binaires",
   description:
     "Etant donne la racine d un arbre binaire, inversez l arbre et retournez sa racine.",

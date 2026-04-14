@@ -96,6 +96,47 @@ export interface BackendSubmissionResponse {
   };
 }
 
+export interface BackendSubmissionEvaluationTestResult {
+  position: number;
+  points: number;
+  isHidden: boolean;
+  passed: boolean;
+  status: string;
+  verdict: string;
+  input?: string;
+  expectedOutput?: string;
+  stdout?: string;
+  stderr?: string;
+  compileOutput?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  exitCode?: number;
+}
+
+export interface BackendSubmissionEvaluationResponse
+  extends BackendSubmissionResponse {
+  passedCount: number;
+  totalCount: number;
+  testResults: BackendSubmissionEvaluationTestResult[];
+}
+
+export interface StudentCodeSubmissionTestResult {
+  position: number;
+  points: number;
+  isHidden: boolean;
+  passed: boolean;
+  status: string;
+  verdict: string;
+  input?: string;
+  expectedOutput?: string;
+  stdout?: string;
+  stderr?: string;
+  compileOutput?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  exitCode?: number;
+}
+
 export interface StudentCodeExecutionRecord {
   id: string;
   verdict?: string;
@@ -109,6 +150,11 @@ export interface StudentCodeExecutionRecord {
   languageLabel?: string;
   createdAt: string;
   submittedAt?: string;
+  score?: string;
+  maxScore?: string;
+  passedCount?: number;
+  totalCount?: number;
+  testResults?: StudentCodeSubmissionTestResult[];
 }
 
 export interface StudentCodeEditorState {
@@ -117,6 +163,7 @@ export interface StudentCodeEditorState {
   latestRun: StudentCodeExecutionRecord | null;
   latestSubmission: StudentCodeExecutionRecord | null;
   problemId: string | null;
+  problemSlug: string | null;
   runStatus: "idle" | "loading" | "succeeded" | "failed";
   status: "idle" | "loading" | "succeeded" | "failed";
   submitStatus: "idle" | "loading" | "succeeded" | "failed";

@@ -46,6 +46,34 @@ function getSettingMap(settings: AdminSettingRecord[]) {
   return new Map(settings.map((setting) => [setting.key, setting]));
 }
 
+function buildSettingsForm(settings: AdminSettingRecord[]): SettingsForm {
+  const settingsMap = getSettingMap(settings);
+
+  return {
+    maintenanceBanner:
+      settingsMap.get("platform.maintenanceBanner")?.value ??
+      INITIAL_FORM.maintenanceBanner,
+    maintenanceMode: isEnabled(
+      settingsMap.get("platform.maintenanceMode")?.value,
+      INITIAL_FORM.maintenanceMode,
+    ),
+    mfaRequired: isEnabled(
+      settingsMap.get("security.mfaRequired")?.value,
+      INITIAL_FORM.mfaRequired,
+    ),
+    platformName: settingsMap.get("platform.name")?.value ?? INITIAL_FORM.platformName,
+    primaryColor:
+      settingsMap.get("platform.primaryColor")?.value ?? INITIAL_FORM.primaryColor,
+    statusPageSync: isEnabled(
+      settingsMap.get("platform.statusPageSync")?.value,
+      INITIAL_FORM.statusPageSync,
+    ),
+    supportEmail:
+      settingsMap.get("platform.supportEmail")?.value ?? INITIAL_FORM.supportEmail,
+    timezone: settingsMap.get("platform.timezone")?.value ?? INITIAL_FORM.timezone,
+  };
+}
+
 export function AdminSettingsPage() {
   const [settings, setSettings] = useState<AdminSettingRecord[]>([]);
   const [form, setForm] = useState<SettingsForm>(INITIAL_FORM);
@@ -66,33 +94,8 @@ export function AdminSettingsPage() {
           return;
         }
 
-        const settingsMap = getSettingMap(nextSettings);
         setSettings(nextSettings);
-        setForm({
-          maintenanceBanner:
-            settingsMap.get("platform.maintenanceBanner")?.value ??
-            INITIAL_FORM.maintenanceBanner,
-          maintenanceMode: isEnabled(
-            settingsMap.get("platform.maintenanceMode")?.value,
-            INITIAL_FORM.maintenanceMode,
-          ),
-          mfaRequired: isEnabled(
-            settingsMap.get("security.mfaRequired")?.value,
-            INITIAL_FORM.mfaRequired,
-          ),
-          platformName:
-            settingsMap.get("platform.name")?.value ?? INITIAL_FORM.platformName,
-          primaryColor:
-            settingsMap.get("platform.primaryColor")?.value ?? INITIAL_FORM.primaryColor,
-          statusPageSync: isEnabled(
-            settingsMap.get("platform.statusPageSync")?.value,
-            INITIAL_FORM.statusPageSync,
-          ),
-          supportEmail:
-            settingsMap.get("platform.supportEmail")?.value ?? INITIAL_FORM.supportEmail,
-          timezone:
-            settingsMap.get("platform.timezone")?.value ?? INITIAL_FORM.timezone,
-        });
+        setForm(buildSettingsForm(nextSettings));
         setErrorMessage(null);
       } catch (error) {
         if (!isActive) {
@@ -117,6 +120,24 @@ export function AdminSettingsPage() {
   }, []);
 
   const integrationCount = useMemo(() => settings.length, [settings]);
+
+  async function reloadSettings() {
+    setLoading(true);
+
+    try {
+      const nextSettings = await fetchAdminSettings();
+      setSettings(nextSettings);
+      setForm(buildSettingsForm(nextSettings));
+      setErrorMessage(null);
+      setSuccessMessage("Les parametres ont ete resynchronises.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Impossible de charger les parametres.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function upsertSetting(
     settingKey: string,
@@ -211,8 +232,13 @@ export function AdminSettingsPage() {
           {successMessage ? <p className={styles.heroSub}>{successMessage}</p> : null}
         </div>
         <div className={styles.actionRow}>
-          <button type="button" className={styles.ghostBtn}>
-            {loading ? "Chargement..." : `${integrationCount} setting(s) charges`}
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={loading}
+            onClick={() => void reloadSettings()}
+          >
+            {loading ? "Chargement..." : "Rafraichir les parametres"}
           </button>
           <button type="button" className={styles.primaryBtn} disabled={saving} onClick={() => void handleSave()}>
             {saving ? "Enregistrement..." : "Enregistrer"}

@@ -35,7 +35,9 @@ export class EvaluationsController {
   async listEvaluations(
     @CurrentUser('roles') roles: string[],
   ): Promise<EvaluationResponseDto[]> {
-    const evaluations = await this.evaluationsService.listEvaluations();
+    const evaluations = this.canReadCorrectAnswers(roles)
+      ? await this.evaluationsService.listEvaluations()
+      : await this.evaluationsService.listPublishedEvaluations();
     return evaluations.map((evaluation) =>
       this.toEvaluationResponse(evaluation, this.canReadCorrectAnswers(roles)),
     );
@@ -56,7 +58,9 @@ export class EvaluationsController {
     @Param('id') id: string,
     @CurrentUser('roles') roles: string[],
   ): Promise<EvaluationResponseDto> {
-    const evaluation = await this.evaluationsService.getEvaluationById(id);
+    const evaluation = this.canReadCorrectAnswers(roles)
+      ? await this.evaluationsService.getEvaluationById(id)
+      : await this.evaluationsService.getPublishedEvaluationById(id);
     return this.toEvaluationResponse(
       evaluation,
       this.canReadCorrectAnswers(roles),
@@ -232,6 +236,7 @@ export class EvaluationsController {
     return {
       id: attempt.id,
       status: attempt.status,
+      answers: attempt.answers,
       score: attempt.score,
       maxScore: attempt.maxScore,
       feedback: attempt.feedback,
